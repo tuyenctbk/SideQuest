@@ -26,9 +26,13 @@ import com.google.firebase.ai.type.generationConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withTimeout
 import org.json.JSONObject
+import java.util.concurrent.ConcurrentHashMap
 
 private const val TAG = "DungeonMasterAI"
 
@@ -39,6 +43,20 @@ data class GeneratedQuestNarrative(
 )
 
 class DungeonMasterAiRepository {
+
+    // Smart Zero-Cost In-Memory Response Caches (prevents duplicate API calls on revisited regions/landmarks)
+    private val questCache = ConcurrentHashMap<String, GeneratedQuestNarrative>()
+    private val factDossierCache = ConcurrentHashMap<String, LandmarkFactDossier>()
+    private val riddleCache = ConcurrentHashMap<String, AiLandmarkRiddle>()
+
+    private val _freeTierCallsUsed = MutableStateFlow(0)
+    val freeTierCallsUsed: StateFlow<Int> = _freeTierCallsUsed.asStateFlow()
+
+    private val _cacheHitsSaved = MutableStateFlow(0)
+    val cacheHitsSaved: StateFlow<Int> = _cacheHitsSaved.asStateFlow()
+
+    private val _paidImageCallsUsed = MutableStateFlow(0)
+    val paidImageCallsUsed: StateFlow<Int> = _paidImageCallsUsed.asStateFlow()
 
     private val questJsonSchema = Schema.obj(
         properties = mapOf(
@@ -212,6 +230,12 @@ class DungeonMasterAiRepository {
         regionName: String,
         landmarks: List<RealLandmark>
     ): Result<GeneratedQuestNarrative> {
+        val cacheKey = "${style.id}::${regionName.lowercase()}::${landmarks.joinToString(",") { it.name }}"
+        questCache[cacheKey]?.let { cached ->
+            _cacheHitsSaved.value += 1
+            return Result.success(cached)
+        }
+
         return try {
             val landmarksBlock = landmarks.mapIndexed { idx, lm ->
                 "${idx + 1}. ${lm.name} [${lm.category.label}] (Lat ${lm.latitude}, Lng ${lm.longitude}) — Fact: ${lm.realFactOrAddress}"
@@ -229,6 +253,7 @@ class DungeonMasterAiRepository {
                 - Make the lore vivid and ready to be read aloud via Text-To-Speech on a walk.
             """.trimIndent()
 
+            _freeTierCallsUsed.value += 1
             val response = withTimeout(60_000L) {
                 structuredQuestModel.generateContent(prompt)
             }
@@ -265,13 +290,13 @@ class DungeonMasterAiRepository {
                 }
             }
 
-            Result.success(
-                GeneratedQuestNarrative(
-                    questTitle = questTitle,
-                    questIntro = questIntro,
-                    enrichedLandmarks = enriched
-                )
+            val narrative = GeneratedQuestNarrative(
+                questTitle = questTitle,
+                questIntro = questIntro,
+                enrichedLandmarks = enriched
             )
+            questCache[cacheKey] = narrative
+            Result.success(narrative)
         } catch (e: TimeoutCancellationException) {
             Log.e(TAG, "Quest generation timed out", e)
             Result.failure(Exception("Quest generation timed out after 60 seconds. Please try again."))
@@ -310,6 +335,7 @@ class DungeonMasterAiRepository {
                 4. Mint a unique, evocative RPG Relic name inspired by the scan.
             """.trimIndent()
 
+            _freeTierCallsUsed.value += 1
             val response = withTimeout(60_000L) {
                 visionScanModel.generateContent(
                     content {
@@ -391,6 +417,7 @@ class DungeonMasterAiRepository {
             Weave real historical, architectural, or cultural facts about ${activeLandmark?.name ?: regionName} into your RPG response, and end with an engaging hook or observation prompt for their walk!
         """.trimIndent()
 
+        _freeTierCallsUsed.value += 1
         val accumulated = StringBuilder()
         withTimeout(60_000L) {
             chatModel.generateContentStream(content { text(fullPrompt) }).collect { chunk ->
@@ -410,6 +437,7 @@ class DungeonMasterAiRepository {
      * Runtime Text-to-Image Generation via Firebase AI Logic (`gemini-nano-banana-2.1`).
      */
     suspend fun generateRelicArtworkWithGemini(promptText: String): Bitmap? {
+        _paidImageCallsUsed.value += 1
         val response = imageGenModel.generateContent(promptText)
         val imagePart = response.candidates.firstOrNull()
             ?.content?.parts?.filterIsInstance<ImagePart>()
@@ -424,6 +452,7 @@ class DungeonMasterAiRepository {
         inputBitmap: Bitmap,
         editInstruction: String
     ): Bitmap? {
+        _paidImageCallsUsed.value += 1
         val scaledInput = scaleBitmapForVision(inputBitmap, maxDimension = 1024)
         val response = imageGenModel.generateContent(
             content {
@@ -445,6 +474,12 @@ class DungeonMasterAiRepository {
         regionName: String,
         landmark: RealLandmark
     ): Result<LandmarkFactDossier> {
+        val cacheKey = "${style.id}::${landmark.name.lowercase()}"
+        factDossierCache[cacheKey]?.let { cached ->
+            _cacheHitsSaved.value += 1
+            return Result.success(cached)
+        }
+
         return try {
             val prompt = """
                 ${style.systemPersonaPrompt}
@@ -458,6 +493,7 @@ class DungeonMasterAiRepository {
                 Provide accurate historical/geographical facts, era, architectural style, an on-site walker observation tip, and an RPG hook in the voice of ${style.narratorTitle}.
             """.trimIndent()
 
+            _freeTierCallsUsed.value += 1
             val response = withTimeout(60_000L) {
                 factDossierModel.generateContent(prompt)
             }
@@ -477,18 +513,18 @@ class DungeonMasterAiRepository {
                 facts.add(landmark.realFactOrAddress)
             }
 
-            Result.success(
-                LandmarkFactDossier(
-                    landmarkName = landmark.name,
-                    verifiedEra = root.optString("verifiedEra").ifBlank { "Historic Civic Era" },
-                    architecturalStyle = root.optString("architecturalStyle").ifBlank { landmark.category.label },
-                    verifiedHistoricalFacts = facts,
-                    localInsiderTip = root.optString("localInsiderTip").ifBlank {
-                        "Inspect the primary plaque or facade details near the entrance."
-                    },
-                    rpgEncounterHook = root.optString("rpgEncounterHook").ifBlank { landmark.loreSnippet }
-                )
+            val dossier = LandmarkFactDossier(
+                landmarkName = landmark.name,
+                verifiedEra = root.optString("verifiedEra").ifBlank { "Historic Civic Era" },
+                architecturalStyle = root.optString("architecturalStyle").ifBlank { landmark.category.label },
+                verifiedHistoricalFacts = facts,
+                localInsiderTip = root.optString("localInsiderTip").ifBlank {
+                    "Inspect the primary plaque or facade details near the entrance."
+                },
+                rpgEncounterHook = root.optString("rpgEncounterHook").ifBlank { landmark.loreSnippet }
             )
+            factDossierCache[cacheKey] = dossier
+            Result.success(dossier)
         } catch (e: TimeoutCancellationException) {
             Result.failure(Exception("Fact-Check Dossier timed out after 60 seconds."))
         } catch (e: CancellationException) {
@@ -507,6 +543,12 @@ class DungeonMasterAiRepository {
         regionName: String,
         landmark: RealLandmark
     ): Result<AiLandmarkRiddle> {
+        val cacheKey = "${style.id}::${landmark.name.lowercase()}"
+        riddleCache[cacheKey]?.let { cached ->
+            _cacheHitsSaved.value += 1
+            return Result.success(cached)
+        }
+
         return try {
             val prompt = """
                 ${style.systemPersonaPrompt}
@@ -521,6 +563,7 @@ class DungeonMasterAiRepository {
                 - Set correctIndex to 0, 1, or 2.
             """.trimIndent()
 
+            _freeTierCallsUsed.value += 1
             val response = withTimeout(60_000L) {
                 riddleModel.generateContent(prompt)
             }
@@ -542,19 +585,19 @@ class DungeonMasterAiRepository {
             val finalOptions = options.take(3)
             val correctIdx = root.optInt("correctIndex", 0).coerceIn(0, 2)
 
-            Result.success(
-                AiLandmarkRiddle(
-                    landmarkName = landmark.name,
-                    question = root.optString("question").ifBlank {
-                        "What secret lies within the history of ${landmark.name}?"
-                    },
-                    options = finalOptions,
-                    correctIndex = correctIdx,
-                    hint = root.optString("hint").ifBlank { landmark.realFactOrAddress.take(90) },
-                    explanationLore = root.optString("explanationLore").ifBlank { landmark.realFactOrAddress },
-                    xpReward = 175
-                )
+            val riddle = AiLandmarkRiddle(
+                landmarkName = landmark.name,
+                question = root.optString("question").ifBlank {
+                    "What secret lies within the history of ${landmark.name}?"
+                },
+                options = finalOptions,
+                correctIndex = correctIdx,
+                hint = root.optString("hint").ifBlank { landmark.realFactOrAddress.take(90) },
+                explanationLore = root.optString("explanationLore").ifBlank { landmark.realFactOrAddress },
+                xpReward = 175
             )
+            riddleCache[cacheKey] = riddle
+            Result.success(riddle)
         } catch (e: TimeoutCancellationException) {
             Result.failure(Exception("AI Riddle generation timed out after 60 seconds."))
         } catch (e: CancellationException) {
@@ -587,6 +630,7 @@ class DungeonMasterAiRepository {
                 3. historicalConnection: 1 sentence tying their observation to $landmarkName in $regionName.
             """.trimIndent()
 
+            _freeTierCallsUsed.value += 1
             val response = withTimeout(60_000L) {
                 fieldLogModel.generateContent(prompt)
             }

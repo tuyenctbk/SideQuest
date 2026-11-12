@@ -87,6 +87,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.Image
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import com.example.model.ArtifactCategory
@@ -125,6 +127,9 @@ fun ArtifactBadgeVaultComponent(
     ) -> Unit,
     onNarrateLore: (title: String, loreText: String) -> Unit,
     relicArtUiState: RelicArtUiState = RelicArtUiState.Idle,
+    isPaidImageApiApproved: Boolean = false,
+    cacheHitsSaved: Int = 0,
+    onTogglePaidImageApiApproval: (Boolean) -> Unit = {},
     onGenerateRelicArtwork: (prompt: String) -> Unit = {},
     onEditRelicArtwork: (editInstruction: String) -> Unit = {},
     onClearRelicArt: () -> Unit = {},
@@ -195,9 +200,12 @@ fun ArtifactBadgeVaultComponent(
             onOpenCatalogDialog = { showCatalogDialog = true }
         )
 
-        // 1b. Runtime AI Relic & Travelogue Art Studio (gemini-nano-banana-2.1)
+        // 1b. Runtime AI Relic & Travelogue Art Studio (gemini-nano-banana-2.1) with Zero-Bill Eco Mode Guard
         AiRelicArtStudioCard(
             relicArtUiState = relicArtUiState,
+            isPaidImageApiApproved = isPaidImageApiApproved,
+            cacheHitsSaved = cacheHitsSaved,
+            onTogglePaidImageApiApproval = onTogglePaidImageApiApproval,
             featuredArtifactName = artifacts.firstOrNull()?.name ?: "Astral Wayfarer's Compass Shard",
             currentRegionName = currentRegionName,
             onGenerateArt = onGenerateRelicArtwork,
@@ -1726,6 +1734,9 @@ private fun EmptyVaultSectionCard(
 @Composable
 private fun AiRelicArtStudioCard(
     relicArtUiState: RelicArtUiState,
+    isPaidImageApiApproved: Boolean,
+    cacheHitsSaved: Int,
+    onTogglePaidImageApiApproval: (Boolean) -> Unit,
     featuredArtifactName: String,
     currentRegionName: String,
     onGenerateArt: (String) -> Unit,
@@ -1798,6 +1809,59 @@ private fun AiRelicArtStudioCard(
                 }
             }
 
+            // Smart Zero-Bill Eco Mode vs. User Opt-In Paid API Banner
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = if (isPaidImageApiApproved) GuildGold.copy(alpha = 0.14f) else ArcaneEmerald.copy(alpha = 0.14f),
+                shape = RoundedCornerShape(14.dp),
+                border = BorderStroke(
+                    1.dp,
+                    if (isPaidImageApiApproved) GuildGold.copy(alpha = 0.6f) else ArcaneEmerald.copy(alpha = 0.6f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (isPaidImageApiApproved) {
+                                "PAID IMAGE API ENABLED (USER OPT-IN)"
+                            } else {
+                                "ZERO-BILL ECO MODE ACTIVE ($0 COST GUARD)"
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (isPaidImageApiApproved) GuildGold else ArcaneEmerald,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = if (isPaidImageApiApproved) {
+                                "Live gemini-nano-banana-2.1 image calls unlocked • $cacheHitsSaved API calls saved by cache"
+                            } else {
+                                "Paid image APIs locked by default. Toggle on only if you want to use Blaze image quota ($cacheHitsSaved cached calls saved)."
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(
+                        checked = isPaidImageApiApproved,
+                        onCheckedChange = onTogglePaidImageApiApproval,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MidnightAbyss,
+                            checkedTrackColor = GuildGold,
+                            uncheckedThumbColor = ArcaneEmerald,
+                            uncheckedTrackColor = MidnightAbyss
+                        ),
+                        modifier = Modifier.testTag("toggle_paid_image_api_switch")
+                    )
+                }
+            }
+
             if (expanded || relicArtUiState !is RelicArtUiState.Idle) {
                 OutlinedTextField(
                     value = promptDraft,
@@ -1821,11 +1885,14 @@ private fun AiRelicArtStudioCard(
                             .testTag("generate_ai_relic_art_button"),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = GuildGold,
-                            contentColor = MidnightAbyss
+                            containerColor = if (isPaidImageApiApproved) GuildGold else SlateCardSurface,
+                            contentColor = if (isPaidImageApiApproved) MidnightAbyss else Color.White
                         )
                     ) {
-                        Text("Generate Art (+150 XP)", fontWeight = FontWeight.Bold)
+                        Text(
+                            text = if (isPaidImageApiApproved) "Generate Art (+150 XP)" else "Opt-In Above to Generate",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
                     OutlinedButton(
@@ -1835,9 +1902,12 @@ private fun AiRelicArtStudioCard(
                             .weight(1f)
                             .testTag("edit_ai_relic_art_button"),
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, CyberCyan)
+                        border = BorderStroke(1.dp, if (isPaidImageApiApproved) CyberCyan else SlateCardSurface)
                     ) {
-                        Text("Remix Image (+125 XP)", color = CyberCyan)
+                        Text(
+                            text = if (isPaidImageApiApproved) "Remix Image (+125 XP)" else "Locked ($0 Eco Mode)",
+                            color = if (isPaidImageApiApproved) CyberCyan else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
 

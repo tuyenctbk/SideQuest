@@ -83,7 +83,8 @@ import com.example.ui.theme.SlateCardSurface
 
 @Composable
 fun CodexInventoryScreen(
-    viewModel: SideQuestViewModel
+    viewModel: SideQuestViewModel,
+    onOpenDonationDialog: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val profile by viewModel.profileState.collectAsState()
@@ -97,6 +98,7 @@ fun CodexInventoryScreen(
     val partyMembers by viewModel.partyMembers.collectAsState()
     val isCoOpRiddleSolved by viewModel.isCoOpRiddleSolved.collectAsState()
     val regionName by viewModel.regionName.collectAsState()
+    val donationEngagementState by viewModel.donationEngagementState.collectAsState()
 
     var selectedSection by rememberSaveable { mutableIntStateOf(0) }
 
@@ -363,6 +365,8 @@ fun CodexInventoryScreen(
             0 -> {
                 item {
                     val relicArtState by viewModel.relicArtUiState.collectAsState()
+                    val isPaidImageApiApproved by viewModel.isPaidImageApiApproved.collectAsState()
+                    val cacheHitsSaved by viewModel.cacheHitsSaved.collectAsState()
                     ArtifactBadgeVaultComponent(
                         artifacts = artifacts,
                         badges = badges,
@@ -383,6 +387,11 @@ fun CodexInventoryScreen(
                             viewModel.narrateArtifactOrBadgeLore(title, lore)
                         },
                         relicArtUiState = relicArtState,
+                        isPaidImageApiApproved = isPaidImageApiApproved,
+                        cacheHitsSaved = cacheHitsSaved,
+                        onTogglePaidImageApiApproval = { approved ->
+                            viewModel.togglePaidImageApiApproval(approved)
+                        },
                         onGenerateRelicArtwork = { prompt -> viewModel.generateAiRelicArtwork(prompt) },
                         onEditRelicArtwork = { instruction -> viewModel.editAiRelicArtwork(instruction) },
                         onClearRelicArt = { viewModel.clearRelicArtState() }
@@ -472,6 +481,14 @@ fun CodexInventoryScreen(
                     )
                 }
             }
+        }
+
+        // 4. Static & Non-Intrusive Support Independent Development Section
+        item {
+            StaticSupportDevelopmentSectionCard(
+                engagementState = donationEngagementState,
+                onOpenSupportScreen = onOpenDonationDialog
+            )
         }
     }
 }

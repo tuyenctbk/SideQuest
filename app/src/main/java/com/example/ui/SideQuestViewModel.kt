@@ -224,6 +224,25 @@ class SideQuestViewModel(
     private val _isPolishingVoiceNote = MutableStateFlow(false)
     val isPolishingVoiceNote: StateFlow<Boolean> = _isPolishingVoiceNote.asStateFlow()
 
+    // Smart Zero-Cost / Free-Tier Eco Mode & User-Controlled Paid API Opt-In
+    private val _isPaidImageApiApproved = MutableStateFlow(false)
+    val isPaidImageApiApproved: StateFlow<Boolean> = _isPaidImageApiApproved.asStateFlow()
+
+    val freeTierCallsUsed: StateFlow<Int> = aiRepo.freeTierCallsUsed
+    val cacheHitsSaved: StateFlow<Int> = aiRepo.cacheHitsSaved
+    val paidImageCallsUsed: StateFlow<Int> = aiRepo.paidImageCallsUsed
+
+    // Smart Non-Intrusive Donation Engagement Engine State (Never triggers at app startup)
+    private val _donationEngagementState = MutableStateFlow(
+        DonationEngagementState(
+            isPermanentSupporter = false,
+            successfulOperationsCount = 0,
+            appLaunchCount = 3,
+            daysSinceInstall = 3
+        )
+    )
+    val donationEngagementState: StateFlow<DonationEngagementState> = _donationEngagementState.asStateFlow()
+
     // Daily Walking Distance & Streak Tracker
     val dailyWalkGoalMeters: Int = 1000
     private val _dailyWalkMetersLogged = MutableStateFlow(320)
@@ -440,6 +459,17 @@ class SideQuestViewModel(
                     if ("COOP_PARTY_VANGUARD" in codes) {
                         _isCoOpRiddleSolved.value = true
                     }
+                    if ("ACTIVE_GUILD_SUPPORTER" in codes) {
+                        val supporterBadge = badges.firstOrNull { it.badgeCode == "ACTIVE_GUILD_SUPPORTER" }
+                        _donationEngagementState.value = _donationEngagementState.value.copy(
+                            isPermanentSupporter = true,
+                            supporterTierTitle = supporterBadge?.title ?: "Guild Supporter",
+                            isHomeBannerDismissedCooldownActive = true,
+                            showPostOperationCard = false,
+                            showMilestoneCelebrationBanner = false,
+                            shouldTriggerAutoPromptDialog = false
+                        )
+                    }
                 }
             }
         }
@@ -462,6 +492,117 @@ class SideQuestViewModel(
         _aiErrorBanner.value = null
         _rewardBanner.value = null
         _firestoreErrorMessage.value = null
+    }
+
+    // =========================================================================
+    // SMART NON-INTRUSIVE DONATION ENGAGEMENT ENGINE
+    // =========================================================================
+
+    fun recordCoreOperationSuccess(taskTitle: String) {
+        val current = _donationEngagementState.value
+        val nextCount = current.successfulOperationsCount + 1
+        if (current.isPermanentSupporter) {
+            _donationEngagementState.value = current.copy(successfulOperationsCount = nextCount)
+            return
+        }
+
+        val isMilestone = nextCount in setOf(7, 10, 25, 50)
+        val shouldAutoPrompt = nextCount == 7 && !current.isHomeBannerDismissedCooldownActive
+
+        _donationEngagementState.value = current.copy(
+            successfulOperationsCount = nextCount,
+            showPostOperationCard = true,
+            lastCompletedTaskTitle = taskTitle,
+            showMilestoneCelebrationBanner = isMilestone || current.showMilestoneCelebrationBanner,
+            milestoneReachedCount = if (isMilestone) nextCount else current.milestoneReachedCount,
+            shouldTriggerAutoPromptDialog = shouldAutoPrompt
+        )
+    }
+
+    fun dismissHomeCompactDonationBannerFor14Days() {
+        _donationEngagementState.value = _donationEngagementState.value.copy(
+            isHomeBannerDismissedCooldownActive = true
+        )
+        _rewardBanner.value = "Support banner silenced for 14 days. You can always find it in the Guild Hub or Codex."
+    }
+
+    fun dismissPostOperationSupportCard() {
+        _donationEngagementState.value = _donationEngagementState.value.copy(
+            showPostOperationCard = false
+        )
+    }
+
+    fun dismissMilestoneSupportBanner() {
+        _donationEngagementState.value = _donationEngagementState.value.copy(
+            showMilestoneCelebrationBanner = false
+        )
+    }
+
+    fun consumeAutoPromptDonationTrigger() {
+        _donationEngagementState.value = _donationEngagementState.value.copy(
+            shouldTriggerAutoPromptDialog = false
+        )
+    }
+
+    fun showDonationStatusBanner(message: String) {
+        _rewardBanner.value = message
+    }
+
+    fun completeGooglePlaySupporterPurchase(tier: GooglePlayTipTier) {
+        val current = _donationEngagementState.value
+        _donationEngagementState.value = current.copy(
+            isPermanentSupporter = true,
+            supporterTierTitle = "${tier.tierLabel} (${tier.priceDisplay}) • ${tier.title}",
+            isHomeBannerDismissedCooldownActive = true,
+            showPostOperationCard = false,
+            showMilestoneCelebrationBanner = false,
+            shouldTriggerAutoPromptDialog = false
+        )
+        _isGuildPassActive.value = true
+        _isOfflinePackCached.value = true
+
+        val style = _selectedStyle.value
+        val (lat, lon) = _userCoordinates.value
+
+        viewModelScope.launch {
+            try {
+                firestoreRepo.awardProgress(
+                    xpDelta = tier.bonusXp.toLong(),
+                    landmarksDelta = 0L,
+                    questsCompletedDelta = 0L
+                )
+                firestoreRepo.unlockBadgeIfAbsent(
+                    badgeId = "badge_guild_supporter",
+                    badgeCode = "ACTIVE_GUILD_SUPPORTER",
+                    title = "Active Supporter: ${tier.title}",
+                    description = "Supported independent SideQuest development via Google Play (${tier.priceDisplay}). All prompts permanently disabled.",
+                    category = "MASTERY",
+                    rarity = "LEGENDARY",
+                    landmarkName = _regionName.value
+                )
+                firestoreRepo.recordFoundArtifact(
+                    artifactCode = "PATRON_SUPPORTER_CREST",
+                    name = "Patron Crest: ${tier.title}",
+                    loreInscription = "Forged in gratitude for supporting independent, ad-free SideQuest development (${tier.tierLabel} • ${tier.priceDisplay}).",
+                    category = ArtifactCategory.CREATOR_TOKEN,
+                    rarity = "LEGENDARY",
+                    landmarkName = "SideQuest Indie Guild • ${_regionName.value}",
+                    regionName = _regionName.value,
+                    characterStyle = style,
+                    latitude = lat,
+                    longitude = lon,
+                    resonanceValue = 120,
+                    isFavorite = true,
+                    inspectionNotes = "Verified Google Play 1-Tap Supporter Receipt (${tier.skuId})."
+                )
+                _rewardBanner.value = "Thank you, Active Supporter! +${tier.bonusXp} XP, Permanent Supporter Badge unlocked & all donation prompts disabled!"
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed saving supporter badge to Firestore", e)
+                _rewardBanner.value = "Thank you, Active Supporter! Permanent Supporter status unlocked."
+            }
+        }
     }
 
     fun clearVisionScanModal() {
@@ -710,6 +851,7 @@ class SideQuestViewModel(
                     )
                     _chatMessages.value = _chatMessages.value + msg
                     _rewardBanner.value = "Vision Scan Verified! +$finalXp XP & Minted '${finalResult.awardedRelicName}'"
+                    recordCoreOperationSuccess("Gemini Vision Scan (${finalResult.landmarkTitle})")
 
                     voiceNarrator.speak(
                         text = "${finalResult.landmarkTitle} verified. ${finalResult.inCharacterAnalysis}",
@@ -1040,11 +1182,29 @@ class SideQuestViewModel(
         _relicArtUiState.value = RelicArtUiState.Idle
     }
 
+    fun togglePaidImageApiApproval(approved: Boolean) {
+        _isPaidImageApiApproved.value = approved
+        if (approved) {
+            _relicArtUiState.value = RelicArtUiState.Idle
+            _rewardBanner.value = "Paid Image API Unlocked by User Opt-In. Live Gemini Relic Art Studio enabled."
+        } else {
+            _rewardBanner.value = "Zero-Bill Free-Tier Eco Mode Active ($0 Cost Guard). Paid Image API calls locked."
+        }
+    }
+
     /**
      * Generates custom RPG Relic / Travelogue artwork at runtime using `gemini-nano-banana-2.1`.
-     * Strictly follows Firebase AI Logic guidelines: 60s timeout, real loading state, no mock fallback.
+     * Strictly follows Firebase AI Logic guidelines: 60s timeout, real loading state, no mock fallback,
+     * and respects the user's Free-Tier Eco Mode opt-in preference.
      */
     fun generateAiRelicArtwork(customPrompt: String) {
+        if (!_isPaidImageApiApproved.value) {
+            val msg = "Zero-Bill Eco Mode is active ($0 cost guard). Toggle 'Allow Paid Image API' in the studio card if you decide to run live Gemini Image Generation."
+            _relicArtUiState.value = RelicArtUiState.Error(msg)
+            _aiErrorBanner.value = msg
+            return
+        }
+
         val style = _selectedStyle.value
         val activeLm = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
         val cleanPrompt = customPrompt.trim().ifBlank {
@@ -1090,6 +1250,13 @@ class SideQuestViewModel(
      * Edits/remixes the currently generated AI Relic artwork or a landmark plaque snapshot using `gemini-nano-banana-2.1`.
      */
     fun editAiRelicArtwork(editInstruction: String) {
+        if (!_isPaidImageApiApproved.value) {
+            val msg = "Zero-Bill Eco Mode is active ($0 cost guard). Toggle 'Allow Paid Image API' in the studio card if you decide to run live Gemini Image Remixing."
+            _relicArtUiState.value = RelicArtUiState.Error(msg)
+            _aiErrorBanner.value = msg
+            return
+        }
+
         val instruction = editInstruction.trim().ifBlank {
             "Add glowing astral runes and golden twilight mist around the artifact"
         }
@@ -1255,6 +1422,7 @@ class SideQuestViewModel(
                         landmarkName = riddle.landmarkName
                     )
                     _rewardBanner.value = "Riddle Solved! +${riddle.xpReward} XP & 'Cipher Duel Grandmaster' Badge!"
+                    recordCoreOperationSuccess("Riddle Duel (${riddle.landmarkName})")
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -1857,6 +2025,9 @@ class SideQuestViewModel(
                     } else {
                         "Waypoint Cleared! +$totalDeltaXp XP & Looted '${landmark.rewardItemName}'$bountySuffix"
                     }
+                    recordCoreOperationSuccess(
+                        if (allCleared) "Walking Quest '${_activeQuestTitle.value}'" else "Waypoint '${landmark.name}'"
+                    )
                 }
             } catch (e: CancellationException) {
                 throw e

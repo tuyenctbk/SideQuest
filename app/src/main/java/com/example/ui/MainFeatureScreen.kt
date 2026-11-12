@@ -31,17 +31,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -60,10 +65,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -141,6 +149,11 @@ fun MainFeatureScreen(
     val rewardBanner by viewModel.rewardBanner.collectAsState()
     val firestoreError by viewModel.firestoreErrorMessage.collectAsState()
     val isGuildPassActive by viewModel.isGuildPassActive.collectAsState()
+    val isPaidImageApiApproved by viewModel.isPaidImageApiApproved.collectAsState()
+    val freeTierCallsUsed by viewModel.freeTierCallsUsed.collectAsState()
+    val cacheHitsSaved by viewModel.cacheHitsSaved.collectAsState()
+    val paidImageCallsUsed by viewModel.paidImageCallsUsed.collectAsState()
+    val donationEngagementState by viewModel.donationEngagementState.collectAsState()
     val isSpeaking by viewModel.voiceNarrator.isSpeaking.collectAsState()
     val speakingTitle by viewModel.voiceNarrator.currentTitle.collectAsState()
 
@@ -160,7 +173,17 @@ fun MainFeatureScreen(
         if (showBusinessHubDialog) {
             GuildBusinessPartnerModal(
                 isGuildPassActive = isGuildPassActive,
+                isPaidImageApiApproved = isPaidImageApiApproved,
+                freeTierCallsUsed = freeTierCallsUsed,
+                cacheHitsSaved = cacheHitsSaved,
+                paidImageCallsUsed = paidImageCallsUsed,
+                donationEngagementState = donationEngagementState,
                 onToggleGuildPass = { viewModel.activateGuildPass() },
+                onTogglePaidImageApiApproval = { viewModel.togglePaidImageApiApproval(it) },
+                onOpenDonationDialog = {
+                    showBusinessHubDialog = false
+                    currentTab = 3
+                },
                 onSpawnSponsoredPartner = { name, offer ->
                     viewModel.spawnSponsoredPartnerStop(name, offer)
                     showBusinessHubDialog = false
@@ -181,7 +204,7 @@ fun MainFeatureScreen(
                         title = {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Text(
                                     text = "SIDEQUEST",
@@ -203,9 +226,48 @@ fun MainFeatureScreen(
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                     )
                                 }
+                                if (donationEngagementState.isPermanentSupporter) {
+                                    Surface(
+                                        modifier = Modifier
+                                            .clickable { currentTab = 3 }
+                                            .testTag("active_supporter_header_badge"),
+                                        color = ArcaneEmerald.copy(alpha = 0.22f),
+                                        shape = RoundedCornerShape(50),
+                                        border = BorderStroke(1.dp, ArcaneEmerald)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Verified,
+                                                contentDescription = null,
+                                                tint = ArcaneEmerald,
+                                                modifier = Modifier.size(13.dp)
+                                            )
+                                            Text(
+                                                text = "SUPPORTER",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = ArcaneEmerald,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         },
                         actions = {
+                            IconButton(
+                                onClick = { currentTab = 3 },
+                                modifier = Modifier.testTag("header_open_settings_support_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Settings & Support Development",
+                                    tint = if (currentTab == 3) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                             IconButton(
                                 onClick = { showBusinessHubDialog = true },
                                 modifier = Modifier.testTag("open_business_hub_button")
@@ -299,6 +361,23 @@ fun MainFeatureScreen(
                                     ),
                                     modifier = Modifier.testTag("nav_tab_codex")
                                 )
+                                NavigationBarItem(
+                                    selected = currentTab == 3,
+                                    onClick = { currentTab = 3 },
+                                    icon = {
+                                        Icon(
+                                            imageVector = Icons.Default.Settings,
+                                            contentDescription = "Settings & Support"
+                                        )
+                                    },
+                                    label = { Text("Settings") },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MidnightAbyss,
+                                        selectedTextColor = GuildGold,
+                                        indicatorColor = GuildGold
+                                    ),
+                                    modifier = Modifier.testTag("nav_tab_settings")
+                                )
                             }
                         }
                     }
@@ -334,6 +413,13 @@ fun MainFeatureScreen(
                                 icon = { Icon(Icons.Default.Inventory2, contentDescription = "Codex") },
                                 label = { Text("Codex") },
                                 modifier = Modifier.testTag("rail_tab_codex")
+                            )
+                            NavigationRailItem(
+                                selected = currentTab == 3,
+                                onClick = { currentTab = 3 },
+                                icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                                label = { Text("Settings") },
+                                modifier = Modifier.testTag("rail_tab_settings")
                             )
                         }
                     }
@@ -422,7 +508,18 @@ fun MainFeatureScreen(
                                     onOpenDungeonMasterChat = { currentTab = 1 }
                                 )
                                 1 -> DungeonMasterChatScreen(viewModel = viewModel)
-                                else -> CodexInventoryScreen(viewModel = viewModel)
+                                2 -> CodexInventoryScreen(
+                                    viewModel = viewModel,
+                                    onOpenDonationDialog = { currentTab = 3 }
+                                )
+                                else -> SettingsSupportScreen(
+                                    viewModel = viewModel,
+                                    onSignOut = {
+                                        viewModel.voiceNarrator.stop()
+                                        signOut(credentialManager, scope)
+                                    },
+                                    onNavigateToMap = { currentTab = 0 }
+                                )
                             }
                         }
                     }
@@ -435,7 +532,14 @@ fun MainFeatureScreen(
 @Composable
 private fun GuildBusinessPartnerModal(
     isGuildPassActive: Boolean,
+    isPaidImageApiApproved: Boolean,
+    freeTierCallsUsed: Int,
+    cacheHitsSaved: Int,
+    paidImageCallsUsed: Int,
+    donationEngagementState: DonationEngagementState,
     onToggleGuildPass: () -> Unit,
+    onTogglePaidImageApiApproval: (Boolean) -> Unit,
+    onOpenDonationDialog: () -> Unit,
     onSpawnSponsoredPartner: (String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -450,7 +554,9 @@ private fun GuildBusinessPartnerModal(
             border = BorderStroke(1.5.dp, GuildGold)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Row(
@@ -469,7 +575,7 @@ private fun GuildBusinessPartnerModal(
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
-                            text = "GUILD PASS & B2B PARTNER HUB",
+                            text = "GUILD PASS & AI QUOTA HUB",
                             style = MaterialTheme.typography.titleMedium,
                             color = GuildGold,
                             fontWeight = FontWeight.Bold
@@ -483,6 +589,61 @@ private fun GuildBusinessPartnerModal(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
                             tint = Color.White
+                        )
+                    }
+                }
+
+                // 0. Smart AI Quota & Zero-Bill Cost Control
+                Surface(
+                    color = ObsidianSurface,
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(
+                        1.dp,
+                        if (isPaidImageApiApproved) GuildGold.copy(alpha = 0.65f) else ArcaneEmerald
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = if (isPaidImageApiApproved) {
+                                        "PAID AI IMAGE STUDIO: OPTED IN"
+                                    } else {
+                                        "ZERO-BILL ECO MODE ($0 API COST GUARD)"
+                                    },
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = if (isPaidImageApiApproved) GuildGold else ArcaneEmerald
+                                )
+                                Text(
+                                    text = "Smart Cache + OpenStreetMap + On-Device Voice/TTS keep daily exploration at $0 cost.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Switch(
+                                checked = isPaidImageApiApproved,
+                                onCheckedChange = onTogglePaidImageApiApproval,
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = MidnightAbyss,
+                                    checkedTrackColor = GuildGold,
+                                    uncheckedThumbColor = ArcaneEmerald,
+                                    uncheckedTrackColor = MidnightAbyss
+                                ),
+                                modifier = Modifier.testTag("modal_paid_image_api_switch")
+                            )
+                        }
+                        Text(
+                            text = "📊 Session Quota: $cacheHitsSaved Calls Saved by Cache • $freeTierCallsUsed Free-Tier Flash Calls • $paidImageCallsUsed Paid Image Calls",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = CyberCyan
                         )
                     }
                 }
@@ -602,6 +763,12 @@ private fun GuildBusinessPartnerModal(
                         }
                     }
                 }
+
+                // 3. Static Support Independent Development Section (Navigates to Settings -> Support Development)
+                StaticSupportDevelopmentSectionCard(
+                    engagementState = donationEngagementState,
+                    onOpenSupportScreen = onOpenDonationDialog
+                )
             }
         }
     }

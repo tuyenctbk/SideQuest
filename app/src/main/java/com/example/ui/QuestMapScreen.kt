@@ -142,7 +142,8 @@ import kotlin.math.hypot
 @Composable
 fun QuestMapScreen(
     viewModel: SideQuestViewModel,
-    onOpenDungeonMasterChat: () -> Unit
+    onOpenDungeonMasterChat: () -> Unit,
+    onOpenDonationDialog: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val selectedStyle by viewModel.selectedStyle.collectAsState()
@@ -162,6 +163,7 @@ fun QuestMapScreen(
     val isGuildPassActive by viewModel.isGuildPassActive.collectAsState()
     val isOfflineCached by viewModel.isOfflinePackCached.collectAsState()
     val activeAtmosphere by viewModel.activeAtmosphereEvent.collectAsState()
+    val donationEngagementState by viewModel.donationEngagementState.collectAsState()
     val isSpeaking by viewModel.voiceNarrator.isSpeaking.collectAsState()
     val autoNarrate by viewModel.voiceNarrator.autoNarrate.collectAsState()
 
