@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">SideQuest</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="auth_subtitle">Turn daily walks into an AI-narrated audio RPG anchored to real parks, historical plaques, and coffee shops.</string>
+    <string name="tab_map_quest">World Map</string>
+    <string name="tab_dungeon_master">Dungeon Master</string>
+    <string name="tab_codex_loot">Guild Codex</string>
+    <string name="scan_gps_button">Scan My GPS</string>
+    <string name="generate_ai_quest">New AI Quest</string>
+    <string name="open_google_maps">Walk Route in Google Maps</string>
+</resources>

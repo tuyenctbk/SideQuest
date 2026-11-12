@@ -1,0 +1,285 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Default-Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitive Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidCharacterStyle(style) {
+      return style is string && style in [
+        'CYBERPUNK_SCOUT',
+        'VICTORIAN_HISTORIAN',
+        'ARCANE_CARTOGRAPHER',
+        'NOIR_DETECTIVE'
+      ];
+    }
+
+    function isValidRarity(rarity) {
+      return rarity is string && rarity in ['COMMON', 'RARE', 'EPIC', 'LEGENDARY'];
+    }
+
+    // 1. AdventurerProfile Validation
+    function isValidAdventurerProfile(data) {
+      return data.keys().hasAll([
+               'userId', 'displayName', 'characterStyle', 'xp',
+               'level', 'questsCompleted', 'landmarksVisited', 'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'displayName', 'characterStyle', 'xp',
+               'level', 'questsCompleted', 'landmarksVisited', 'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 80 &&
+             isValidCharacterStyle(data.characterStyle) &&
+             data.xp is int && data.xp >= 0 && data.xp <= 10000000 &&
+             data.level is int && data.level >= 1 && data.level <= 1000 &&
+             data.questsCompleted is int && data.questsCompleted >= 0 && data.questsCompleted <= 100000 &&
+             data.landmarksVisited is int && data.landmarksVisited >= 0 && data.landmarksVisited <= 500000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // 2. CompletedQuest Validation
+    function isValidCompletedQuest(data) {
+      return data.keys().hasAll([
+               'userId', 'title', 'characterStyle', 'regionName', 'summary',
+               'landmarksCount', 'completedStops', 'xpEarned', 'distanceMeters',
+               'status', 'stopsSummary', 'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'title', 'characterStyle', 'regionName', 'summary',
+               'landmarksCount', 'completedStops', 'xpEarned', 'distanceMeters',
+               'status', 'stopsSummary', 'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 140 &&
+             isValidCharacterStyle(data.characterStyle) &&
+             data.regionName is string && data.regionName.size() >= 1 && data.regionName.size() <= 120 &&
+             data.summary is string && data.summary.size() >= 1 && data.summary.size() <= 1000 &&
+             data.landmarksCount is int && data.landmarksCount >= 1 && data.landmarksCount <= 20 &&
+             data.completedStops is int && data.completedStops >= 0 && data.completedStops <= 20 &&
+             data.xpEarned is int && data.xpEarned >= 0 && data.xpEarned <= 100000 &&
+             data.distanceMeters is int && data.distanceMeters >= 0 && data.distanceMeters <= 500000 &&
+             data.status is string && data.status in ['ACTIVE', 'COMPLETED'] &&
+             data.stopsSummary is list && data.stopsSummary.size() <= 15 &&
+             (data.stopsSummary.size() == 0 || (data.stopsSummary[0] is string && data.stopsSummary[0].size() <= 140)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // 3. EarnedBadge Validation
+    function isValidEarnedBadge(data) {
+      return data.keys().hasAll([
+               'userId', 'badgeCode', 'title', 'description',
+               'category', 'rarity', 'landmarkName', 'createdAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'badgeCode', 'title', 'description',
+               'category', 'rarity', 'landmarkName', 'createdAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.badgeCode is string && data.badgeCode.size() >= 1 && data.badgeCode.size() <= 60 &&
+             data.title is string && data.title.size() >= 1 && data.title.size() <= 100 &&
+             data.description is string && data.description.size() >= 1 && data.description.size() <= 400 &&
+             data.category is string && data.category in ['EXPLORATION', 'LORE', 'HISTORIAN', 'CYBERPUNK', 'MASTERY'] &&
+             isValidRarity(data.rarity) &&
+             data.landmarkName is string && data.landmarkName.size() >= 1 && data.landmarkName.size() <= 140 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    // 4. InventoryItem Validation
+    function isValidInventoryItem(data) {
+      return data.keys().hasAll([
+               'userId', 'name', 'loreDescription', 'itemType',
+               'rarity', 'originLandmark', 'characterStyle',
+               'powerBonus', 'equipped', 'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'name', 'loreDescription', 'itemType',
+               'rarity', 'originLandmark', 'characterStyle',
+               'powerBonus', 'equipped', 'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.loreDescription is string && data.loreDescription.size() >= 1 && data.loreDescription.size() <= 600 &&
+             data.itemType is string && data.itemType in ['RELIC', 'CYBER_DECK', 'CHRONICLE', 'ELIXIR', 'KEYSTONE'] &&
+             isValidRarity(data.rarity) &&
+             data.originLandmark is string && data.originLandmark.size() >= 1 && data.originLandmark.size() <= 140 &&
+             isValidCharacterStyle(data.characterStyle) &&
+             data.powerBonus is int && data.powerBonus >= 1 && data.powerBonus <= 500 &&
+             data.equipped is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // 5. FoundArtifact Validation
+    function isValidFoundArtifact(data) {
+      return data.keys().hasAll([
+               'userId', 'artifactCode', 'name', 'loreInscription', 'category',
+               'rarity', 'landmarkName', 'regionName', 'characterStyle',
+               'latitude', 'longitude', 'resonanceValue', 'isFavorite',
+               'inspectionNotes', 'createdAt', 'updatedAt'
+             ]) &&
+             data.keys().hasOnly([
+               'userId', 'artifactCode', 'name', 'loreInscription', 'category',
+               'rarity', 'landmarkName', 'regionName', 'characterStyle',
+               'latitude', 'longitude', 'resonanceValue', 'isFavorite',
+               'inspectionNotes', 'createdAt', 'updatedAt'
+             ]) &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.artifactCode is string && data.artifactCode.size() >= 1 && data.artifactCode.size() <= 80 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.loreInscription is string && data.loreInscription.size() >= 1 && data.loreInscription.size() <= 600 &&
+             data.category is string && data.category in [
+               'PLAQUE_RUBBING', 'RELIC_SHARD', 'BOTANICAL_SPECIMEN',
+               'BREW_SEAL', 'VISION_SCAN', 'CREATOR_TOKEN'
+             ] &&
+             isValidRarity(data.rarity) &&
+             data.landmarkName is string && data.landmarkName.size() >= 1 && data.landmarkName.size() <= 140 &&
+             data.regionName is string && data.regionName.size() >= 1 && data.regionName.size() <= 120 &&
+             isValidCharacterStyle(data.characterStyle) &&
+             (data.latitude is float || data.latitude is int) && data.latitude >= -90 && data.latitude <= 90 &&
+             (data.longitude is float || data.longitude is int) && data.longitude >= -180 && data.longitude <= 180 &&
+             data.resonanceValue is int && data.resonanceValue >= 1 && data.resonanceValue <= 1000 &&
+             data.isFavorite is bool &&
+             data.inspectionNotes is string && data.inspectionNotes.size() <= 400 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // User Profile Collection
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidAdventurerProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidAdventurerProfile(incoming()) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'characterStyle', 'xp', 'level',
+                         'questsCompleted', 'landmarksVisited', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      // Subcollection: Quests
+      match /quests/{questId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(questId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(questId) &&
+                         request.auth.uid == userId &&
+                         isValidCompletedQuest(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(questId) &&
+                         isValidCompletedQuest(incoming()) &&
+                         request.auth.uid == userId &&
+                         existing().status != 'COMPLETED' &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'summary', 'completedStops', 'xpEarned', 'status', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(questId) && request.auth.uid == userId;
+      }
+
+      // Subcollection: Badges (Append-only immutable achievements)
+      match /badges/{badgeId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(badgeId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(badgeId) &&
+                         request.auth.uid == userId &&
+                         isValidEarnedBadge(incoming());
+
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(badgeId) && request.auth.uid == userId;
+      }
+
+      // Subcollection: Inventory Items
+      match /inventory/{itemId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(itemId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(itemId) &&
+                         request.auth.uid == userId &&
+                         isValidInventoryItem(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(itemId) &&
+                         isValidInventoryItem(incoming()) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'equipped', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(itemId) && request.auth.uid == userId;
+      }
+
+      // Subcollection: Found Artifacts (Cataloged curios with mutable favorite/inspection notes)
+      match /artifacts/{artifactId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(artifactId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(artifactId) &&
+                         request.auth.uid == userId &&
+                         isValidFoundArtifact(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(artifactId) &&
+                         isValidFoundArtifact(incoming()) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly([
+                           'isFavorite', 'inspectionNotes', 'updatedAt'
+                         ]);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(artifactId) && request.auth.uid == userId;
+      }
+    }
+  }
+}

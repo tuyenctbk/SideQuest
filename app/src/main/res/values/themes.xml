@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MyApplication" parent="android:Theme.DeviceDefault.NoActionBar">
+        <item name="android:windowBackground">@color/midnight_abyss</item>
+        <item name="android:colorBackground">@color/midnight_abyss</item>
+        <item name="android:statusBarColor">@color/midnight_abyss</item>
+        <item name="android:navigationBarColor">@color/midnight_abyss</item>
+    </style>
+</resources>

@@ -1,0 +1,6 @@
+{
+  "name": "SideQuest",
+  "description": "Real-world audio RPG and interactive walking tour guide powered by Google Maps, Gemini Dungeon Master, and Cloud Firestore.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

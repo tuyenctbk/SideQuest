@@ -1,0 +1,443 @@
+{
+  "entities": {
+    "AdventurerProfile": {
+      "title": "AdventurerProfile",
+      "description": "Stores the user's RPG persona, XP, level, and lifetime exploration stats.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The authenticated Firebase Auth UID of the adventurer."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name or adventurer callsign."
+        },
+        "characterStyle": {
+          "type": "string",
+          "enum": [
+            "CYBERPUNK_SCOUT",
+            "VICTORIAN_HISTORIAN",
+            "ARCANE_CARTOGRAPHER",
+            "NOIR_DETECTIVE"
+          ],
+          "description": "Selected RPG narrator and character archetype."
+        },
+        "xp": {
+          "type": "integer",
+          "description": "Total experience points earned from quests and landmarks."
+        },
+        "level": {
+          "type": "integer",
+          "description": "Current adventurer level."
+        },
+        "questsCompleted": {
+          "type": "integer",
+          "description": "Total number of walking quests completed."
+        },
+        "landmarksVisited": {
+          "type": "integer",
+          "description": "Total number of real-world landmarks discovered."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was created via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the profile was last updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "characterStyle",
+        "xp",
+        "level",
+        "questsCompleted",
+        "landmarksVisited",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CompletedQuest": {
+      "title": "CompletedQuest",
+      "description": "Represents an active or completed real-world walking quest with landmarks and lore.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "title": {
+          "type": "string",
+          "description": "RPG quest title generated for the walk."
+        },
+        "characterStyle": {
+          "type": "string",
+          "enum": [
+            "CYBERPUNK_SCOUT",
+            "VICTORIAN_HISTORIAN",
+            "ARCANE_CARTOGRAPHER",
+            "NOIR_DETECTIVE"
+          ],
+          "description": "Character style under which the quest was undertaken."
+        },
+        "regionName": {
+          "type": "string",
+          "description": "Real-world neighborhood or city name."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Narrative chronicle summary of the walking quest."
+        },
+        "landmarksCount": {
+          "type": "integer",
+          "description": "Total number of real-world waypoints in this quest."
+        },
+        "completedStops": {
+          "type": "integer",
+          "description": "Number of waypoints visited and cleared."
+        },
+        "xpEarned": {
+          "type": "integer",
+          "description": "Total XP awarded for this quest."
+        },
+        "distanceMeters": {
+          "type": "integer",
+          "description": "Total walking distance in meters."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "COMPLETED"
+          ],
+          "description": "Current quest progression status."
+        },
+        "stopsSummary": {
+          "type": "array",
+          "description": "Bounded list of real-world landmark names included in the quest."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the quest was started via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the quest was updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "characterStyle",
+        "regionName",
+        "summary",
+        "landmarksCount",
+        "completedStops",
+        "xpEarned",
+        "distanceMeters",
+        "status",
+        "stopsSummary",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "EarnedBadge": {
+      "title": "EarnedBadge",
+      "description": "An achievement badge unlocked by exploring real-world parks, plaques, and cafes.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "badgeCode": {
+          "type": "string",
+          "description": "Identifier code for the badge."
+        },
+        "title": {
+          "type": "string",
+          "description": "Badge display title."
+        },
+        "description": {
+          "type": "string",
+          "description": "How the badge was unlocked."
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "EXPLORATION",
+            "LORE",
+            "HISTORIAN",
+            "CYBERPUNK",
+            "MASTERY"
+          ],
+          "description": "Badge classification."
+        },
+        "rarity": {
+          "type": "string",
+          "enum": [
+            "COMMON",
+            "RARE",
+            "EPIC",
+            "LEGENDARY"
+          ],
+          "description": "Rarity tier of the badge."
+        },
+        "landmarkName": {
+          "type": "string",
+          "description": "Real-world landmark where the badge was earned."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the badge was unlocked via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "badgeCode",
+        "title",
+        "description",
+        "category",
+        "rarity",
+        "landmarkName",
+        "createdAt"
+      ]
+    },
+    "InventoryItem": {
+      "title": "InventoryItem",
+      "description": "An RPG relic, cyber-deck module, chronicle page, or elixir found at a real-world landmark.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the RPG item."
+        },
+        "loreDescription": {
+          "type": "string",
+          "description": "Lore description tying the item to the real-world landmark."
+        },
+        "itemType": {
+          "type": "string",
+          "enum": [
+            "RELIC",
+            "CYBER_DECK",
+            "CHRONICLE",
+            "ELIXIR",
+            "KEYSTONE"
+          ],
+          "description": "Category of inventory item."
+        },
+        "rarity": {
+          "type": "string",
+          "enum": [
+            "COMMON",
+            "RARE",
+            "EPIC",
+            "LEGENDARY"
+          ],
+          "description": "Rarity tier."
+        },
+        "originLandmark": {
+          "type": "string",
+          "description": "Real-world landmark where this item was discovered."
+        },
+        "characterStyle": {
+          "type": "string",
+          "enum": [
+            "CYBERPUNK_SCOUT",
+            "VICTORIAN_HISTORIAN",
+            "ARCANE_CARTOGRAPHER",
+            "NOIR_DETECTIVE"
+          ],
+          "description": "Persona archetype associated with the item."
+        },
+        "powerBonus": {
+          "type": "integer",
+          "description": "Stat bonus granted by the item."
+        },
+        "equipped": {
+          "type": "boolean",
+          "description": "Whether the adventurer currently has this item equipped."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the item was acquired via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the item was updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "loreDescription",
+        "itemType",
+        "rarity",
+        "originLandmark",
+        "characterStyle",
+        "powerBonus",
+        "equipped",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "FoundArtifact": {
+      "title": "FoundArtifact",
+      "description": "A cataloged real-world historical artifact, plaque rubbing, botanical specimen, or vision-verified curio discovered during a walking quest.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "artifactCode": {
+          "type": "string",
+          "description": "Unique catalog code for the found artifact."
+        },
+        "name": {
+          "type": "string",
+          "description": "Display title of the found artifact."
+        },
+        "loreInscription": {
+          "type": "string",
+          "description": "Historical and RPG lore inscription recorded when the artifact was discovered."
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "PLAQUE_RUBBING",
+            "RELIC_SHARD",
+            "BOTANICAL_SPECIMEN",
+            "BREW_SEAL",
+            "VISION_SCAN",
+            "CREATOR_TOKEN"
+          ],
+          "description": "Curio classification of the found artifact."
+        },
+        "rarity": {
+          "type": "string",
+          "enum": [
+            "COMMON",
+            "RARE",
+            "EPIC",
+            "LEGENDARY"
+          ],
+          "description": "Rarity tier of the artifact."
+        },
+        "landmarkName": {
+          "type": "string",
+          "description": "Real-world landmark where the artifact was discovered."
+        },
+        "regionName": {
+          "type": "string",
+          "description": "City or district where the artifact was discovered."
+        },
+        "characterStyle": {
+          "type": "string",
+          "enum": [
+            "CYBERPUNK_SCOUT",
+            "VICTORIAN_HISTORIAN",
+            "ARCANE_CARTOGRAPHER",
+            "NOIR_DETECTIVE"
+          ],
+          "description": "Character archetype active during discovery."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "GPS latitude of the discovery."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "GPS longitude of the discovery."
+        },
+        "resonanceValue": {
+          "type": "integer",
+          "description": "Arcane/historical resonance score of the artifact."
+        },
+        "isFavorite": {
+          "type": "boolean",
+          "description": "Whether the user has pinned this artifact to their Vault Showcase."
+        },
+        "inspectionNotes": {
+          "type": "string",
+          "description": "Personal field notes added by the explorer."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the artifact was cataloged via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the artifact was last updated via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "artifactCode",
+        "name",
+        "loreInscription",
+        "category",
+        "rarity",
+        "landmarkName",
+        "regionName",
+        "characterStyle",
+        "latitude",
+        "longitude",
+        "resonanceValue",
+        "isFavorite",
+        "inspectionNotes",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/AdventurerProfile"
+      },
+      "description": "User profile document storing RPG persona, level, XP, and exploration counters."
+    },
+    "/users/{userId}/quests/{questId}": {
+      "schema": {
+        "$ref": "#/entities/CompletedQuest"
+      },
+      "description": "User-scoped subcollection storing active and completed walking quests."
+    },
+    "/users/{userId}/badges/{badgeId}": {
+      "schema": {
+        "$ref": "#/entities/EarnedBadge"
+      },
+      "description": "User-scoped subcollection storing unlocked exploration badges."
+    },
+    "/users/{userId}/inventory/{itemId}": {
+      "schema": {
+        "$ref": "#/entities/InventoryItem"
+      },
+      "description": "User-scoped subcollection storing RPG inventory items collected at landmarks."
+    },
+    "/users/{userId}/artifacts/{artifactId}": {
+      "schema": {
+        "$ref": "#/entities/FoundArtifact"
+      },
+      "description": "User-scoped subcollection storing cataloged found artifacts, plaque rubbings, and vision curios."
+    }
+  }
+}
