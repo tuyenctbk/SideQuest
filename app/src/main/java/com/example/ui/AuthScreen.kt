@@ -199,6 +199,8 @@ fun AuthScreen(
     val credentialManager = remember { CredentialManager.create(context) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showOnboardingTour by remember { mutableStateOf(false) }
+    var previewStyle by remember { mutableStateOf(com.example.model.CharacterStyle.CYBERPUNK_SCOUT) }
 
     LaunchedEffect(Unit) {
         attemptAutoSignIn(
@@ -208,6 +210,18 @@ fun AuthScreen(
             onUnauthenticated = {},
             scope = scope
         )
+    }
+
+    if (showOnboardingTour) {
+        OnboardingFlowScreen(
+            selectedStyle = previewStyle,
+            onSelectStyle = { previewStyle = it },
+            onPreviewVoice = { _ -> },
+            onCompleteOnboarding = {
+                showOnboardingTour = false
+            }
+        )
+        return
     }
 
     Surface(
@@ -347,7 +361,33 @@ fun AuthScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(14.dp))
+
+                androidx.compose.material3.OutlinedButton(
+                    onClick = { showOnboardingTour = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .testTag("auth_open_onboarding_button"),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, CyberCyan.copy(alpha = 0.7f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = CyberCyan,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Interactive 4-Step Onboarding Tour",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = CyberCyan,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
 
                 if (errorMessage != null) {
                     Card(

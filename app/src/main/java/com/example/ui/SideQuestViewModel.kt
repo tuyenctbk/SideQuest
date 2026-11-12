@@ -30,6 +30,10 @@ import com.example.model.SeedLandmark
 import com.example.model.TavernVoucher
 import com.example.model.VisionScanResult
 import com.example.model.WorldAtmosphereEvent
+import com.example.util.AppEngagementTracker
+import com.example.util.AppEventType
+import com.example.util.EngagementTelemetryState
+import com.example.util.SmartPromptType
 import com.example.util.VoiceNarrator
 import com.google.firebase.ai.type.QuotaExceededException
 import com.google.firebase.firestore.FirebaseFirestoreException
@@ -56,8 +60,11 @@ class SideQuestViewModel(
     private val aiRepo: DungeonMasterAiRepository,
     val voiceNarrator: VoiceNarrator,
     private val currentUserId: String,
-    private val initialDisplayName: String
+    private val initialDisplayName: String,
+    private val engagementTracker: AppEngagementTracker = AppEngagementTracker()
 ) : ViewModel() {
+
+    val engagementTelemetryState: StateFlow<EngagementTelemetryState> = engagementTracker.state
 
     val presetRegions: List<PresetCityRegion> = landmarkRepo.presetRegions
 
@@ -90,6 +97,23 @@ class SideQuestViewModel(
             val root = firestoreError ?: error
             Log.w(TAG, "Error observing quests", root)
             _firestoreErrorMessage.value = root.localizedMessage ?: "Failed to load quest log"
+            emit(emptyList())
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = emptyList()
+        )
+
+    val completedQuestsState: StateFlow<List<CompletedQuest>> = firestoreRepo.observeCompletedQuests(currentUserId)
+        .catch { error ->
+            val firestoreError = generateSequence(error) { it.cause }
+                .filterIsInstance<FirebaseFirestoreException>()
+                .firstOrNull()
+            if (firestoreError == null && error is CancellationException) throw error
+            val root = firestoreError ?: error
+            Log.w(TAG, "Error observing completed quests", root)
+            _firestoreErrorMessage.value = root.localizedMessage ?: "Failed to load quest journal"
             emit(emptyList())
         }
         .stateIn(
@@ -548,7 +572,67 @@ class SideQuestViewModel(
         _rewardBanner.value = message
     }
 
+    // =========================================================================
+    // ONBOARDING & SMART LIFECYCLE AUTO POP-UP ENGINE (RATE / SHARE / UPDATE)
+    // =========================================================================
+
+    fun completeOnboardingTour() {
+        engagementTracker.markOnboardingCompleted()
+        _rewardBanner.value = "Onboarding Tour Completed! Choose any real-world waypoint or scan a plaque to begin."
+    }
+
+    fun openSmartPromptManually(promptType: SmartPromptType) {
+        engagementTracker.openPromptManuallyFromSettings(promptType)
+    }
+
+    fun acceptSmartPrompt(promptType: SmartPromptType, detail: String) {
+        engagementTracker.onPromptAccepted(promptType, detail)
+        when (promptType) {
+            SmartPromptType.RATE_APP -> {
+                _rewardBanner.value = "Thank you for rating SideQuest! +100 Explorer XP awarded."
+                viewModelScope.launch {
+                    try {
+                        firestoreRepo.awardProgress(xpDelta = 100L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (_: Exception) {}
+                }
+            }
+            SmartPromptType.SHARE_APP -> {
+                _rewardBanner.value = "SideQuest shared with fellow explorers! +75 Explorer XP awarded."
+                viewModelScope.launch {
+                    try {
+                        firestoreRepo.awardProgress(xpDelta = 75L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (_: Exception) {}
+                }
+            }
+            SmartPromptType.UPDATE_APP -> {
+                _rewardBanner.value = "Update check completed: v${engagementTracker.state.value.availableUpdateVersionName}"
+            }
+            SmartPromptType.NONE -> Unit
+        }
+    }
+
+    fun dismissSmartPrompt(promptType: SmartPromptType) {
+        engagementTracker.onPromptDismissed(promptType)
+    }
+
+    fun logDonationInteraction(methodLabel: String) {
+        engagementTracker.logEvent(
+            type = AppEventType.DONATION_CLICKED,
+            detail = methodLabel,
+            allowAutoPromptEvaluation = false
+        )
+    }
+
     fun completeGooglePlaySupporterPurchase(tier: GooglePlayTipTier) {
+        engagementTracker.logEvent(
+            type = AppEventType.DONATION_CLICKED,
+            detail = "Google Play Supporter Tier: ${tier.tierLabel} (${tier.priceDisplay})",
+            allowAutoPromptEvaluation = false
+        )
         val current = _donationEngagementState.value
         _donationEngagementState.value = current.copy(
             isPermanentSupporter = true,
@@ -852,6 +936,11 @@ class SideQuestViewModel(
                     _chatMessages.value = _chatMessages.value + msg
                     _rewardBanner.value = "Vision Scan Verified! +$finalXp XP & Minted '${finalResult.awardedRelicName}'"
                     recordCoreOperationSuccess("Gemini Vision Scan (${finalResult.landmarkTitle})")
+                    engagementTracker.logEvent(
+                        type = AppEventType.VISION_SCAN_VERIFIED,
+                        detail = "Verified '${finalResult.landmarkTitle}' (+$finalXp XP)",
+                        allowAutoPromptEvaluation = true
+                    )
 
                     voiceNarrator.speak(
                         text = "${finalResult.landmarkTitle} verified. ${finalResult.inCharacterAnalysis}",
@@ -1062,6 +1151,11 @@ class SideQuestViewModel(
                     landmarkName = cleanLandmark
                 )
                 _rewardBanner.value = "Cataloged '$cleanName' into Firestore Vault (+120 XP & 'Guild Curio Archivist' Badge)!"
+                engagementTracker.logEvent(
+                    type = AppEventType.ARTIFACT_CATALOGED,
+                    detail = "Cataloged '$cleanName' at $cleanLandmark",
+                    allowAutoPromptEvaluation = true
+                )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -1131,12 +1225,13 @@ class SideQuestViewModel(
 
         viewModelScope.launch {
             try {
-                firestoreRepo.createQuest(
+                firestoreRepo.recordCompletedQuest(
                     title = "$cleanTitle (Creator Trail)",
                     characterStyle = style,
                     regionName = cleanRegion,
                     summary = "Community-Authored Quest featuring $cleanStop. Riddle: $cleanRiddle",
                     landmarksCount = updated.size,
+                    xpEarned = 200,
                     distanceMeters = updated.sumOf { it.distanceMeters },
                     stopsSummary = updated.map { it.name }
                 )
@@ -1155,7 +1250,7 @@ class SideQuestViewModel(
                     isFavorite = true,
                     inspectionNotes = "Published to Community Trail Exchange."
                 )
-                firestoreRepo.awardProgress(xpDelta = 200L, landmarksDelta = 1L, questsCompletedDelta = 0L)
+                firestoreRepo.awardProgress(xpDelta = 200L, landmarksDelta = 1L, questsCompletedDelta = 1L)
                 firestoreRepo.unlockBadgeIfAbsent(
                     badgeId = "badge_community_trailblazer",
                     badgeCode = "COMMUNITY_QUEST_ARCHITECT",
@@ -1170,6 +1265,103 @@ class SideQuestViewModel(
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Failed publishing creator quest", e)
+            }
+        }
+    }
+
+    fun logCompletedQuestToJournal(
+        questName: String,
+        location: String,
+        summary: String,
+        landmarksCount: Int = 3,
+        distanceMeters: Int = 750,
+        xpEarned: Int = 250
+    ) {
+        val cleanName = questName.trim().ifBlank { "${_selectedStyle.value.title} Expedition" }.take(130)
+        val cleanLocation = location.trim().ifBlank { _regionName.value }.take(110)
+        val cleanSummary = summary.trim().ifBlank {
+            "Completed all waypoints along the walking route in $cleanLocation."
+        }.take(900)
+        val style = _selectedStyle.value
+        val stops = _landmarks.value.take(landmarksCount.coerceIn(1, 10)).map { it.name }
+            .ifEmpty { listOf(cleanLocation) }
+
+        viewModelScope.launch {
+            try {
+                firestoreRepo.recordCompletedQuest(
+                    title = cleanName,
+                    characterStyle = style,
+                    regionName = cleanLocation,
+                    summary = cleanSummary,
+                    landmarksCount = landmarksCount.coerceIn(1, 20),
+                    xpEarned = xpEarned.coerceIn(50, 5000),
+                    distanceMeters = distanceMeters.coerceIn(100, 100_000),
+                    stopsSummary = stops
+                )
+                firestoreRepo.awardProgress(
+                    xpDelta = xpEarned.toLong(),
+                    landmarksDelta = landmarksCount.toLong(),
+                    questsCompletedDelta = 1L
+                )
+                _rewardBanner.value = "Quest '$cleanName' recorded in Quest Journal (+$xpEarned XP)!"
+                engagementTracker.logEvent(
+                    type = AppEventType.QUEST_COMPLETED,
+                    detail = "Logged '$cleanName' in $cleanLocation (+$xpEarned XP)",
+                    allowAutoPromptEvaluation = true
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed logging completed quest to Firestore", e)
+                _aiErrorBanner.value = e.localizedMessage ?: "Failed to record completed quest."
+            }
+        }
+    }
+
+    fun completeQuestById(quest: CompletedQuest) {
+        if (quest.id.isBlank() || quest.status == "COMPLETED") return
+        val totalStops = quest.landmarksCount.toInt().coerceIn(1, 20)
+        val earnedXp = (quest.xpEarned.toInt()).coerceAtLeast(totalStops * 110)
+        viewModelScope.launch {
+            try {
+                firestoreRepo.updateQuestProgress(
+                    questId = quest.id,
+                    completedStops = totalStops,
+                    xpEarned = earnedXp,
+                    status = "COMPLETED",
+                    summary = "Completed all $totalStops waypoints in ${quest.regionName}. ${quest.summary}".take(950)
+                )
+                firestoreRepo.awardProgress(
+                    xpDelta = 150L,
+                    landmarksDelta = 1L,
+                    questsCompletedDelta = 1L
+                )
+                _rewardBanner.value = "Quest '${quest.title}' marked COMPLETED in Quest Journal (+150 Bonus XP)!"
+                engagementTracker.logEvent(
+                    type = AppEventType.QUEST_COMPLETED,
+                    detail = "Completed '${quest.title}' in ${quest.regionName}",
+                    allowAutoPromptEvaluation = true
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed completing quest in Firestore", e)
+                _aiErrorBanner.value = e.localizedMessage ?: "Could not mark quest completed."
+            }
+        }
+    }
+
+    fun deleteQuestFromJournal(questId: String) {
+        if (questId.isBlank()) return
+        viewModelScope.launch {
+            try {
+                firestoreRepo.deleteQuest(questId)
+                _rewardBanner.value = "Quest chronicle removed from Quest Journal."
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed deleting quest from Firestore", e)
+                _aiErrorBanner.value = e.localizedMessage ?: "Could not remove quest entry."
             }
         }
     }
@@ -1423,6 +1615,11 @@ class SideQuestViewModel(
                     )
                     _rewardBanner.value = "Riddle Solved! +${riddle.xpReward} XP & 'Cipher Duel Grandmaster' Badge!"
                     recordCoreOperationSuccess("Riddle Duel (${riddle.landmarkName})")
+                    engagementTracker.logEvent(
+                        type = AppEventType.RIDDLE_SOLVED,
+                        detail = "Solved AI Riddle at ${riddle.landmarkName} (+${riddle.xpReward} XP)",
+                        allowAutoPromptEvaluation = true
+                    )
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
@@ -1813,6 +2010,11 @@ class SideQuestViewModel(
                     stopsSummary = finalLandmarks.map { it.name }
                 )
                 _activeFirestoreQuestId.value = questId
+                engagementTracker.logEvent(
+                    type = AppEventType.QUEST_GENERATED,
+                    detail = "Generated '$questTitle' ($regionLabel • ${finalLandmarks.size} stops)",
+                    allowAutoPromptEvaluation = false
+                )
 
                 appendDungeonMasterMessage(
                     text = "**$questTitle**\n\n$questIntro\n\nFirst Stop: **${finalLandmarks.firstOrNull()?.name.orEmpty()}** — ${finalLandmarks.firstOrNull()?.loreSnippet.orEmpty()}",
@@ -2027,6 +2229,15 @@ class SideQuestViewModel(
                     }
                     recordCoreOperationSuccess(
                         if (allCleared) "Walking Quest '${_activeQuestTitle.value}'" else "Waypoint '${landmark.name}'"
+                    )
+                    engagementTracker.logEvent(
+                        type = if (allCleared) AppEventType.QUEST_COMPLETED else AppEventType.WAYPOINT_CLEARED,
+                        detail = if (allCleared) {
+                            "Completed Quest '${_activeQuestTitle.value}' at ${landmark.name}"
+                        } else {
+                            "Cleared Waypoint '${landmark.name}' ($clearedCount/${updatedList.size})"
+                        },
+                        allowAutoPromptEvaluation = true
                     )
                 }
             } catch (e: CancellationException) {

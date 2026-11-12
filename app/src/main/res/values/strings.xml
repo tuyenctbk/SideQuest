@@ -5,6 +5,7 @@
     <string name="tab_map_quest">World Map</string>
     <string name="tab_dungeon_master">Dungeon Master</string>
     <string name="tab_codex_loot">Guild Codex</string>
+    <string name="tab_quest_journal">Quest Journal</string>
     <string name="scan_gps_button">Scan My GPS</string>
     <string name="generate_ai_quest">New AI Quest</string>
     <string name="open_google_maps">Walk Route in Google Maps</string>

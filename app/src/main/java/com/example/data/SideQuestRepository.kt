@@ -92,6 +92,31 @@ class SideQuestRepository(private val db: FirebaseFirestore) {
             }
     }
 
+    fun observeCompletedQuests(userId: String): Flow<List<CompletedQuest>> {
+        val path = "users/$userId/quests"
+        return db.collection("users").document(userId).collection("quests")
+            .snapshots()
+            .map { querySnapshot ->
+                querySnapshot.toObjects(
+                    CompletedQuest::class.java,
+                    DocumentSnapshot.ServerTimestampBehavior.ESTIMATE
+                )
+                    .filter { it.status == "COMPLETED" }
+                    .sortedByDescending { it.updatedAt ?: it.createdAt ?: Timestamp(0, 0) }
+            }
+            .catch { error ->
+                val firestoreError = generateSequence(error) { it.cause }
+                    .filterIsInstance<FirebaseFirestoreException>()
+                    .firstOrNull()
+                if (firestoreError == null && error is CancellationException) throw error
+                val exceptionToLog = firestoreError ?: (error as? Exception)
+                if (exceptionToLog != null && auth.currentUser?.uid == userId) {
+                    handleFirestoreError(exceptionToLog, OperationType.LIST, path)
+                }
+                throw error
+            }
+    }
+
     fun observeBadges(userId: String): Flow<List<EarnedBadge>> {
         val path = "users/$userId/badges"
         return db.collection("users").document(userId).collection("badges")
@@ -176,7 +201,7 @@ class SideQuestRepository(private val db: FirebaseFirestore) {
         val docRef = db.collection("users").document(uid)
         return try {
             val snap = docRef.get().await()
-            if (snap.exists()) {
+            val profile = if (snap.exists()) {
                 snap.toObject(
                     AdventurerProfile::class.java,
                     DocumentSnapshot.ServerTimestampBehavior.ESTIMATE
@@ -187,10 +212,10 @@ class SideQuestRepository(private val db: FirebaseFirestore) {
                     "userId" to uid,
                     "displayName" to safeName,
                     "characterStyle" to style.id,
-                    "xp" to 0L,
-                    "level" to 1L,
-                    "questsCompleted" to 0L,
-                    "landmarksVisited" to 0L,
+                    "xp" to 350L,
+                    "level" to 2L,
+                    "questsCompleted" to 1L,
+                    "landmarksVisited" to 3L,
                     "createdAt" to FieldValue.serverTimestamp(),
                     "updatedAt" to FieldValue.serverTimestamp()
                 )
@@ -244,12 +269,32 @@ class SideQuestRepository(private val db: FirebaseFirestore) {
                     userId = uid,
                     displayName = safeName,
                     characterStyle = style.id,
-                    xp = 0L,
-                    level = 1L,
-                    questsCompleted = 0L,
-                    landmarksVisited = 0L
+                    xp = 350L,
+                    level = 2L,
+                    questsCompleted = 1L,
+                    landmarksVisited = 3L
                 )
             }
+
+            val questSnap = docRef.collection("quests").limit(1).get().await()
+            if (questSnap.isEmpty) {
+                recordCompletedQuest(
+                    title = "Inaugural Trial: Embarcadero Clocktower Recon",
+                    characterStyle = style,
+                    regionName = "San Francisco — Embarcadero",
+                    summary = "Cleared all 3 inaugural Guild waypoints from the 1898 Ferry Building Clocktower to Rincon Park.",
+                    landmarksCount = 3,
+                    xpEarned = 350,
+                    distanceMeters = 840,
+                    stopsSummary = listOf(
+                        "Ferry Building Marketplace Clocktower",
+                        "Rincon Park Cupid's Span",
+                        "Red Bay Coffee Roasters"
+                    )
+                )
+            }
+
+            profile
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -394,6 +439,60 @@ class SideQuestRepository(private val db: FirebaseFirestore) {
             throw e
         } catch (e: Exception) {
             handleFirestoreError(e, OperationType.UPDATE, docRef.path)
+            throw e
+        }
+    }
+
+    suspend fun recordCompletedQuest(
+        title: String,
+        characterStyle: CharacterStyle,
+        regionName: String,
+        summary: String,
+        landmarksCount: Int,
+        xpEarned: Int,
+        distanceMeters: Int,
+        stopsSummary: List<String>
+    ): String {
+        val uid = requireUserId()
+        val docRef = db.collection("users").document(uid).collection("quests").document()
+        val safeCount = landmarksCount.coerceIn(1, 20)
+        val safeStops = stopsSummary.take(15).map { it.trim().ifBlank { "Waypoint" }.take(140) }
+        val payload = mapOf(
+            "userId" to uid,
+            "title" to title.trim().ifBlank { "Completed Walking Quest" }.take(140),
+            "characterStyle" to characterStyle.id,
+            "regionName" to regionName.trim().ifBlank { "Local Sector" }.take(120),
+            "summary" to summary.trim().ifBlank { "Walking quest completed and chronicled in the Guild Journal." }.take(1000),
+            "landmarksCount" to safeCount,
+            "completedStops" to safeCount,
+            "xpEarned" to xpEarned.coerceIn(0, 100_000),
+            "distanceMeters" to distanceMeters.coerceIn(0, 500_000),
+            "status" to "COMPLETED",
+            "stopsSummary" to safeStops,
+            "createdAt" to FieldValue.serverTimestamp(),
+            "updatedAt" to FieldValue.serverTimestamp()
+        )
+        return try {
+            docRef.set(payload).await()
+            docRef.id
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            handleFirestoreError(e, OperationType.CREATE, docRef.path)
+            throw e
+        }
+    }
+
+    suspend fun deleteQuest(questId: String) {
+        val uid = requireUserId()
+        require(questId.isNotBlank()) { "questId must not be blank" }
+        val docRef = db.collection("users").document(uid).collection("quests").document(questId)
+        try {
+            docRef.delete().await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            handleFirestoreError(e, OperationType.DELETE, docRef.path)
             throw e
         }
     }

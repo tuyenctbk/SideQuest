@@ -298,6 +298,9 @@ object LiveQrCodeGenerator {
 fun SupportDevelopmentScreen(
     onBackToSettings: (() -> Unit)? = null,
     onStatusMessage: (String) -> Unit = {},
+    isPermanentSupporter: Boolean = false,
+    supporterTierTitle: String = "",
+    onCompleteGooglePlayPurchase: ((GooglePlayTipTier) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -309,13 +312,19 @@ fun SupportDevelopmentScreen(
     }
 
     var selectedPresetAmount by rememberSaveable { mutableIntStateOf(5) }
+    var customAmountInput by rememberSaveable { mutableStateOf("") }
     var showQrPreview by rememberSaveable { mutableStateOf(false) }
+    var selectedGooglePlayTierIndex by rememberSaveable { mutableIntStateOf(1) }
 
-    val paypalUrl = remember(selectedPresetAmount) {
-        "https://www.paypal.com/paypalme/SideQuestRPG/${selectedPresetAmount}USD"
+    val effectiveUsdAmount = remember(selectedPresetAmount, customAmountInput) {
+        customAmountInput.trim().toIntOrNull()?.coerceIn(1, 5000) ?: selectedPresetAmount
     }
-    val kofiUrl = remember(selectedPresetAmount) {
-        "https://ko-fi.com/sidequestrpg?amount=$selectedPresetAmount"
+
+    val paypalUrl = remember(effectiveUsdAmount) {
+        "https://www.paypal.com/paypalme/SideQuestRPG/${effectiveUsdAmount}USD"
+    }
+    val kofiUrl = remember(effectiveUsdAmount) {
+        "https://ko-fi.com/sidequestrpg?amount=$effectiveUsdAmount"
     }
     val qrBitmap = remember(paypalUrl) {
         LiveQrCodeGenerator.generatePayPalQrBitmap(paypalUrl)
@@ -453,10 +462,13 @@ fun SupportDevelopmentScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     PREDEFINED_WEB_DONATION_AMOUNTS.forEach { preset ->
-                        val isSelected = selectedPresetAmount == preset.amountUsd
+                        val isSelected = customAmountInput.isBlank() && selectedPresetAmount == preset.amountUsd
                         FilterChip(
                             selected = isSelected,
-                            onClick = { selectedPresetAmount = preset.amountUsd },
+                            onClick = {
+                                customAmountInput = ""
+                                selectedPresetAmount = preset.amountUsd
+                            },
                             label = {
                                 Text("${preset.label} • ${preset.subtitle}")
                             },
@@ -469,6 +481,25 @@ fun SupportDevelopmentScreen(
                     }
                 }
 
+                // Custom Amount Input (Any Amount USD)
+                OutlinedTextField(
+                    value = customAmountInput,
+                    onValueChange = { input ->
+                        customAmountInput = input.filter { it.isDigit() }.take(4)
+                    },
+                    label = { Text("Custom Amount (USD) — Optional (Active: $$effectiveUsdAmount USD)") },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = CyberCyan,
+                        unfocusedBorderColor = SlateCardSurface,
+                        focusedContainerColor = MidnightAbyss,
+                        unfocusedContainerColor = MidnightAbyss
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("custom_donation_amount_input")
+                )
+
                 // PayPal & Ko-fi Buttons using Intent.ACTION_VIEW
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -479,7 +510,7 @@ fun SupportDevelopmentScreen(
                             launchActionViewUrl(
                                 context = context,
                                 url = paypalUrl,
-                                label = "PayPal ($$selectedPresetAmount USD)",
+                                label = "PayPal ($$effectiveUsdAmount USD)",
                                 onStatusMessage = onStatusMessage
                             )
                         },
@@ -499,7 +530,7 @@ fun SupportDevelopmentScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "PayPal ($$selectedPresetAmount)",
+                            text = "PayPal ($$effectiveUsdAmount)",
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -509,7 +540,7 @@ fun SupportDevelopmentScreen(
                             launchActionViewUrl(
                                 context = context,
                                 url = kofiUrl,
-                                label = "Ko-fi ($$selectedPresetAmount USD)",
+                                label = "Ko-fi ($$effectiveUsdAmount USD)",
                                 onStatusMessage = onStatusMessage
                             )
                         },
@@ -529,7 +560,7 @@ fun SupportDevelopmentScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Ko-fi ($$selectedPresetAmount)",
+                            text = "Ko-fi ($$effectiveUsdAmount)",
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -571,7 +602,7 @@ fun SupportDevelopmentScreen(
                                 OutlinedButton(
                                     onClick = {
                                         copyToClipboard(context, "Support Links", "$paypalUrl | $kofiUrl")
-                                        onStatusMessage("Copied $$selectedPresetAmount PayPal & Ko-fi links to clipboard!")
+                                        onStatusMessage("Copied $$effectiveUsdAmount PayPal & Ko-fi links to clipboard!")
                                     },
                                     shape = RoundedCornerShape(8.dp),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
@@ -618,14 +649,14 @@ fun SupportDevelopmentScreen(
                             ) {
                                 Image(
                                     bitmap = qrBitmap.asImageBitmap(),
-                                    contentDescription = "PayPal QR Code for $$selectedPresetAmount USD",
+                                    contentDescription = "PayPal QR Code for $$effectiveUsdAmount USD",
                                     modifier = Modifier
                                         .size(160.dp)
                                         .clip(RoundedCornerShape(14.dp))
                                         .testTag("paypal_live_qr_image")
                                 )
                                 Text(
-                                    text = "Scan with PayPal or Banking App ($$selectedPresetAmount USD)",
+                                    text = "Scan with PayPal or Banking App ($$effectiveUsdAmount USD)",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = CyberCyan
                                 )
@@ -714,18 +745,23 @@ fun SupportDevelopmentScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // Non-functional static preview of upcoming Google Play Premium tiers
+                // Selectable preview of Google Play Premium tiers
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    GOOGLE_PLAY_TIP_TIERS.forEach { tier ->
+                    GOOGLE_PLAY_TIP_TIERS.forEachIndexed { index, tier ->
+                        val isSelected = selectedGooglePlayTierIndex == index
                         Surface(
-                            color = MidnightAbyss.copy(alpha = 0.65f),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { selectedGooglePlayTierIndex = index }
+                                .testTag("google_play_tier_chip_${index + 1}"),
+                            color = if (isSelected) GuildGold.copy(alpha = 0.2f) else MidnightAbyss.copy(alpha = 0.65f),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, SlateCardSurface)
+                            border = BorderStroke(1.dp, if (isSelected) GuildGold else SlateCardSurface)
                         ) {
                             Column(
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -734,16 +770,54 @@ fun SupportDevelopmentScreen(
                                 Text(
                                     text = "${tier.tierLabel} • ${tier.priceDisplay}",
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = if (isSelected) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "${tier.title} (Upcoming)",
+                                    text = "${tier.title} (+${tier.bonusXp} XP)",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                                    color = Color.White.copy(alpha = 0.85f)
                                 )
                             }
                         }
+                    }
+                }
+
+                val activeTier = GOOGLE_PLAY_TIP_TIERS.getOrElse(selectedGooglePlayTierIndex) { GOOGLE_PLAY_TIP_TIERS.first() }
+                if (onCompleteGooglePlayPurchase != null) {
+                    Button(
+                        onClick = {
+                            val hostActivity = context.findActivity()
+                            if (hostActivity != null) {
+                                onCompleteGooglePlayPurchase(activeTier)
+                            } else {
+                                onCompleteGooglePlayPurchase(activeTier)
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (isPermanentSupporter) ArcaneEmerald else GuildGold,
+                            contentColor = MidnightAbyss
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("google_play_tier_claim_button")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Verified,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = if (isPermanentSupporter) {
+                                "Active Supporter Verified ($supporterTierTitle)"
+                            } else {
+                                "Activate ${activeTier.tierLabel} (${activeTier.priceDisplay}) Supporter Pass (+${activeTier.bonusXp} XP)"
+                            },
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
 
@@ -787,9 +861,11 @@ fun SupportDevelopmentScreen(
 fun SettingsSupportScreen(
     viewModel: SideQuestViewModel,
     onSignOut: () -> Unit,
-    onNavigateToMap: () -> Unit
+    onNavigateToMap: () -> Unit,
+    onReplayOnboarding: () -> Unit = {}
 ) {
     val engagementState by viewModel.donationEngagementState.collectAsState()
+    val telemetryState by viewModel.engagementTelemetryState.collectAsState()
     val isGuildPassActive by viewModel.isGuildPassActive.collectAsState()
     val isPaidImageApiApproved by viewModel.isPaidImageApiApproved.collectAsState()
     val freeTierCallsUsed by viewModel.freeTierCallsUsed.collectAsState()
@@ -815,7 +891,15 @@ fun SettingsSupportScreen(
             item {
                 SupportDevelopmentScreen(
                     onBackToSettings = { isFocusedSupportRoute = false },
-                    onStatusMessage = { msg -> viewModel.showDonationStatusBanner(msg) }
+                    onStatusMessage = { msg ->
+                        viewModel.logDonationInteraction(msg)
+                        viewModel.showDonationStatusBanner(msg)
+                    },
+                    isPermanentSupporter = engagementState.isPermanentSupporter,
+                    supporterTierTitle = engagementState.supporterTierTitle,
+                    onCompleteGooglePlayPurchase = { tier ->
+                        viewModel.completeGooglePlaySupporterPurchase(tier)
+                    }
                 )
             }
         }
@@ -957,7 +1041,32 @@ fun SettingsSupportScreen(
         item {
             SupportDevelopmentScreen(
                 onBackToSettings = null,
-                onStatusMessage = { msg -> viewModel.showDonationStatusBanner(msg) }
+                onStatusMessage = { msg ->
+                    viewModel.logDonationInteraction(msg)
+                    viewModel.showDonationStatusBanner(msg)
+                },
+                isPermanentSupporter = engagementState.isPermanentSupporter,
+                supporterTierTitle = engagementState.supporterTierTitle,
+                onCompleteGooglePlayPurchase = { tier ->
+                    viewModel.completeGooglePlaySupporterPurchase(tier)
+                }
+            )
+        }
+
+        // 2b. Onboarding Tour, App Event Logging & Smart Lifecycle Prompts Card
+        item {
+            EngagementTelemetryAndPromptsCard(
+                telemetryState = telemetryState,
+                onReplayOnboarding = onReplayOnboarding,
+                onOpenRatePrompt = {
+                    viewModel.openSmartPromptManually(com.example.util.SmartPromptType.RATE_APP)
+                },
+                onOpenSharePrompt = {
+                    viewModel.openSmartPromptManually(com.example.util.SmartPromptType.SHARE_APP)
+                },
+                onOpenUpdatePrompt = {
+                    viewModel.openSmartPromptManually(com.example.util.SmartPromptType.UPDATE_APP)
+                }
             )
         }
 
@@ -1346,6 +1455,8 @@ private fun launchActionViewUrl(
     label: String,
     onStatusMessage: (String) -> Unit
 ) {
+    // Always copy link to clipboard as a guaranteed fallback and provide immediate user feedback
+    copyToClipboard(context, label, url)
     try {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
         val hostActivity = context.findActivity()
@@ -1355,8 +1466,8 @@ private fun launchActionViewUrl(
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         }
+        onStatusMessage("Opening $label ($url) — link also copied to clipboard!")
     } catch (_: Exception) {
-        copyToClipboard(context, label, url)
         onStatusMessage("$label link copied to clipboard: $url")
     }
 }

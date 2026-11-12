@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Settings
@@ -109,6 +110,7 @@ import com.example.ui.theme.MidnightAbyss
 import com.example.ui.theme.ObsidianSurface
 import com.example.ui.theme.SideQuestTheme
 import com.example.ui.theme.SlateCardSurface
+import com.example.util.AppEngagementTracker
 import com.example.util.VoiceNarrator
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -137,7 +139,8 @@ fun MainFeatureScreen(
                     aiRepo = DungeonMasterAiRepository(),
                     voiceNarrator = VoiceNarrator(app),
                     currentUserId = currentUserId,
-                    initialDisplayName = displayName
+                    initialDisplayName = displayName,
+                    engagementTracker = AppEngagementTracker(app)
                 )
             }
         }
@@ -154,13 +157,20 @@ fun MainFeatureScreen(
     val cacheHitsSaved by viewModel.cacheHitsSaved.collectAsState()
     val paidImageCallsUsed by viewModel.paidImageCallsUsed.collectAsState()
     val donationEngagementState by viewModel.donationEngagementState.collectAsState()
+    val telemetryState by viewModel.engagementTelemetryState.collectAsState()
     val isSpeaking by viewModel.voiceNarrator.isSpeaking.collectAsState()
     val speakingTitle by viewModel.voiceNarrator.currentTitle.collectAsState()
 
     var currentTab by rememberSaveable { mutableIntStateOf(0) }
     var showBusinessHubDialog by rememberSaveable { mutableStateOf(false) }
+    var showOnboardingFlow by rememberSaveable { mutableStateOf(false) }
+    var dismissedQuickStartBannerThisSession by rememberSaveable { mutableStateOf(false) }
 
-    if (currentTab != 0) {
+    if (showOnboardingFlow) {
+        BackHandler {
+            showOnboardingFlow = false
+        }
+    } else if (currentTab != 0) {
         BackHandler {
             currentTab = 0
         }
@@ -170,6 +180,39 @@ fun MainFeatureScreen(
     val rank = ExplorerRank.fromLevel(level)
 
     SideQuestTheme(characterStyle = selectedStyle) {
+        if (showOnboardingFlow) {
+            OnboardingFlowScreen(
+                selectedStyle = selectedStyle,
+                onSelectStyle = { viewModel.selectCharacterStyle(it) },
+                onPreviewVoice = { style ->
+                    viewModel.voiceNarrator.speak(
+                        text = "${style.narratorTitle}: ${style.tagline}",
+                        style = style,
+                        title = "${style.narratorTitle} • Preview"
+                    )
+                },
+                onCompleteOnboarding = {
+                    viewModel.completeOnboardingTour()
+                    showOnboardingFlow = false
+                }
+            )
+            return@SideQuestTheme
+        }
+
+        // Smart Auto Pop-Up Suggestions (Update App, Share App, Rate App)
+        // Strictly governed by AppEngagementTracker: NEVER shown at app start, max 1 per session, multi-day cooldowns
+        SmartLifecyclePromptHost(
+            telemetryState = telemetryState,
+            adventurerName = profile?.displayName ?: displayName,
+            completedQuestsCount = (profile?.questsCompleted ?: 1L).toInt().coerceAtLeast(1),
+            onAcceptPrompt = { promptType, detail ->
+                viewModel.acceptSmartPrompt(promptType, detail)
+            },
+            onDismissPrompt = { promptType ->
+                viewModel.dismissSmartPrompt(promptType)
+            }
+        )
+
         if (showBusinessHubDialog) {
             GuildBusinessPartnerModal(
                 isGuildPassActive = isGuildPassActive,
@@ -182,7 +225,7 @@ fun MainFeatureScreen(
                 onTogglePaidImageApiApproval = { viewModel.togglePaidImageApiApproval(it) },
                 onOpenDonationDialog = {
                     showBusinessHubDialog = false
-                    currentTab = 3
+                    currentTab = 4
                 },
                 onSpawnSponsoredPartner = { name, offer ->
                     viewModel.spawnSponsoredPartnerStop(name, offer)
@@ -229,7 +272,7 @@ fun MainFeatureScreen(
                                 if (donationEngagementState.isPermanentSupporter) {
                                     Surface(
                                         modifier = Modifier
-                                            .clickable { currentTab = 3 }
+                                            .clickable { currentTab = 4 }
                                             .testTag("active_supporter_header_badge"),
                                         color = ArcaneEmerald.copy(alpha = 0.22f),
                                         shape = RoundedCornerShape(50),
@@ -259,13 +302,33 @@ fun MainFeatureScreen(
                         },
                         actions = {
                             IconButton(
-                                onClick = { currentTab = 3 },
+                                onClick = { showOnboardingFlow = true },
+                                modifier = Modifier.testTag("header_open_onboarding_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AutoAwesome,
+                                    contentDescription = "Interactive Onboarding Tour",
+                                    tint = CyberCyan
+                                )
+                            }
+                            IconButton(
+                                onClick = { currentTab = 2 },
+                                modifier = Modifier.testTag("header_open_quest_journal_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.HistoryEdu,
+                                    contentDescription = stringResource(id = R.string.tab_quest_journal),
+                                    tint = if (currentTab == 2) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            IconButton(
+                                onClick = { currentTab = 4 },
                                 modifier = Modifier.testTag("header_open_settings_support_button")
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Settings,
                                     contentDescription = "Settings & Support Development",
-                                    tint = if (currentTab == 3) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = if (currentTab == 4) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                             IconButton(
@@ -349,6 +412,23 @@ fun MainFeatureScreen(
                                     onClick = { currentTab = 2 },
                                     icon = {
                                         Icon(
+                                            imageVector = Icons.Default.HistoryEdu,
+                                            contentDescription = stringResource(id = R.string.tab_quest_journal)
+                                        )
+                                    },
+                                    label = { Text(stringResource(id = R.string.tab_quest_journal)) },
+                                    colors = NavigationBarItemDefaults.colors(
+                                        selectedIconColor = MidnightAbyss,
+                                        selectedTextColor = GuildGold,
+                                        indicatorColor = GuildGold
+                                    ),
+                                    modifier = Modifier.testTag("nav_tab_quest_journal")
+                                )
+                                NavigationBarItem(
+                                    selected = currentTab == 3,
+                                    onClick = { currentTab = 3 },
+                                    icon = {
+                                        Icon(
                                             imageVector = Icons.Default.Inventory2,
                                             contentDescription = stringResource(id = R.string.tab_codex_loot)
                                         )
@@ -362,8 +442,8 @@ fun MainFeatureScreen(
                                     modifier = Modifier.testTag("nav_tab_codex")
                                 )
                                 NavigationBarItem(
-                                    selected = currentTab == 3,
-                                    onClick = { currentTab = 3 },
+                                    selected = currentTab == 4,
+                                    onClick = { currentTab = 4 },
                                     icon = {
                                         Icon(
                                             imageVector = Icons.Default.Settings,
@@ -410,13 +490,20 @@ fun MainFeatureScreen(
                             NavigationRailItem(
                                 selected = currentTab == 2,
                                 onClick = { currentTab = 2 },
+                                icon = { Icon(Icons.Default.HistoryEdu, contentDescription = "Quest Journal") },
+                                label = { Text("Journal") },
+                                modifier = Modifier.testTag("rail_tab_quest_journal")
+                            )
+                            NavigationRailItem(
+                                selected = currentTab == 3,
+                                onClick = { currentTab = 3 },
                                 icon = { Icon(Icons.Default.Inventory2, contentDescription = "Codex") },
                                 label = { Text("Codex") },
                                 modifier = Modifier.testTag("rail_tab_codex")
                             )
                             NavigationRailItem(
-                                selected = currentTab == 3,
-                                onClick = { currentTab = 3 },
+                                selected = currentTab == 4,
+                                onClick = { currentTab = 4 },
                                 icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
                                 label = { Text("Settings") },
                                 modifier = Modifier.testTag("rail_tab_settings")
@@ -493,6 +580,18 @@ fun MainFeatureScreen(
                             }
                         }
 
+                        AnimatedVisibility(
+                            visible = !telemetryState.isOnboardingCompleted && !dismissedQuickStartBannerThisSession && currentTab == 0
+                        ) {
+                            OnboardingQuickStartBanner(
+                                onLaunchOnboarding = { showOnboardingFlow = true },
+                                onDismiss = {
+                                    dismissedQuickStartBannerThisSession = true
+                                    viewModel.completeOnboardingTour()
+                                }
+                            )
+                        }
+
                         AnimatedContent(
                             targetState = currentTab,
                             transitionSpec = {
@@ -508,9 +607,14 @@ fun MainFeatureScreen(
                                     onOpenDungeonMasterChat = { currentTab = 1 }
                                 )
                                 1 -> DungeonMasterChatScreen(viewModel = viewModel)
-                                2 -> CodexInventoryScreen(
+                                2 -> QuestJournalScreen(
                                     viewModel = viewModel,
-                                    onOpenDonationDialog = { currentTab = 3 }
+                                    onNavigateToMap = { currentTab = 0 }
+                                )
+                                3 -> CodexInventoryScreen(
+                                    viewModel = viewModel,
+                                    onOpenDonationDialog = { currentTab = 4 },
+                                    onOpenQuestJournal = { currentTab = 2 }
                                 )
                                 else -> SettingsSupportScreen(
                                     viewModel = viewModel,
@@ -518,7 +622,8 @@ fun MainFeatureScreen(
                                         viewModel.voiceNarrator.stop()
                                         signOut(credentialManager, scope)
                                     },
-                                    onNavigateToMap = { currentTab = 0 }
+                                    onNavigateToMap = { currentTab = 0 },
+                                    onReplayOnboarding = { showOnboardingFlow = true }
                                 )
                             }
                         }

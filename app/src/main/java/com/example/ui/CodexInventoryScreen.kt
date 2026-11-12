@@ -84,7 +84,8 @@ import com.example.ui.theme.SlateCardSurface
 @Composable
 fun CodexInventoryScreen(
     viewModel: SideQuestViewModel,
-    onOpenDonationDialog: () -> Unit = {}
+    onOpenDonationDialog: () -> Unit = {},
+    onOpenQuestJournal: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val profile by viewModel.profileState.collectAsState()
@@ -434,6 +435,30 @@ fun CodexInventoryScreen(
                     )
                 }
 
+                item {
+                    OutlinedButton(
+                        onClick = onOpenQuestJournal,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("open_full_quest_journal_button"),
+                        shape = RoundedCornerShape(14.dp),
+                        border = BorderStroke(1.dp, GuildGold)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.HistoryEdu,
+                            contentDescription = null,
+                            tint = GuildGold,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Open Full Quest Journal Screen",
+                            color = GuildGold,
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
+                }
+
                 if (quests.isEmpty()) {
                     item {
                         EmptyCodexStateCard(
@@ -443,10 +468,17 @@ fun CodexInventoryScreen(
                     }
                 } else {
                     items(quests, key = { it.id.ifBlank { it.title } }) { quest ->
-                        QuestChronicleCard(
+                        QuestJournalEntryCard(
                             quest = quest,
+                            onNarrateQuest = {
+                                viewModel.narrateArtifactOrBadgeLore(
+                                    title = quest.questName,
+                                    loreText = "Completed in ${quest.location}. ${quest.summary}"
+                                )
+                            },
                             onShareQuest = {
-                                val text = "📜 SideQuest Chronicle: ${quest.title}\n📍 ${quest.regionName}\n✨ ${quest.completedStops}/${quest.landmarksCount} stops (${quest.distanceMeters}m) • +${quest.xpEarned} XP"
+                                val formattedDate = formatQuestCompletionDate(quest.completedAt)
+                                val text = "📜 SideQuest Journal: ${quest.questName}\n📍 ${quest.location}\n🗓️ Completed: $formattedDate\n✨ ${quest.completedStops}/${quest.landmarksCount} stops (${quest.distanceMeters}m) • +${quest.xpEarned} XP"
                                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                                     type = "text/plain"
                                     putExtra(Intent.EXTRA_TEXT, text)
@@ -455,7 +487,9 @@ fun CodexInventoryScreen(
                                     context.startActivity(Intent.createChooser(sendIntent, "Share Quest Chronicle"))
                                 } catch (_: Exception) {
                                 }
-                            }
+                            },
+                            onCompleteActiveQuest = { viewModel.completeQuestById(quest) },
+                            onDeleteQuest = { viewModel.deleteQuestFromJournal(quest.id) }
                         )
                     }
                 }

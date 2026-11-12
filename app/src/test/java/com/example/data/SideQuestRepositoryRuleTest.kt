@@ -54,6 +54,30 @@ class SideQuestRepositoryRuleTest : FirestoreEmulatorTestBase() {
             )
         }
 
+        val completedJournalId = withTimeout(DEFAULT_TIMEOUT_MS) {
+            repository.recordCompletedQuest(
+                title = "Shadows of the Ferry Archway",
+                characterStyle = CharacterStyle.NOIR_DETECTIVE,
+                regionName = "San Francisco — Embarcadero",
+                summary = "Decoded the brass compass inscription.",
+                landmarksCount = 3,
+                xpEarned = 275,
+                distanceMeters = 780,
+                stopsSummary = listOf("Ferry Clocktower", "Rincon Park", "Red Bay Roasters")
+            )
+        }
+        assertTrue(completedJournalId.isNotBlank())
+
+        val completedQuests = withTimeout(FLOW_TIMEOUT_MS) {
+            repository.observeCompletedQuests(uid).first { list ->
+                list.any { it.id == questId } && list.any { it.id == completedJournalId }
+            }
+        }
+        val recordedEntry = completedQuests.first { it.id == completedJournalId }
+        assertEquals("Shadows of the Ferry Archway", recordedEntry.questName)
+        assertEquals("San Francisco — Embarcadero", recordedEntry.location)
+        assertNotNull(recordedEntry.completedAt)
+
         // Unlock a badge with dynamic ID
         val uniqueBadgeId = "badge_${UUID.randomUUID()}"
         val unlocked = withTimeout(DEFAULT_TIMEOUT_MS) {

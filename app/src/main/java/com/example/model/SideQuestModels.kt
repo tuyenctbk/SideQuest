@@ -359,7 +359,11 @@ data class CompletedQuest(
     val stopsSummary: List<String> = emptyList(),
     @ServerTimestamp val createdAt: Timestamp? = null,
     @ServerTimestamp val updatedAt: Timestamp? = null
-)
+) {
+    val questName: String get() = title
+    val location: String get() = regionName
+    val completedAt: Timestamp? get() = updatedAt ?: createdAt
+}
 
 @IgnoreExtraProperties
 data class EarnedBadge(
