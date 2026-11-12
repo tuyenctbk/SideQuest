@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -219,7 +220,7 @@ fun SideQuestSplashScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "SIDEQUEST",
+                text = stringResource(id = R.string.app_name),
                 style = MaterialTheme.typography.displayLarge,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,

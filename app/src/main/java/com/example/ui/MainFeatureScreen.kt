@@ -250,7 +250,7 @@ fun MainFeatureScreen(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 Text(
-                                    text = "SIDEQUEST",
+                                    text = stringResource(id = R.string.app_name),
                                     style = MaterialTheme.typography.headlineMedium,
                                     color = Color.White
                                 )
@@ -290,7 +290,7 @@ fun MainFeatureScreen(
                                                 modifier = Modifier.size(13.dp)
                                             )
                                             Text(
-                                                text = "SUPPORTER",
+                                                text = stringResource(id = R.string.supporter_active_badge),
                                                 style = MaterialTheme.typography.labelSmall,
                                                 color = ArcaneEmerald,
                                                 fontWeight = FontWeight.Bold
@@ -450,7 +450,7 @@ fun MainFeatureScreen(
                                             contentDescription = "Settings & Support"
                                         )
                                     },
-                                    label = { Text("Settings") },
+                                    label = { Text(stringResource(id = R.string.tab_settings)) },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = MidnightAbyss,
                                         selectedTextColor = GuildGold,
@@ -505,7 +505,7 @@ fun MainFeatureScreen(
                                 selected = currentTab == 4,
                                 onClick = { currentTab = 4 },
                                 icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                                label = { Text("Settings") },
+                                label = { Text(stringResource(id = R.string.tab_settings)) },
                                 modifier = Modifier.testTag("rail_tab_settings")
                             )
                         }

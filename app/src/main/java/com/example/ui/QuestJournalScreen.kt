@@ -64,10 +64,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.R
 import com.example.model.CharacterStyle
 import com.example.model.CompletedQuest
 import com.example.ui.theme.ArcaneEmerald
@@ -227,12 +229,12 @@ fun QuestJournalContent(
                             }
                             Column {
                                 Text(
-                                    text = "CLOUD FIRESTORE CHRONICLE",
+                                    text = stringResource(id = R.string.journal_subtitle),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = CyberCyan
                                 )
                                 Text(
-                                    text = "Quest Journal",
+                                    text = stringResource(id = R.string.journal_title),
                                     style = MaterialTheme.typography.headlineMedium,
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold
@@ -257,7 +259,7 @@ fun QuestJournalContent(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = if (showLogQuestForm) "Close" else "Log Quest",
+                                text = if (showLogQuestForm) stringResource(id = R.string.action_close) else stringResource(id = R.string.journal_log_manual_btn),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold
                             )

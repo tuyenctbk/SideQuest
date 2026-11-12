@@ -1,0 +1,472 @@
+language,language_name,app_name,short_description,full_description
+en-US,English (United States),SideQuest: Audio RPG Walks,Turn outdoor walks into an interactive audio RPG with AI Dungeon Master lore.,"Step outside and transform your everyday neighborhood stroll into an epic adventure. SideQuest turns real-world parks, historical monuments, architectural plaques, and local coffee shops into living RPG waypoints narrated by your personal AI Dungeon Master.
+
+EXPLORE REAL-WORLD PLACES
+Using live GPS and global OpenStreetMap data, SideQuest anchors fantasy and historical encounters to actual places around you. Discover hidden gems, plaques, and landmarks in your neighborhood or explore preset cultural capitals like San Francisco, Kyoto, London, and New York.
+
+CHOOSE YOUR DUNGEON MASTER PERSONA
+Customize the tone and flavor of your expedition with distinct narrator voices:
+• Cyberpunk Scout: High-tech signal interception and neon district recon.
+• Victorian Historian: Elegant academic curiosity, archival chronicles, and brass plaque rubbings.
+• Arcane Cartographer: Ley-line alignments, sacred geometry, and mythical flora.
+• Noir Detective: Gritty urban casefiles, rain-slicked alleyways, and midnight investigations.
+
+HANDS-FREE POCKET DUNGEON MASTER
+Keep your device safely in your pocket. Hands-free proximity detection delivers spatial audio briefings and narrator lore cues as you walk toward each landmark.
+
+GEMINI MULTIMODAL VISION & CIPHER RIDDLES
+• Optical Plaque Scanner: Snap or upload a photo of any landmark plaque to verify historical facts and mint custom Epic Chronicles.
+• Cipher Duels: Test your intellect against 3-option AI riddles tied to real-world monuments.
+• Fact Dossiers: Synthesize deep architectural lore and verified heritage details.
+
+CLOUD QUEST JOURNAL & ARTIFACT VAULT
+Log your walks automatically with Google Cloud Firestore. Track your completed quests, distance traveled, and earned badges. Collect relics, forge legendary items in the Alchemy Forge, and inspect detailed field rubbings.
+
+HEALTH & WALKING MILESTONES
+Gamify your daily fitness routine with walking cadence goals, daily kilometer streaks, and neighborhood explorer leaderboards.
+
+100% AD-FREE & PRIVACY-FIRST
+No intrusive banner ads, no pop-up interruptions, and zero tracking SDKs. Experience pure outdoor immersion with total control over your data."
+es-419,Spanish (Latin America),SideQuest: Audio RPG y Paseo,Convierte caminatas en un RPG de audio con un Dungeon Master inteligente.,"Sal a caminar y transforma cada paseo en una emocionante aventura de rol. SideQuest convierte parques reales, placas históricas, monumentos y cafeterías en nodos interactivos narrados por tu propio Dungeon Master con inteligencia artificial.
+
+EXPLORA LUGARES DEL MUNDO REAL
+Mediante GPS y OpenStreetMap, SideQuest ancla encuentros fantásticos e históricos a lugares verdaderos a tu alrededor. Descubre joyas ocultas en tu ciudad o recorre capitales culturales como Kioto, Londres, Nueva York y San Francisco.
+
+ELIGE TU PERSONAJE NARRADOR
+Personaliza tu expedición con arquetipos únicos:
+• Explorador Cyberpunk: Reconocimiento táctico e intercepción de señales.
+• Historiador Victoriano: Curiosidad académica, archivos y placas de bronce.
+• Cartógrafo Arcano: Líneas místicas, gemas sagradas y botánica oculta.
+• Detective Noir: Archivos urbanos, misterios nocturnos y deducciones.
+
+MODO BOLSILLO MANOS LIBRES
+Guarda tu teléfono en el bolsillo. La detección de proximidad te ofrece narración por voz mientras te acercas a cada punto de interés sin mirar la pantalla.
+
+ESCÁNER VISUAL Y ACERTIJOS
+• Escáner Multimodal: Fotografía placas y monumentos para verificar datos históricos y forjar reliquias épicas.
+• Duelos de Acertijos: Resuelve enigmas de 3 opciones sobre la historia local.
+• Dossier de Hechos: Aprende arquitectura e historia verificada.
+
+DIARIO DE MISIONES EN LA NUBE
+Guarda tus caminatas en Cloud Firestore. Consulta misiones completadas, insignias ganadas y distancia recorrida. Colecciona artefactos y forja ítems legendarios en la Forja Alquímica.
+
+100% SIN ANUNCIOS Y PRIVACIDAD TOTAL
+Sin anuncios invasivos ni ventas de datos. Disfruta de una experiencia inmersiva y saludable al aire libre."
+es-ES,Spanish (Spain),SideQuest: Audio RPG de Paseo,Convierte tus paseos diarios en un juego de rol con narración por voz.,"Convierte tus caminatas urbanas en una aventura interactiva. SideQuest transforma parques, monumentos y cafeterías locales en escenarios de rol narrados por un Dungeon Master con IA.
+
+EXPLORA TU ENTORNO REAL
+Con GPS y datos abiertos de OpenStreetMap, descubre placas conmemorativas, fuentes y monumentos mientras completas rutas turísticas y culturales en cualquier ciudad del mundo.
+
+VOCES Y ARQUETIPOS DE NARRACIÓN
+• Explorador Cyberpunk: Escaneo de señales y distritos tecnológicos.
+• Historiador Victoriano: Crónicas de archivo e inscripciones históricas.
+• Cartógrafo Arcano: Rutas místicas y armonía natural.
+• Detective Noir: Investigación callejera y relatos de suspense.
+
+MODO MANOS LIBRES
+Guarda el dispositivo en el bolsillo: el sistema reproduce alertas de audio espaciales según te aproximas a cada hito del camino.
+
+ESCÁNER DE PLACAS Y DESAFÍOS
+Verifica placas conmemorativas con la cámara y resuelve acertijos interactivos sobre el patrimonio cultural.
+
+DIARIO DE VIAJE EN LA NUBE
+Tus rutas completadas se guardan en la nube para que sigas tu progreso, insignias y kilómetros recorridos.
+
+SIN PUBLICIDAD MOLESTA
+Experiencia limpia, sin anuncios emergentes y con total respeto por tu privacidad."
+fr-FR,French (France),SideQuest: Audio RPG Réel,Transformez vos marches en RPG audio immersif avec un Maître du Jeu IA.,"Transformez chaque promenade en une quête captivante. SideQuest métamorphose les parcs, monuments historiques et cafés de votre quartier en aventures audio interactives guidées par votre Maître du Jeu IA.
+
+EXPLORATION ANCRÉE DANS LE MONDE RÉEL
+Grâce au GPS et aux données cartographiques d'OpenStreetMap, découvrez l'histoire secrète des lieux qui vous entourent. Parcourez votre ville ou explorez des sentiers légendaires à Paris, Londres, Tokyo ou San Francisco.
+
+ARCHÉTYPES DE NARRATEURS PERSONNALISÉS
+• Éclaireur Cyberpunk : Interception de signaux et reconnaissance urbaine.
+• Historien Victorien : Archives savantes et déchiffrage de plaques de bronze.
+• Cartographe Arcane : Alignements telluriques et curiosités botaniques.
+• Détective Noir : Mystères nocturnes et enquêtes de terrain.
+
+MODE MAÎTRE DU JEU EN POCHE (MAINS LIBRES)
+Laissez votre téléphone dans votre poche : le guidage par proximité sonore vous avertit lorsque vous approchez d'une étape clé.
+
+VISION MULTIMODALE ET ÉNIGMES HISTORIQUES
+Prenez en photo plaques et sculptures pour en certifier l'histoire et résoudre des énigmes culturelles interactives.
+
+JOURNAL DE QUÊTES CLOUD
+Enregistrez vos trajets, récompenses, reliques et badges d'exploration en toute sécurité dans Google Cloud Firestore.
+
+100% SANS PUBLICITÉ ET RESPECTUEUX
+Aucune bannière publicitaire ni suivi abusif. Une expérience saine, ludique et culturelle pour la marche quotidienne."
+de-DE,German (Germany),SideQuest: Audio RPG Wege,Verwandle Spaziergänge in ein interaktives Audio-RPG mit KI-Spielleiter.,"Mach jeden Schritt vor die Tür zu einem Abenteuer. SideQuest verwandelt reale Parks, historische Gedenktafeln, Denkmäler und Cafés in interaktive RPG-Wegpunkte, erzählt von deinem persönlichen KI-Dungeon Master.
+
+ENTDECKE ECHTE ORTE
+Mithilfe von GPS und OpenStreetMap-Daten verknüpft SideQuest fesselnde Geschichten mit realen Schauplätzen deiner Nachbarschaft oder weltweiten Kulturmetropolen wie Berlin, London, Tokio und New York.
+
+WÄHLE DEINEN ERZÄHLER-ARCHETYPEN
+• Cyberpunk-Scout: Taktische Signalerkennung und urbane Datenströme.
+• Viktorianischer Historiker: Akademische Neugier und historische Inschriften.
+• Arkaner Kartograf: Mystische Linien und verborgene Naturpfade.
+• Noir-Detektiv: Nächtliche Ermittlungen und atmosphärische Fälle.
+
+HANDS-FREE TASCHEN-MODUS
+Lass das Smartphone in der Tasche. Akustische Näherungshinweise begleiten dich automatisch, sobald du dich einem Wegpunkt näherst.
+
+BILDERKENNUNG & RÄTSEL
+Fotografiere historische Tafeln, überprüfe historische Fakten und meistere knifflige Rätsel über deine Umgebung.
+
+CLOUD-QUESTBUCH & INVENTAR
+Speichere absolvierte Routen, gesammelte Relikte und Erfolge sicher in Google Cloud Firestore.
+
+WERBEFREI & DATENSCHUTZ
+Keine aufdringliche Werbung, keine Pop-ups und voller Schutz deiner Privatsphäre."
+it-IT,Italian (Italy),SideQuest: Audio RPG Urbano,Trasforma ogni passeggiata in un gioco di ruolo audio con Dungeon Master.,"Trasforma le tue camminate quotidiane in un'epica avventura. SideQuest valorizza parchi, monumenti storici, targhe commemorative e caffè del mondo reale con narrazioni interattive create dal tuo Dungeon Master IA.
+
+ESPLORA LUOGHI REALI CON IL GPS
+Attraverso OpenStreetMap e il posizionamento satellitare, scopri gemme storiche e dettagli architettonici nascosti nella tua città.
+
+PERSONAGGI NARRATORI A SCELTA
+• Esploratore Cyberpunk: Intercettazione di frequenze e atmosfera futuristica.
+• Storico Vittoriano: Documenti d'archivio e targhe in bronzo.
+• Cartografo Arcano: Armonie naturali e sentieri segreti.
+• Detective Noir: Indagini investigative tra vicoli urbani.
+
+MODALITÀ TASCABILE MANI LIBERE
+Cammina a testa alta: i segnali audio di prossimità ti avvisano all'avvicinarsi di ogni tappa storica.
+
+SCANSIONE FOTOGRAFICA E ENIGMI
+Inquadra targhe e monumenti per certificarne l'origine e risolvi enigmi culturali a tre opzioni.
+
+DIARIO DELLE MISSIONI IN CLOUD
+Sincronizza passi, missioni completate e reliquie collezionate su Cloud Firestore.
+
+100% SENZA PUBBLICITÀ
+Nessun annuncio invasivo e massima tutela della tua privacy."
+pt-BR,Portuguese (Brazil),SideQuest: Áudio RPG e Passeio,Transforme caminhadas em um RPG de áudio imersivo com IA narradora.,"Dê vida aos seus passos diários. O SideQuest transforma parques, placas históricas, monumentos e cafés do mundo real em pontos de missão narrados pelo seu próprio Mestre de RPG com inteligência artificial.
+
+EXPLORE LUGARES REAIS
+Com GPS ao vivo e mapas do OpenStreetMap, descubra histórias fascinantes e marcos culturais no seu bairro ou em cidades pelo mundo.
+
+ESCOLHA SEU ARQUÉTIPO DE NARRADOR
+• Rastreador Cyberpunk: Reconhecimento tático e sinais urbanos.
+• Historiador Vitoriano: Curiosidade acadêmica e registros de arquivo.
+• Cartógrafo Arcano: Linhas místicas e segredos botânicos.
+• Detetive Noir: Casos de rua e suspense investigativo.
+
+MODO BOLSO MÃOS LIVRES
+Mantenha o celular no bolso enquanto caminha: avisos sonoros de proximidade informam quando você chega ao próximo marco histórico.
+
+VISÃO POR IA E ENIGMAS
+Fotografe placas antigas para catalogar fatos históricos e resolva enigmas interativos durante o percurso.
+
+DIÁRIO DE EXPEDIÇÃO NA NUVEM
+Acompanhe missões concluídas, distância percorrida e insígnias conquistadas com sincronização segura no Cloud Firestore.
+
+100% SEM ANÚNCIOS
+Experiência limpa, sem pop-ups invasivos e com privacidade garantida."
+ja-JP,Japanese (Japan),SideQuest: リアル散策音声RPG,いつもの散歩がAIゲームマスターと巡る音声冒険RPGに変わる。,"日常の散歩を、壮大な冒険物語へ。SideQuestは、現実の公園、史跡記念碑、歴史銘板、街角のカフェを、AIゲームマスターが導くリアル連動型音声RPGの舞台へと変貌させます。
+
+実世界のランドマークとGPS連動
+OpenStreetMapとリアルタイム位置情報により、身近な街並み角に眠る歴史や見どころを発見。京都や東京、サンフランシスコなどの文化トレイルにも対応しています。
+
+選べる4つのナレーター・アーキタイプ
+• サイバーパンク・スカウト: 街のデータシグナルを追跡する近未来探索。
+• ヴィクトリア朝歴史家: 格式ある古文書と記念碑の学術的探訪。
+• アルケイン・地図調製師: 街の地脈や隠れた自然を巡る幻想的な物語。
+• ノワール探偵: 雨の街角や歴史的事件を読み解くハードボイルド推理。
+
+ポケット・ハンズフリー散策モード
+スマートフォンをポケットに入れたまま歩くだけで、名所への接近時に空間音声ガイドが自動で情景や歴史背景を朗読します。
+
+AI画像解析と歴史暗号クイズ
+カメラで案内板や石碑を撮影して歴史的背景を記録し、3択の謎解きクイズで街のトリビアに挑戦できます。
+
+クラウドクエスト日誌＆所持品図鑑
+歩行記録、踏破した名所、獲得したバッジはGoogle Cloud Firestoreに安全に保存されます。
+
+完全広告なし・プライバシー尊重
+邪魔なポップアップ広告は一切ありません。健康的なウォーキングを心ゆくまでお楽しみください。"
+ko-KR,Korean (South Korea),SideQuest: 야외 산책 오디오 RPG,매일의 산책을 AI 던전 마스터와 함께하는 오디오 RPG 모험으로.,"평범한 일상 속 걷기 운동이 특별한 롤플레잉 모험이 됩니다. SideQuest는 실제 공원, 유적지 기념 표석, 동상, 카페를 AI 던전 마스터가 생생하게 들려주는 인터랙티브 오디오 퀘스트 거점으로 전환합니다.
+
+실제 공간과 연동되는 위치 기반 탐험
+GPS와 OpenStreetMap 데이터를 기반으로 주변의 역사적 명소와 숨겨진 장소를 탐색하세요. 샌프란시스코, 교토, 런던 등 다양한 테마 트레일도 지원합니다.
+
+4가지 개성 넘치는 나레이터 페르소나
+• 사이버펑크 정찰병: 도시의 전자 신호와 전파 흔적을 추적하는 탐사.
+• 빅토리아 역사가: 품격 있는 기록 보관과 역사 표석 해독.
+• 아케인 지도제작자: 대지의 기운과 자연의 신비를 탐구하는 여정.
+• 누아르 탐정: 도심 속 숨겨진 사건과 미스터리를 풀어가는 수사.
+
+주머니 속 핸즈프리 도보 모드
+스마트폰 화면을 계속 보지 않아도 명소에 다가서면 음성 가이드가 자동으로 다음 장소의 배경과 퀘스트를 들려줍니다.
+
+시각 분석과 역사 퀴즈 챌린지
+표지판 사진을 촬영해 역사 사실을 확인하고, 3지선다형 AI 퀴즈로 흥미진진한 지식을 획득하세요.
+
+클라우드 퀘스트 일지 & 아티팩트 보관함
+완료한 산책 경로와 획득한 업적 배지는 Google Cloud Firestore에 안전하게 저장됩니다.
+
+100% 광고 없는 청정 환경
+몰입을 방해하는 팝업 광고가 없으며 사용자의 개인정보를 엄격히 보호합니다."
+zh-CN,Chinese (Simplified),SideQuest: 真实世界语音探索RPG,将户外漫步化为沉浸式音频RPG，与AI地下城主一同探索真实名胜。,"让每一次出门散步都成为史诗般的冒险。SideQuest将身边的真实公园、历史纪念碑、铭牌建筑与街角咖啡馆转化为由AI地下城主实时讲述的声音探索冒险。
+
+真实世界地标与GPS结合
+依托GPS与全球开源地图数据，SideQuest将奇幻与历史故事锚定在真实的街区景观上，发掘城市深处的文化印记。
+
+自由选择地下城主风格
+• 赛博朋克斥候：扫描街区信号与高科技都市侦察。
+• 维多利亚历史学家：探寻档案秘辛与青铜铭牌考证。
+• 奥术绘图师：感应地脉流动与神秘植物线索。
+• 黑色侦探：在街巷深处推演疑案与夜幕调查。
+
+口袋免提漫步模式
+将手机放入口袋即可安心行走，接近地标时自动触发空间音频提示与背景解说。
+
+多模态视觉扫视与趣味谜题
+拍摄纪念匾额以验证历史史实，完成三选一文化解谜，锻造专属史诗收藏。
+
+云端任务日志与收藏宝库
+行走记录与成就徽章安全同步至Google Cloud Firestore，随时重温探险足迹。
+
+零弹窗广告·专注健康探索
+无横幅或打扰性弹窗，尊重用户隐私，让日常健身漫步充满乐趣。"
+zh-TW,Chinese (Traditional),SideQuest: 真實世界語音漫步RPG,將戶外散步轉化為互動式語音RPG，由AI說書人引領走讀城市。,"讓日常街區漫步化為動人的奇幻冒險。SideQuest結合實體公園、歷史古蹟、銘牌地標與在地咖啡館，透過AI地下城主為您述說生動的漫遊故事。
+
+走入真實城市地標
+透過即時GPS與地圖導航，發掘隱藏在日常街角的故事，沉浸於豐富的歷史人文背景。
+
+四種專屬語音說書人
+• 賽博龐克斥候：攔截都市訊號與探索科技街區。
+• 維多利亞史學家：研讀典籍檔案與考究青銅古蹟。
+• 秘術製圖師：探尋地脈能量與自然步道。
+• 冷硬派偵探：穿梭街頭巷尾解讀城市謎團。
+
+放入口袋免持模式
+散步時無需緊盯螢幕，當您靠近指定景點時，空間語音將自動為您導覽下一個挑戰。
+
+相機辨識與歷史謎題挑戰
+拍攝古蹟銘牌確認歷史典故，解開三選一益智謎題，打造專屬榮譽收藏。
+
+雲端任務日誌與寶物收藏
+所有探險記錄與徽章同步儲存於雲端資料庫，完整保存您的漫步足跡。
+
+無廣告干擾·尊重個人隱私
+全無彈出式廣告，純粹享受健康又有深度的步行冒險。"
+ru-RU,Russian (Russia),SideQuest: Аудио RPG прогулки,Превратите прогулки в живую аудио-RPG с персональным ИИ-мастером.,"Сделайте каждую пешую прогулку захватывающим приключением. SideQuest превращает реальные парки, исторические мемориальные доски, памятники и уютные кафе в локации интерактивной ролевой игры с озвучкой от ИИ Dungeon Master.
+
+ИССЛЕДУЙТЕ РЕАЛЬНЫЙ МИР
+Благодаря GPS и картам OpenStreetMap приложение находит подлинные достопримечательности вокруг вас. Исследуйте исторические центры Сан-Франциско, Киото, Лондона и Нью-Йорка.
+
+ВЫБЕРИТЕ СТИЛЬ ВЕДУЩЕГО
+• Киберпанк-скаут: Перехват сигналов и футуристическая разведка.
+• Викторианский историк: Архивные хроники и бронзовые надписи.
+• Тайный картограф: Природные тропы и загадочные линии силы.
+• Нуар-детектив: Атмосферные уличные расследования.
+
+РЕЖИМ «В КАРМАНЕ» БЕЗ РУК
+Уберите телефон в карман: пространственные аудиоуведомления сами расскажут историю места при приближении к очередной точке.
+
+СКАНИРОВАНИЕ И ЗАГАДКИ
+Фотографируйте таблички памятников для подтверждения исторических фактов и разгадывайте викторины.
+
+ОБЛАЧНЫЙ ЖУРНАЛ КВЕСТОВ
+Ваши пройденные километры, найденные реликвии и открытые значки надежно сохраняются в Cloud Firestore.
+
+БЕЗ РЕКЛАМЫ И УВАЖЕНИЕ К ДАННЫМ
+Никаких навязчивых баннеров или внезапных всплывающих окон."
+ar,Arabic,SideQuest: مغامرة المشي RPG,حوّل نزهاتك اليومية إلى لعبة تقمص أدوار صوتية مع راوي ذكي.,"حوّل خطواتك اليومية إلى مغامرة مشوقة في العالم الحقيقي. يحول تطبيق SideQuest الحدائق والمعالم التاريخية واللوحات التذكارية والمقاهي الحقيقية إلى محطات تفاعلية يرويها راوي ألعاب ذكي.
+
+استكشف معالم حقيقية عبر نظام تحديد المواقع
+بالاعتماد على بيانات الخرائط الحية، يربط التطبيق بين الحكايات التراثية والأماكن الحقيقية من حولك في مختلف مدن العالم.
+
+شخصيات صوتية متعددة
+• المستكشف السيبراني: رصد الإشارات التقنية واستكشاف الشوارع.
+• المؤرخ الكلاسيكي: تتبع النقوش التاريخية والوثائق الأثرية.
+• رسام الخرائط الأسطوري: استكشاف مسارات الطبيعة والرموز التراثية.
+• المحقق الغامض: حل الألغاز الحضرية واستكشاف الشوارع.
+
+وضع الجيب دون استخدام اليدين
+ضع هاتفك في جيبك ودع التنبيهات الصوتية الذكية ترشدك تلقائياً كلما اقتربت من معلم تاريخي.
+
+تحليل الصور والألغاز
+التقط صوراً للوحات التاريخية لتوثيق المعلومات وحل ألغاز المعالم التفاعلية.
+
+سجل المهمات السحابي
+تُحفظ جميع إنجازاتك والمسافات المقطوعة بأمان في قاعدة بيانات Cloud Firestore.
+
+خالٍ تماماً من الإعلانات المزعجة
+استمتع بتجربة مشي صحية وممتعة دون إعلانات منبثقة مع حماية تامة لخصوصيتك."
+hi-IN,Hindi (India),SideQuest: ऑडियो वॉक आरपीजी,अपनी दैनिक पैदल यात्रा को AI स्टोरीटेलर के साथ ऑडियो एडवेंचर में बदलें।,"अपनी नियमित पैदल सैर को एक रोमांचक साहसिक यात्रा में बदलें। SideQuest असली पार्कों, ऐतिहासिक स्मारकों, पट्टिकाओं और स्थानीय कैफ़े को एक इंटरैक्टिव ऑडियो आरपीजी में बदल देता है, जिसे AI डंगऑन मास्टर द्वारा सुनाया जाता है।
+
+वास्तविक दुनिया के स्थलों का अन्वेषण करें
+जीपीएस और ओपनस्ट्रीटमैप डेटा का उपयोग करके, SideQuest आपके आस-पास की वास्तविक जगहों से रोमांचक कहानियों को जोड़ता है।
+
+अपनी पसंद का नैरेटर चुनें
+• साइबरपंक स्काउट: आधुनिक सिग्नल और शहरी अन्वेषण।
+• विक्टोरियन इतिहासकार: अभिलेखीय ज्ञान और कांस्य पट्टिकाएं।
+• आर्केन कार्टोग्राफर: रहस्यमयी रास्ते और प्राकृतिक सुंदरता।
+• नॉयर डिटेक्टिव: शहर के रहस्य और खोजी दृष्टिकोण।
+
+हैंड्स-फ्री पॉकेट मोड
+फोन को जेब में रखें; जैसे ही आप किसी लैंडमार्क के पास पहुंचेंगे, ऑडियो नैरेटर अपने आप इतिहास और रास्ते की जानकारी सुनाएगा।
+
+कैमरा विज़न और पहेलियाँ
+ऐतिहासिक पट्टियों की फोटो लें, तथ्यों को सत्यापित करें और 3-विकल्प वाली पहेलियों को हल करें।
+
+क्लाउड क्वेस्ट जर्नल
+अपनी पूरी की गई यात्राएं, तय की गई दूरी और उपलब्धियां Cloud Firestore पर सुरक्षित रखें।
+
+पूरी तरह से विज्ञापन-मुक्त
+कोई पॉप-अप विज्ञापन नहीं, केवल शुद्ध स्वास्थ्य और ज्ञानवर्धक पैदल यात्रा का आनंद लें।"
+vi-VN,Vietnamese (Vietnam),SideQuest: Audio RPG Đi Bộ,Biến mỗi chuyến đi bộ ngoài trời thành một game nhập vai âm thanh thú vị.,"Biến mỗi bước chân hàng ngày thành một hành trình phiêu lưu kỳ thú. SideQuest biến các công viên thực tế, bia tưởng niệm lịch sử, bảng di tích và quán cà phê quanh bạn thành các trạm khám phá nhập vai được lồng tiếng bởi AI Dungeon Master.
+
+KHÁM PHÁ ĐỊA DANH THỰC TẾ QUA GPS
+Ứng dụng sử dụng dữ liệu bản đồ OpenStreetMap để kết nối các câu chuyện hấp dẫn với những địa điểm có thật quanh khu phố của bạn.
+
+TÙY CHỌN PHONG CÁCH NGƯỜI KỂ CHUYỆN
+• Trinh sát Cyberpunk: Quét tín hiệu và thám hiểm phố phường hiện đại.
+• Nhà sử học cổ điển: Khám phá bia ký cổ và tài liệu lưu trữ.
+• Nhà họa đồ Arcane: Khám phá mạch đất và cảnh quan thiên nhiên.
+• Thám tử Noir: Giải mã những bí ẩn ly kỳ nơi góc phố.
+
+CHẾ ĐỘ RẢNH TAY BỎ TÚI
+Bạn chỉ cần để điện thoại trong túi áo và thong thả dạo bước. Âm thanh định hướng sẽ tự động cất lời khi bạn tiến gần đến từng di tích.
+
+QUÉT HÌNH ẢNH AI & GIẢI ĐỐ
+Chụp ảnh bảng lưu niệm để kiểm tra dữ liệu lịch sử và thử sức với các câu đố văn hóa 3 lựa chọn.
+
+NHẬT KÝ HÀNH TRÌNH ĐÁM MÂY
+Lưu trữ an toàn các chuyến đi đã hoàn thành, huy hiệu và số km đi bộ trên Google Cloud Firestore.
+
+HOÀN TOÀN KHÔNG CÓ QUẢNG CÁO PHIỀN TOÁI
+Không banner quảng cáo gây gián đoạn, bảo mật tuyệt đối thông tin người dùng."
+id-ID,Indonesian (Indonesia),SideQuest: Audio RPG Jalan,Ubah jalan kaki harian jadi petualangan RPG audio dengan narasi AI.,"Ubah rutinitas jalan kaki santai menjadi petualangan bermain peran yang seru. SideQuest mengubah taman nyata, prasasti bersejarah, tugu peringatan, dan kedai kopi lokal menjadi pos petualangan RPG yang dinarasikan oleh AI Dungeon Master.
+
+JELAJAHI TEMPAT DUNIA NYATA
+Dengan GPS dan peta OpenStreetMap, temukan sejarah tersembunyi di sekitar lingkungan Anda atau telusuri rute budaya di kota-kota besar.
+
+PILIH KARAKTER NARATOR
+• Pengintai Cyberpunk: Pelacakan sinyal perkotaan modern.
+• Sejarawan Victoria: Menelaah arsip klasik dan plakat perunggu.
+• Kartografer Mistis: Menelusuri jalur alam dan keharmonisan bumi.
+• Detektif Noir: Investigasi kasus jalanan yang penuh misteri.
+
+MODE KANTONG BEBAS GENGGAM
+Simpan ponsel di saku celana. Panduan suara spasial akan berbunyi otomatis saat Anda mendekati titik tujuan.
+
+PINDAI FOTO & TEKA-TEKI
+Foto plakat sejarah untuk memverifikasi fakta dan selesaikan kuis budaya 3 pilihan.
+
+JURNAL PETUALANGAN CLOUD
+Simpan riwayat perjalanan, jarak tempuh, dan lencana pencapaian di Cloud Firestore.
+
+100% BEBAS IKLAN
+Tanpa iklan pop-up yang mengganggu dan privasi Anda selalu terlindungi."
+th-TH,Thai (Thailand),SideQuest: เดินสำรวจแนว RPG,เปลี่ยนการเดินเล่นในชีวิตประจำวันเป็นการผจญภัยแนว RPG พร้อมเสียงบรรยาย AI,"เปลี่ยนการเดินออกกำลังกายธรรมดาให้เป็นการผจญภัยสุดตื่นเต้น SideQuest เปลี่ยนสวนสาธารณะ ป้ายประวัติศาสตร์ อนุสาวรีย์ และร้านกาแฟในโลกจริงให้เป็นจุดเควสต์แบบอินเทอร์แอคทีฟ บรรยายโดย AI Dungeon Master ส่วนตัวของคุณ
+
+สำรวจสถานที่จริงผ่าน GPS
+เชื่อมต่อเรื่องราวน่าตื่นเต้นเข้ากับพิกัดจริงบนแผนที่ OpenStreetMap รอบตัวคุณ ค้นพบเสน่ห์ที่ซ่อนอยู่ในชุมชนของคุณ
+
+เลือกสไตล์ผู้เล่าเรื่อง
+• ไซเบอร์พังก์สเกาต์: สแกนสัญญาณและลาดตระเวนเมืองไฮเทค
+• นักประวัติศาสตร์วิคตอเรีย: ศึกษาจารึกโบราณและเกร็ดประวัติศาสตร์
+• อาร์เคนคาร์โทกราเฟอร์: สำรวจเส้นทางธรรมชาติและพลังแห่งผืนดิน
+• นักสืบนัวร์: คลี่คลายคดีลึกลับตามตรอกซอกซอย
+
+โหมดใส่กระเป๋าแบบแฮนด์ฟรี
+เก็บโทรศัพท์ไว้ในกระเป๋าแล้วเดินเพลินๆ ระบบเสียงจะแจ้งเตือนและบรรยายเรื่องราวอัตโนมัติเมื่อเดินเข้าใกล้จุดหมาย
+
+สแกนภาพถ่ายและตอบปริศนา
+ถ่ายภาพป้ายประวัติศาสตร์เพื่อตรวจสอบข้อมูล และไขปริศนาวัฒนธรรมแบบ 3 ตัวเลือก
+
+บันทึกการเดินทางบนคลาวด์
+บันทึกระยะทาง เควสต์ที่สำเร็จ และตราสัญลักษณ์อย่างปลอดภัยบน Cloud Firestore
+
+ไม่มีโฆษณารบกวน 100%
+ไม่มีป๊อปอัปโฆษณาแทรก มอบประสบการณ์เดินออกกำลังกายเพื่อสุขภาพอย่างแท้จริง"
+tr-TR,Turkish (Turkey),SideQuest: Sesli RPG Yürüyüşü,Günlük yürüyüşleri yapay zeka anlatımlı sesli bir RPG macerasına dönüştür.,"Her yürüyüşü unutulmaz bir maceraya çevirin. SideQuest, gerçek dünyadaki parkları, tarihi plaketleri, anıtları ve kafeleri yapay zeka destekli Dungeon Master tarafından seslendirilen etkileşimli görev duraklarına dönüştürür.
+
+GERÇEK DÜNYAYI KEŞFEDİN
+GPS ve OpenStreetMap verileriyle çevrenizdeki tarihi zenginlikleri keşfedin. İster mahallenizde yürüyün ister dünyanın ünlü kültür rotalarını deneyimleyin.
+
+ANLATICI KARAKTERİNİZİ SEÇİN
+• Siberpunk İzcisi: Şehir sinyallerini tarama ve fütüristik keşif.
+• Viktorya Tarihçisi: Arşiv belgeleri ve bronz kitabeler.
+• Gizemli Haritacı: Doğa patikaları ve kadim hatlar.
+• Kara Film Dedektifi: Sokak gizemleri ve sürükleyici soruşturmalar.
+
+ELLER SERBEST CEP MODU
+Telefonunuzu cebinizde tutun: Yakınlık bildirimleri bir durağa yaklaştığınızda sesli anlatımı otomatik olarak başlatır.
+
+GÖRSEL TARAMA VE BULMACALAR
+Tarihi tabelaların fotoğrafını çekerek bilgileri doğrulayın ve 3 seçenekli tarihi bilmeceleri çözün.
+
+BULUT GÖREV GÜNLÜĞÜ
+Tamamlanan rotalarınız, yürüdüğünüz mesafe ve başarı rozetleriniz Cloud Firestore üzerinde güvenle saklanır.
+
+%100 REKLAMSIZ VE GÜVENLİ
+Rahatsız edici reklamlar içermez, gizliliğinize tam saygı gösterir."
+nl-NL,Dutch (Netherlands),SideQuest: Audio RPG Wandeling,Verander je dagelijkse wandeling in een audio-RPG met een AI Dungeon Master.,"Maak van elke wandeling een meeslepend avontuur. SideQuest transformeert echte parken, historische gedenktekens en lokale cafés in interactieve RPG-locaties, verteld door je persoonlijke AI Dungeon Master.
+
+ONTDEK ECHTE LOCATIES MET GPS
+Met live GPS en OpenStreetMap ontdek je verborgen erfgoed en boeiende verhalen in je eigen buurt of tijdens stedentrips.
+
+KIES JE VERTELLERS-ARCHETYPE
+• Cyberpunk Verkenner: Tactische datasignalen en stadsscans.
+• Victoriaanse Historicus: Archieven en bronzen gedenkplaten.
+• Mystieke Cartograaf: Natuurlijke leylijnen en geheime paden.
+• Noir Detective: Nachtelijke raadsels en straatonderzoek.
+
+HANDSFREE ZAKMODUS
+Houd je telefoon veilig in je zak. Ruimtelijke audio informeert je automatisch zodra je een monument nadert.
+
+BEELDHERKENNING & HISTORISCHE RAADSELS
+Fotografeer historische borden voor geverifieerde feiten en los 3-keuze raadsels op.
+
+CLOUD QUESTLOGBOEK
+Bewaar je voltooide wandelingen, verzamelde relikwieën en badges veilig in Cloud Firestore.
+
+100% RECLAMEVRIJ
+Geen storende advertenties en volledige bescherming van je privacy."
+pl-PL,Polish (Poland),SideQuest: Audio RPG Spacer,Zmień codzienne spacery w dźwiękową grę RPG z narracją Mistrza Gry AI.,"Zmień każdy spacer w fascynującą przygodę. SideQuest przekształca prawdziwe parki, tablice pamiątkowe, zabytki i kawiarnie w interaktywne punkty RPG z narracją Twojego osobistego Mistrza Gry AI.
+
+ODKRYWAJ PRAWDZIWE MIEJSCA
+Dzięki GPS i mapom OpenStreetMap odkryjesz historyczne sekrety swojej okolicy oraz znane trasy kulturowe na całym świecie.
+
+WYBIERZ STYL NARRATORA
+• Zwiadowca Cyberpunk: Przechwytywanie sygnałów i miejski rekonesans.
+• Wiktoriański Historyk: Archiwalne zapiski i inskrypcje na brązie.
+• Mistyczny Kartograf: Naturalne ścieżki i tajemnice przyrody.
+• Detektyw Noir: Mroczne śledztwa i miejskie zagadki.
+
+TRYB KIESZONKOWY BEZ UŻYCIA RĄK
+Trzymaj telefon w kieszeni: przestrzenne wskazówki dźwiękowe poinformują Cię o zbliżaniu się do kolejnego punktu trasy.
+
+SKANOWANIE TABLIC I ZAGADKI
+Fotografuj zabytkowe tablice, poznawaj zweryfikowane fakty i rozwiązuj historyczne łamigłówki.
+
+DZIENNIK ZADAŃ W CHMURZE
+Twoje ukończone trasy, przebyte kilometry i odznaki są bezpiecznie zapisywane w Cloud Firestore.
+
+W 100% BEZ REKLAM
+Brak uciążliwych reklam i pełna ochrona prywatności użytkownika."
+sv-SE,Swedish (Sweden),SideQuest: Ljud-RPG Promenad,Förvandla dina promenader till ett interaktivt ljud-RPG med AI Dungeon Master.,"Gör varje promenad till ett spännande äventyr. SideQuest förvandlar parker, minnesmärken, historiska skyltar och kaféer till interaktiva RPG-äventyr med röstberättelse från din personliga AI Dungeon Master.
+
+UTFORSKA VERKLIGA PLATSER
+Med GPS och OpenStreetMap upptäcker du dolda historiska pärlor och spännande platser i ditt närområde.
+
+VÄLJ BERÄTTAR-PERSONLIGHET
+• Cyberpunk-spanare: Taktisk signalspaning och stadsmiljöer.
+• Viktoriansk historiker: Arkivdokument och historiska inskriptioner.
+• Mytisk kartograf: Naturstigar och dolda landmärken.
+• Noir-detektiv: Mystiska stadsutredningar och ledtrådar.
+
+HANDSFREE FICKLÄGE
+Ha mobilen i fickan: röstguiden meddelar dig automatiskt när du närmar dig ett historiskt landmärke.
+
+KAMERABASERING & GÅTOR
+Fota minnesplaketter för historisk fakta och lös interaktiva flervalsgåtor.
+
+UPPDRAGSLOGG I MOLNET
+Dina avklarade rutter, avstånd och intjänade märken sparas säkert i Cloud Firestore.
+
+100% REKLAMFRITT
+Inga störande annonser och fullständig respekt för din integritet."

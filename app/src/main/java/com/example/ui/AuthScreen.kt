@@ -278,7 +278,7 @@ fun AuthScreen(
                                 border = BorderStroke(1.dp, GuildGold)
                             ) {
                                 Text(
-                                    text = "REAL-WORLD AUDIO RPG & TOUR GUIDE",
+                                    text = stringResource(id = R.string.auth_hero_badge),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = GuildGold,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -286,7 +286,7 @@ fun AuthScreen(
                             }
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "SIDEQUEST",
+                                text = stringResource(id = R.string.app_name),
                                 style = MaterialTheme.typography.displayLarge,
                                 color = Color.White
                             )
@@ -313,19 +313,19 @@ fun AuthScreen(
                     PersonaPreviewCard(
                         modifier = Modifier.weight(1f),
                         imageRes = R.drawable.img_persona_cyberpunk_1794444308262,
-                        title = "Cyberpunk Scout",
+                        title = stringResource(id = R.string.style_cyberpunk_title),
                         accent = CyberCyan
                     )
                     PersonaPreviewCard(
                         modifier = Modifier.weight(1f),
                         imageRes = R.drawable.img_persona_victorian_1794444307617,
-                        title = "Victorian Historian",
+                        title = stringResource(id = R.string.style_victorian_title),
                         accent = GuildGold
                     )
                     PersonaPreviewCard(
                         modifier = Modifier.weight(1f),
                         imageRes = R.drawable.img_persona_arcane_1794444308955,
-                        title = "Arcane Seeker",
+                        title = stringResource(id = R.string.style_arcane_title),
                         accent = Color(0xFF34D399)
                     )
                 }
@@ -345,18 +345,18 @@ fun AuthScreen(
                     ) {
                         FeatureRow(
                             icon = Icons.Default.Explore,
-                            title = "Real Parks, Plaques & Coffee Shops",
-                            subtitle = "Pinpoints real-world landmarks around your GPS or any city."
+                            title = stringResource(id = R.string.auth_feature_1_title),
+                            subtitle = stringResource(id = R.string.auth_feature_1_desc)
                         )
                         FeatureRow(
                             icon = Icons.Default.GraphicEq,
-                            title = "Gemini Voice Dungeon Master",
-                            subtitle = "Narrates spoken lore and responds to your choices in real time."
+                            title = stringResource(id = R.string.auth_feature_2_title),
+                            subtitle = stringResource(id = R.string.auth_feature_2_desc)
                         )
                         FeatureRow(
                             icon = Icons.Default.Shield,
-                            title = "Cloud Firestore Inventory & Badges",
-                            subtitle = "Collect RPG relics, unlock badges, and log completed walks."
+                            title = stringResource(id = R.string.auth_feature_3_title),
+                            subtitle = stringResource(id = R.string.auth_feature_3_desc)
                         )
                     }
                 }
@@ -380,7 +380,7 @@ fun AuthScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Interactive 4-Step Onboarding Tour",
+                        text = stringResource(id = R.string.auth_onboarding_tour_btn),
                         style = MaterialTheme.typography.labelLarge,
                         color = CyberCyan,
                         fontWeight = FontWeight.Bold
