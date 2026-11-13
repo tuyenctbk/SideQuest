@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Verkligt ljud-RPG och interaktiv promenadguide</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">En nyare version av SideQuest med snabbare kartor och offline-stöd finns nu.</string>
     <string name="prompt_update_action">Uppdatera nu</string>
     <string name="prompt_update_later">Senare (7 dagar)</string>
+    <string name="sign_in_as_guest">Fortsätt som Gästutforskare</string>
+    <string name="nav_map">Karta</string>
+    <string name="nav_dungeon">Grotta</string>
+    <string name="nav_dm">SL</string>
+    <string name="nav_journal">Dagbok</string>
+    <string name="nav_codex">Kodex</string>
+    <string name="nav_settings">Inställn.</string>
+    <string name="choose_character_archetype">VÄLJ KARAKTÄRSARKETYP</string>
+    <string name="pocket_dm_label">Fick-SL</string>
+    <string name="auto_voice_label">Auto-Röst</string>
+    <string name="muted_label">Tyst</string>
+    <string name="use_live_gps">Använd Live-GPS</string>
+    <string name="cache_offline_pack">Spara Offline-Paket</string>
+    <string name="offline_pack_ready">Offline-Paket: Redo</string>
+    <string name="search_city_placeholder">Sök stad, park eller stadsdel...</string>
+    <string name="quest_action_btn">Uppdrag</string>
+    <string name="guild_pass_hub_title">GILLESPASS &amp; AI-KVOT</string>
+    <string name="zero_bill_eco_title">NOLLKOSTNAD EKOLÄGE ($0)</string>
+    <string name="paid_image_studio_title">BETALD AI-BILDSTUDIO: AKTIV</string>
+    <string name="zero_bill_eco_desc">Smart cache + OpenStreetMap + enhetsröst håller kostnaden på $0.</string>
+    <string name="guild_pass_title">ÄVENTYRARNAS GILLESPASS</string>
+    <string name="guild_pass_active_title">GILLESPASS (AKTIVT)</string>
+    <string name="guild_pass_activate_btn">Aktivera Gillespass</string>
+    <string name="guild_pass_active_btn">Gillespass Aktivt (1,5x XP)</string>
+    <string name="merchant_creator_title">SKAPA LOKALT SPONSORSTOPP</string>
+    <string name="merchant_creator_desc">Sponsra ett uppdragsstopp för kaféer, bokhandlar &amp; museer:</string>
+    <string name="partner_venue_label">Namn på Plats / Kafé</string>
+    <string name="partner_venue_placeholder">t.ex. Kvarterets Rosteri &amp; Böcker</string>
+    <string name="partner_offer_label">Förmån för Utforskare</string>
+    <string name="partner_offer_placeholder">t.ex. 20% rabatt på kaffe</string>
+    <string name="pin_sponsored_stop_btn">Fäst Sponsorstopp (+Kupong)</string>
+    <string name="invite_explorer_title">BJUD IN EN UTFORSKARE (+250 XP)</string>
+    <string name="invite_explorer_desc">Dela din inbjudan för 7 dagars gratis Gillespass.</string>
+    <string name="invite_action_btn">Bjud in</string>
+    <string name="dm_fact_check_chip">Faktakoll (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Gåtduell (+175 XP)</string>
+    <string name="dm_voice_log_chip">Röstlogg (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Beskriv en arkitektonisk detalj eller plakett...</string>
+    <string name="catalog_note_placeholder">Ange fältanteckningar...</string>
 </resources>

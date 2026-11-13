@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Juego de rol de audio en el mundo real y guía de paseo interactiva</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">Hay una nueva versión de SideQuest disponible con mapas y paquetes sin conexión mejorados.</string>
     <string name="prompt_update_action">Actualizar ahora</string>
     <string name="prompt_update_later">Más tarde (7 días)</string>
+    <string name="sign_in_as_guest">Continuar como Explorador Invitado</string>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_dungeon">Mazmorra</string>
+    <string name="nav_dm">DJ</string>
+    <string name="nav_journal">Diario</string>
+    <string name="nav_codex">Códice</string>
+    <string name="nav_settings">Ajustes</string>
+    <string name="choose_character_archetype">ELIGE ARQUETIPO DE PERSONAJE</string>
+    <string name="pocket_dm_label">DJ de Bolsillo</string>
+    <string name="auto_voice_label">Voz Auto</string>
+    <string name="muted_label">Silencio</string>
+    <string name="use_live_gps">Usar GPS en Vivo</string>
+    <string name="cache_offline_pack">Guardar Pack Offline</string>
+    <string name="offline_pack_ready">Pack Offline: Listo</string>
+    <string name="search_city_placeholder">Buscar ciudad, parque o barrio...</string>
+    <string name="quest_action_btn">Misión</string>
+    <string name="guild_pass_hub_title">PASE DE GREMIO Y CUOTA IA</string>
+    <string name="zero_bill_eco_title">MODO ECO CERO FACTURA ($0)</string>
+    <string name="paid_image_studio_title">ESTUDIO DE IMAGEN IA PAGO: ACTIVO</string>
+    <string name="zero_bill_eco_desc">Caché inteligente + OpenStreetMap + voz local mantienen tus caminatas a $0.</string>
+    <string name="guild_pass_title">PASE DEL GREMIO DE AVENTUREROS</string>
+    <string name="guild_pass_active_title">PASE DEL GREMIO (ACTIVO)</string>
+    <string name="guild_pass_activate_btn">Activar Ventajas del Pase</string>
+    <string name="guild_pass_active_btn">Pase del Gremio Activo (1.5x XP)</string>
+    <string name="merchant_creator_title">CREADOR DE PARADA COMERCIAL</string>
+    <string name="merchant_creator_desc">Patrocina una parada de misión para cafés, librerías y museos locales:</string>
+    <string name="partner_venue_label">Nombre del Local / Café</string>
+    <string name="partner_venue_placeholder">ej. Tostadores y Libros del Barrio</string>
+    <string name="partner_offer_label">Beneficio para Exploradores</string>
+    <string name="partner_offer_placeholder">ej. 20% de descuento en café</string>
+    <string name="pin_sponsored_stop_btn">Fijar Parada Patrocinada (+Cupón)</string>
+    <string name="invite_explorer_title">INVITA A UN EXPLORADOR (+250 XP)</string>
+    <string name="invite_explorer_desc">Comparte tu código para que amigos prueben 7 días del Pase.</string>
+    <string name="invite_action_btn">Invitar</string>
+    <string name="dm_fact_check_chip">Datos Reales (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Duelo Acertijo (+175 XP)</string>
+    <string name="dm_voice_log_chip">Nota de Voz (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Describe un detalle arquitectónico, placa u observación...</string>
+    <string name="catalog_note_placeholder">Escribe notas de observación...</string>
 </resources>

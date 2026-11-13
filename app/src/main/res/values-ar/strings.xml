@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">لعبة تقمص أدوار صوتية في العالم الحقيقي ودليل مشي تفاعلي</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">إصدار أحدث من SideQuest متوفر الآن مع خرائط محسنة ودعم بدون اتصال.</string>
     <string name="prompt_update_action">تحديث الآن</string>
     <string name="prompt_update_later">لاحقاً (بعد 7 أيام)</string>
+    <string name="sign_in_as_guest">المتابعة كمستكشف ضيف</string>
+    <string name="nav_map">الخريطة</string>
+    <string name="nav_dungeon">الزنزانة</string>
+    <string name="nav_dm">الراوي</string>
+    <string name="nav_journal">السجل</string>
+    <string name="nav_codex">الموسوعة</string>
+    <string name="nav_settings">الإعدادات</string>
+    <string name="choose_character_archetype">اختر نمط الشخصية</string>
+    <string name="pocket_dm_label">الراوي الصوتي</string>
+    <string name="auto_voice_label">صوت تلقائي</string>
+    <string name="muted_label">مكتوم</string>
+    <string name="use_live_gps">استخدم GPS المباشر</string>
+    <string name="cache_offline_pack">حفظ حزمة بدون إنترنت</string>
+    <string name="offline_pack_ready">حزمة بدون إنترنت: جاهزة</string>
+    <string name="search_city_placeholder">ابحث عن مدينة أو حديقة أو حي...</string>
+    <string name="quest_action_btn">مهمة</string>
+    <string name="guild_pass_hub_title">تذكرة النقابة وحصة الذكاء الاصطناعي</string>
+    <string name="zero_bill_eco_title">الوضع الاقتصادي المجاني ($0 تكلفة)</string>
+    <string name="paid_image_studio_title">استوديو الصور المدفوع: مفعل</string>
+    <string name="zero_bill_eco_desc">الذاكرة الذكية + OpenStreetMap + الصوت المحلي تحفظ استكشافك اليومي بتكلفة 0$.</string>
+    <string name="guild_pass_title">تذكرة نقابة المغامرين</string>
+    <string name="guild_pass_active_title">تذكرة نقابة المغامرين (مفعلة)</string>
+    <string name="guild_pass_activate_btn">تفعيل مزايا تذكرة النقابة</string>
+    <string name="guild_pass_active_btn">تذكرة النقابة مفعلة (1.5x XP)</string>
+    <string name="merchant_creator_title">منشئ محطة التاجر المحلي</string>
+    <string name="merchant_creator_desc">رعاية محطة مهمة للمقاهي والمكتبات والمتاحف لزيادة الزوار:</string>
+    <string name="partner_venue_label">اسم المكان / المقهى</string>
+    <string name="partner_venue_placeholder">مثال: مقهى وكتب الحي</string>
+    <string name="partner_offer_label">ميزة الزائر للمستكشف</string>
+    <string name="partner_offer_placeholder">مثال: خصم 20% على القهوة المختصة</string>
+    <string name="pin_sponsored_stop_btn">تثبيت المحطة الممولة على الرادار (+قسيمة)</string>
+    <string name="invite_explorer_title">ادعُ مستكشفًا زميلًا (+250 XP)</string>
+    <string name="invite_explorer_desc">شارك رمز النقابة ليحصل أصدقاؤك على تجربة 7 أيام مجانًا.</string>
+    <string name="invite_action_btn">دعوة</string>
+    <string name="dm_fact_check_chip">تدقيق الحقائق (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">مبارزة الألغاز (+175 XP)</string>
+    <string name="dm_voice_log_chip">سجل صوتي (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">صف تفصيلًا معماريًا أو لوحة أثرية أو ملاحظة...</string>
+    <string name="catalog_note_placeholder">أدخل ملاحظات المراقبة الميدانية...</string>
 </resources>

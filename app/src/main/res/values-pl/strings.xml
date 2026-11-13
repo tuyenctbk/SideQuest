@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Głosowe RPG w prawdziwym świecie i interaktywny przewodnik</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">Nowa wersja SideQuest z ulepszonymi mapami offline jest gotowa do pobrania.</string>
     <string name="prompt_update_action">Zaktualizuj teraz</string>
     <string name="prompt_update_later">Później (za 7 dni)</string>
+    <string name="sign_in_as_guest">Kontynuuj jako Gość</string>
+    <string name="nav_map">Mapa</string>
+    <string name="nav_dungeon">Loch</string>
+    <string name="nav_dm">MG</string>
+    <string name="nav_journal">Dziennik</string>
+    <string name="nav_codex">Kodeks</string>
+    <string name="nav_settings">Opcje</string>
+    <string name="choose_character_archetype">WYBIERZ ARCHETYP POSTACI</string>
+    <string name="pocket_dm_label">Kieszonkowy MG</string>
+    <string name="auto_voice_label">Auto Głos</string>
+    <string name="muted_label">Wyciszony</string>
+    <string name="use_live_gps">Użyj GPS na żywo</string>
+    <string name="cache_offline_pack">Zapisz Pakiet Offline</string>
+    <string name="offline_pack_ready">Pakiet Offline: Gotowy</string>
+    <string name="search_city_placeholder">Szukaj miasta, parku lub dzielnicy...</string>
+    <string name="quest_action_btn">Zadanie</string>
+    <string name="guild_pass_hub_title">PRZEPUSTKA GILDII I LIMITY AI</string>
+    <string name="zero_bill_eco_title">TRYB EKO ZERO KOSZTÓW ($0)</string>
+    <string name="paid_image_studio_title">PŁATNE STUDIO OBRAZÓW AI: WŁ.</string>
+    <string name="zero_bill_eco_desc">Inteligentny cache + OpenStreetMap + głos na urządzeniu = $0 kosztów.</string>
+    <string name="guild_pass_title">PRZEPUSTKA GILDII POSZUKIWACZY</string>
+    <string name="guild_pass_active_title">PRZEPUSTKA GILDII (AKTYWNA)</string>
+    <string name="guild_pass_activate_btn">Aktywuj Przepustkę Gildii</string>
+    <string name="guild_pass_active_btn">Przepustka Aktywna (1,5x XP)</string>
+    <string name="merchant_creator_title">KREATOR PRZYSTANKU PARTNERA</string>
+    <string name="merchant_creator_desc">Sponsoruj przystanek dla lokalnych kawiarni, księgarni i muzeów:</string>
+    <string name="partner_venue_label">Nazwa Lokalu / Kawiarni</string>
+    <string name="partner_venue_placeholder">np. Palarnia Kawy i Książki</string>
+    <string name="partner_offer_label">Bonus dla Odkrywcy</string>
+    <string name="partner_offer_placeholder">np. 20% zniżki na kawę</string>
+    <string name="pin_sponsored_stop_btn">Przypnij Przystanek (+Voucher)</string>
+    <string name="invite_explorer_title">ZAPROŚ ODKRYWCĘ (+250 XP)</string>
+    <string name="invite_explorer_desc">Udostępnij zaproszenie na 7-dniowy okres próbny Przepustki.</string>
+    <string name="invite_action_btn">Zaproś</string>
+    <string name="dm_fact_check_chip">Fakty (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Pojedynek Zagadek (+175 XP)</string>
+    <string name="dm_voice_log_chip">Notatka Głosowa (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Opisz detal architektoniczny lub tablicę...</string>
+    <string name="catalog_note_placeholder">Wpisz notatki terenowe...</string>
 </resources>

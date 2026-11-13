@@ -71,10 +71,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.example.R
 import com.example.data.DungeonMasterAiRepository
 import com.example.model.AiLandmarkRiddle
 import com.example.model.ChatMessage
@@ -111,7 +113,7 @@ fun DungeonMasterChatScreen(
     var inputText by rememberSaveable { mutableStateOf("") }
     var showVoiceFieldLogPanel by rememberSaveable { mutableStateOf(false) }
     var voiceFieldLogDraft by rememberSaveable {
-        mutableStateOf("Spotted ornate 19th-century ironwork and weathered brass dates beside the main arch.")
+        mutableStateOf("")
     }
     var speechTargetMode by rememberSaveable { mutableStateOf("CHAT") }
     val listState = rememberLazyListState()
@@ -157,8 +159,8 @@ fun DungeonMasterChatScreen(
             if (mode == "FIELD_LOG") {
                 showVoiceFieldLogPanel = true
             } else {
-                val sampleVoice = "Tell me the hidden historical backstory of ${activeLandmark?.name ?: "this landmark"} and what my ${style.title} senses."
-                viewModel.sendChatMessageToDungeonMaster(sampleVoice)
+                val fallbackPrompt = "Tell me the hidden historical backstory of ${activeLandmark?.name ?: "this landmark"} and what my ${style.title} senses."
+                viewModel.sendChatMessageToDungeonMaster(fallbackPrompt)
             }
         }
     }
@@ -302,7 +304,7 @@ fun DungeonMasterChatScreen(
                         enabled = !isGeneratingFactDossier,
                         label = {
                             Text(
-                                text = if (isGeneratingFactDossier) "Verifying..." else "Fact-Check (+110 XP)",
+                                text = if (isGeneratingFactDossier) "Verifying..." else stringResource(id = R.string.dm_fact_check_chip),
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1
                             )
@@ -327,7 +329,7 @@ fun DungeonMasterChatScreen(
                         enabled = !isGeneratingRiddle,
                         label = {
                             Text(
-                                text = if (isGeneratingRiddle) "Crafting..." else "Riddle Duel (+175 XP)",
+                                text = if (isGeneratingRiddle) "Crafting..." else stringResource(id = R.string.dm_riddle_duel_chip),
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1
                             )
@@ -351,7 +353,7 @@ fun DungeonMasterChatScreen(
                         onClick = { showVoiceFieldLogPanel = !showVoiceFieldLogPanel },
                         label = {
                             Text(
-                                text = "Voice Log (+140 XP)",
+                                text = stringResource(id = R.string.dm_voice_log_chip),
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1
                             )

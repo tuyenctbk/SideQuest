@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Gerçek dünya sesli RYO ve etkileşimli yürüyüş rehberi</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">Gelişmiş çevrimdışı haritalar içeren yeni SideQuest sürümü hazır.</string>
     <string name="prompt_update_action">Şimdi Güncelle</string>
     <string name="prompt_update_later">Daha Sonra (7 gün)</string>
+    <string name="sign_in_as_guest">Misafir Kaşif Olarak Devam Et</string>
+    <string name="nav_map">Harita</string>
+    <string name="nav_dungeon">Zindan</string>
+    <string name="nav_dm">OM</string>
+    <string name="nav_journal">Günlük</string>
+    <string name="nav_codex">Kodeks</string>
+    <string name="nav_settings">Ayarlar</string>
+    <string name="choose_character_archetype">KARAKTER ARKETİPİ SEÇ</string>
+    <string name="pocket_dm_label">Cep OM</string>
+    <string name="auto_voice_label">Oto Ses</string>
+    <string name="muted_label">Sessiz</string>
+    <string name="use_live_gps">Canlı GPS Kullan</string>
+    <string name="cache_offline_pack">Çevrimdışı Paket</string>
+    <string name="offline_pack_ready">Çevrimdışı Paket: Hazır</string>
+    <string name="search_city_placeholder">Şehir, park veya semt ara...</string>
+    <string name="quest_action_btn">Görev</string>
+    <string name="guild_pass_hub_title">LONCA BİLETİ VE YZ KOTASI</string>
+    <string name="zero_bill_eco_title">SIFIR FATURA EKO MODU ($0)</string>
+    <string name="paid_image_studio_title">ÜCRETLİ YZ GÖRSEL STÜDYOSU: AÇIK</string>
+    <string name="zero_bill_eco_desc">Akıllı önbellek + OpenStreetMap + cihaz içi ses günlük keşfi $0 tutar.</string>
+    <string name="guild_pass_title">MACERACI LONCA BİLETİ</string>
+    <string name="guild_pass_active_title">LONCA BİLETİ (AKTİF)</string>
+    <string name="guild_pass_activate_btn">Lonca Bileti Avantajlarını Aç</string>
+    <string name="guild_pass_active_btn">Lonca Bileti Aktif (1.5x XP)</string>
+    <string name="merchant_creator_title">YEREL ESNAF DURAĞI OLUŞTURUCU</string>
+    <string name="merchant_creator_desc">Kafe, kitabevi ve müzeler için sponsorlu görev durağı ekleyin:</string>
+    <string name="partner_venue_label">Mekan / Kafe Adı</string>
+    <string name="partner_venue_placeholder">örn. Mahalle Kahvecisi ve Kitap</string>
+    <string name="partner_offer_label">Kaşif Fırsatı</string>
+    <string name="partner_offer_placeholder">örn. Kahvede %20 İndirim</string>
+    <string name="pin_sponsored_stop_btn">Sponsorlu Durağı Sabitle (+Kupon)</string>
+    <string name="invite_explorer_title">BİR KAŞİF DAVET ET (+250 XP)</string>
+    <string name="invite_explorer_desc">Arkadaşların 7 günlük Lonca Bileti denemesi için davet paylaş.</string>
+    <string name="invite_action_btn">Davet Et</string>
+    <string name="dm_fact_check_chip">Gerçek Kontrolü (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Bilmece Düellosu (+175 XP)</string>
+    <string name="dm_voice_log_chip">Ses Kaydı (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Mimari bir detayı, plakayı veya gözlemi anlat...</string>
+    <string name="catalog_note_placeholder">Saha gözlem notlarını girin...</string>
 </resources>

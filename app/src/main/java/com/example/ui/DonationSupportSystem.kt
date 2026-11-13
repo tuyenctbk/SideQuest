@@ -877,8 +877,8 @@ fun SettingsSupportScreen(
     // false = Unified Settings + SupportDevelopmentScreen view; true = Focused SupportDevelopmentScreen sub-route
     var isFocusedSupportRoute by rememberSaveable { mutableStateOf(false) }
 
-    var partnerName by rememberSaveable { mutableStateOf("Starlight Espresso & Books") }
-    var partnerOffer by rememberSaveable { mutableStateOf("Free Cold Brew Upgrade for SideQuest Walkers") }
+    var partnerName by rememberSaveable { mutableStateOf("") }
+    var partnerOffer by rememberSaveable { mutableStateOf("") }
 
     if (isFocusedSupportRoute) {
         LazyColumn(

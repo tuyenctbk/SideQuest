@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Real-world audio-RPG en interactieve wandelgids</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">Een nieuwere versie van SideQuest staat klaar met snellere kaarten en offline-ondersteuning.</string>
     <string name="prompt_update_action">Nu bijwerken</string>
     <string name="prompt_update_later">Later (7 dagen)</string>
+    <string name="sign_in_as_guest">Doorgaan als Gast-Verkenner</string>
+    <string name="nav_map">Kaart</string>
+    <string name="nav_dungeon">Kerker</string>
+    <string name="nav_dm">SL</string>
+    <string name="nav_journal">Logboek</string>
+    <string name="nav_codex">Codex</string>
+    <string name="nav_settings">Opties</string>
+    <string name="choose_character_archetype">KIES KARAKTER-ARCHETYPE</string>
+    <string name="pocket_dm_label">Zak-SL</string>
+    <string name="auto_voice_label">Auto-Stem</string>
+    <string name="muted_label">Gedempt</string>
+    <string name="use_live_gps">Live GPS gebruiken</string>
+    <string name="cache_offline_pack">Offline Pakket Opslaan</string>
+    <string name="offline_pack_ready">Offline Pakket: Klaar</string>
+    <string name="search_city_placeholder">Zoek stad, park of wijk...</string>
+    <string name="quest_action_btn">Missie</string>
+    <string name="guild_pass_hub_title">GILDEPAS &amp; AI-QUOTUM</string>
+    <string name="zero_bill_eco_title">NUL-KOSTEN ECO-MODUS ($0)</string>
+    <string name="paid_image_studio_title">BETAALDE AI-BEELDSTUDIO: AAN</string>
+    <string name="zero_bill_eco_desc">Slimme cache + OpenStreetMap + lokale spraak houden verkennen op $0.</string>
+    <string name="guild_pass_title">AVONTURIERS GILDEPAS</string>
+    <string name="guild_pass_active_title">AVONTURIERS GILDEPAS (ACTIEF)</string>
+    <string name="guild_pass_activate_btn">Gildepas Voordelen Activeren</string>
+    <string name="guild_pass_active_btn">Gildepas Actief (1,5x XP)</string>
+    <string name="merchant_creator_title">LOKALE WINKELSTOP MAKER</string>
+    <string name="merchant_creator_desc">Sponsor een missiestop voor cafés, boekhandels &amp; musea:</string>
+    <string name="partner_venue_label">Naam Locatie / Café</string>
+    <string name="partner_venue_placeholder">bijv. Buurtbranderij &amp; Boeken</string>
+    <string name="partner_offer_label">Verkennersvoordeel</string>
+    <string name="partner_offer_placeholder">bijv. 20% korting op koffie</string>
+    <string name="pin_sponsored_stop_btn">Gesponsorde Stop Vastpinnen (+Voucher)</string>
+    <string name="invite_explorer_title">NODIG EEN VERKENNER UIT (+250 XP)</string>
+    <string name="invite_explorer_desc">Deel je gilde-uitnodiging voor 7 dagen gratis proefpas.</string>
+    <string name="invite_action_btn">Uitnodigen</string>
+    <string name="dm_fact_check_chip">Feitencheck (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Raadselduel (+175 XP)</string>
+    <string name="dm_voice_log_chip">Spraaklog (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Beschrijf een architectonisch detail of plaquette...</string>
+    <string name="catalog_note_placeholder">Voer veldnotities in...</string>
 </resources>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">เกม RPG เสียงในโลกจริงและคู่มือเดินเที่ยวแบบโต้ตอบ</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">SideQuest เวอร์ชันใหม่พร้อมแผนที่ออฟไลน์ที่ราบรื่นขึ้นพร้อมให้ดาวน์โหลดแล้ว</string>
     <string name="prompt_update_action">อัปเดตทันที</string>
     <string name="prompt_update_later">ไว้คราวหน้า (7 วัน)</string>
+    <string name="sign_in_as_guest">ดำเนินการต่อในฐานะผู้สำรวจรับเชิญ</string>
+    <string name="nav_map">แผนที่</string>
+    <string name="nav_dungeon">ดันเจี้ยน</string>
+    <string name="nav_dm">DM</string>
+    <string name="nav_journal">บันทึก</string>
+    <string name="nav_codex">คัมภีร์</string>
+    <string name="nav_settings">ตั้งค่า</string>
+    <string name="choose_character_archetype">เลือกสายอาชีพตัวละคร</string>
+    <string name="pocket_dm_label">DM พกพา</string>
+    <string name="auto_voice_label">เสียงอัตโนมัติ</string>
+    <string name="muted_label">ปิดเสียง</string>
+    <string name="use_live_gps">ใช้ GPS สด</string>
+    <string name="cache_offline_pack">แคชแพ็กออฟไลน์</string>
+    <string name="offline_pack_ready">แพ็กออฟไลน์: พร้อม</string>
+    <string name="search_city_placeholder">ค้นหาเมือง สวนสาธารณะ หรือย่าน...</string>
+    <string name="quest_action_btn">เควสต์</string>
+    <string name="guild_pass_hub_title">กิลด์พาสและโควตา AI</string>
+    <string name="zero_bill_eco_title">โหมดประหยัดไร้ค่าใช้จ่าย ($0)</string>
+    <string name="paid_image_studio_title">สตูดิโอภาพ AI แบบชำระเงิน: เปิด</string>
+    <string name="zero_bill_eco_desc">สมาร์ทแคช + OpenStreetMap + เสียงบนอุปกรณ์ช่วยให้สำรวจฟรี $0</string>
+    <string name="guild_pass_title">กิลด์พาสนักผจญภัย</string>
+    <string name="guild_pass_active_title">กิลด์พาสนักผจญภัย (เปิดใช้งาน)</string>
+    <string name="guild_pass_activate_btn">เปิดใช้งานสิทธิพิเศษกิลด์พาส</string>
+    <string name="guild_pass_active_btn">กิลด์พาสทำงานอยู่ (1.5x XP)</string>
+    <string name="merchant_creator_title">สร้างจุดแวะร้านค้าท้องถิ่น</string>
+    <string name="merchant_creator_desc">สนับสนุนจุดเควสต์สำหรับคาเฟ่ ร้านหนังสือ และพิพิธภัณฑ์:</string>
+    <string name="partner_venue_label">ชื่อร้าน / คาเฟ่</string>
+    <string name="partner_venue_placeholder">เช่น ร้านกาแฟและหนังสือชุมชน</string>
+    <string name="partner_offer_label">สิทธิพิเศษผู้สำรวจ</string>
+    <string name="partner_offer_placeholder">เช่น ส่วนลดกาแฟ 20%</string>
+    <string name="pin_sponsored_stop_btn">ปักหมุดจุดสนับสนุน (+คูปอง)</string>
+    <string name="invite_explorer_title">ชวนเพื่อนนักสำรวจ (+250 XP)</string>
+    <string name="invite_explorer_desc">แชร์รหัสเชิญเพื่อให้เพื่อนทดลองใช้กิลด์พาส 7 วัน</string>
+    <string name="invite_action_btn">ชวนเพื่อน</string>
+    <string name="dm_fact_check_chip">ตรวจข้อเท็จจริง (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">ดวลปริศนา (+175 XP)</string>
+    <string name="dm_voice_log_chip">บันทึกเสียง (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">อธิบายรายละเอียดสถาปัตยกรรม ป้ายจารึก หรือสิ่งที่พบ...</string>
+    <string name="catalog_note_placeholder">กรอกบันทึกการสำรวจ...</string>
 </resources>

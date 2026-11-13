@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">现实世界音频RPG与步行探索指南</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">包含离线地图增强和更顺畅性能的更新版本已就绪。</string>
     <string name="prompt_update_action">立即更新</string>
     <string name="prompt_update_later">稍后提醒（7天）</string>
+    <string name="sign_in_as_guest">以访客探索者身份继续</string>
+    <string name="nav_map">地图</string>
+    <string name="nav_dungeon">地下城</string>
+    <string name="nav_dm">主持人</string>
+    <string name="nav_journal">日志</string>
+    <string name="nav_codex">图鉴</string>
+    <string name="nav_settings">设置</string>
+    <string name="choose_character_archetype">选择角色原型</string>
+    <string name="pocket_dm_label">口袋主持人</string>
+    <string name="auto_voice_label">自动语音</string>
+    <string name="muted_label">已静音</string>
+    <string name="use_live_gps">使用实时 GPS</string>
+    <string name="cache_offline_pack">缓存离线包</string>
+    <string name="offline_pack_ready">离线包：已就绪</string>
+    <string name="search_city_placeholder">搜索真实城市、公园或街区...</string>
+    <string name="quest_action_btn">任务</string>
+    <string name="guild_pass_hub_title">公会通行证与 AI 配额中心</string>
+    <string name="zero_bill_eco_title">零账单环保模式（$0 费用保护）</string>
+    <string name="paid_image_studio_title">付费 AI 图像工作室：已开启</string>
+    <string name="zero_bill_eco_desc">智能缓存 + OpenStreetMap + 设备端语音让日常探索保持 $0 成本。</string>
+    <string name="guild_pass_title">冒险者公会通行证</string>
+    <string name="guild_pass_active_title">冒险者公会通行证（已激活）</string>
+    <string name="guild_pass_activate_btn">激活公会通行证特权</string>
+    <string name="guild_pass_active_btn">公会通行证已激活 (1.5x XP)</string>
+    <string name="merchant_creator_title">本地商户赞助站点生成器</string>
+    <string name="merchant_creator_desc">为咖啡馆、书店和博物馆赞助任务站点以吸引客流：</string>
+    <string name="partner_venue_label">商家 / 咖啡馆名称</string>
+    <string name="partner_venue_placeholder">例如：街角烘焙与书屋</string>
+    <string name="partner_offer_label">探索者到店福利</string>
+    <string name="partner_offer_placeholder">例如：精品咖啡享 8 折</string>
+    <string name="pin_sponsored_stop_btn">将赞助站点钉选到雷达 (+优惠券)</string>
+    <string name="invite_explorer_title">邀请探索伙伴 (+250 XP)</string>
+    <string name="invite_explorer_desc">分享公会邀请码，好友可享 7 天通行证试用。</string>
+    <string name="invite_action_btn">邀请</string>
+    <string name="dm_fact_check_chip">史实核查 (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">谜题对决 (+175 XP)</string>
+    <string name="dm_voice_log_chip">语音日志 (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">描述建筑细节、铭牌或实地观察...</string>
+    <string name="catalog_note_placeholder">输入实地观察笔记...</string>
 </resources>

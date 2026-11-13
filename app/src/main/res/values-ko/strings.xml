@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">현실 세계 음성 RPG &amp; 인터랙티브 걷기 가이드</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">더욱 최적화된 지도와 오프라인 팩이 포함된 최신 버전이 준비되었습니다.</string>
     <string name="prompt_update_action">지금 업데이트</string>
     <string name="prompt_update_later">나중에 (7일 후)</string>
+    <string name="sign_in_as_guest">게스트 탐험가로 계속하기</string>
+    <string name="nav_map">지도</string>
+    <string name="nav_dungeon">던전</string>
+    <string name="nav_dm">DM</string>
+    <string name="nav_journal">일지</string>
+    <string name="nav_codex">도감</string>
+    <string name="nav_settings">설정</string>
+    <string name="choose_character_archetype">캐릭터 유형 선택</string>
+    <string name="pocket_dm_label">포켓 DM</string>
+    <string name="auto_voice_label">자동 음성</string>
+    <string name="muted_label">음소거</string>
+    <string name="use_live_gps">실시간 GPS 사용</string>
+    <string name="cache_offline_pack">오프라인 팩 저장</string>
+    <string name="offline_pack_ready">오프라인 팩: 준비됨</string>
+    <string name="search_city_placeholder">도시, 공원 또는 동네 검색...</string>
+    <string name="quest_action_btn">퀘스트</string>
+    <string name="guild_pass_hub_title">길드 패스 및 AI 할당량 허브</string>
+    <string name="zero_bill_eco_title">요금 제로 에코 모드 ($0 보호)</string>
+    <string name="paid_image_studio_title">유료 AI 이미지 스튜디오: 사용 중</string>
+    <string name="zero_bill_eco_desc">스마트 캐시 + OpenStreetMap + 기기 음성으로 일일 탐험 비용을 $0로 유지합니다.</string>
+    <string name="guild_pass_title">모험가 길드 패스</string>
+    <string name="guild_pass_active_title">모험가 길드 패스 (활성)</string>
+    <string name="guild_pass_activate_btn">길드 패스 혜택 활성화</string>
+    <string name="guild_pass_active_btn">길드 패스 활성 (1.5x XP)</string>
+    <string name="merchant_creator_title">지역 상점 스폰서 정거장 생성</string>
+    <string name="merchant_creator_desc">카페, 서점, 박물관을 위한 스폰서 퀘스트 지점을 추가하세요:</string>
+    <string name="partner_venue_label">매장 / 카페 이름</string>
+    <string name="partner_venue_placeholder">예: 동네 로스터리 &amp; 북스</string>
+    <string name="partner_offer_label">탐험가 방문 혜택</string>
+    <string name="partner_offer_placeholder">예: 스페셜티 커피 20% 할인</string>
+    <string name="pin_sponsored_stop_btn">스폰서 지점 고정 (+바우처)</string>
+    <string name="invite_explorer_title">동료 탐험가 초대 (+250 XP)</string>
+    <string name="invite_explorer_desc">초대 코드를 공유하여 친구에게 7일 길드 패스를 선물하세요.</string>
+    <string name="invite_action_btn">초대</string>
+    <string name="dm_fact_check_chip">사실 확인 (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">수수께끼 대결 (+175 XP)</string>
+    <string name="dm_voice_log_chip">음성 기록 (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">건축 세부 사항, 명판 또는 관찰 내용을 입력하세요...</string>
+    <string name="catalog_note_placeholder">현장 관찰 메모 입력...</string>
 </resources>

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Game nhập vai âm thanh đời thực và hướng dẫn đi bộ tương tác</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">Phiên bản SideQuest mới với bản đồ tối ưu và chế độ ngoại tuyến đã sẵn sàng.</string>
     <string name="prompt_update_action">Cập nhật ngay</string>
     <string name="prompt_update_later">Để sau (7 ngày)</string>
+    <string name="sign_in_as_guest">Tiếp tục với tư cách Khách</string>
+    <string name="nav_map">Bản đồ</string>
+    <string name="nav_dungeon">Ngục tối</string>
+    <string name="nav_dm">DM</string>
+    <string name="nav_journal">Nhật ký</string>
+    <string name="nav_codex">Điển tịch</string>
+    <string name="nav_settings">Cài đặt</string>
+    <string name="choose_character_archetype">CHỌN HÌNH MẪU NHÂN VẬT</string>
+    <string name="pocket_dm_label">DM Bỏ túi</string>
+    <string name="auto_voice_label">Tự phát giọng</string>
+    <string name="muted_label">Đã tắt tiếng</string>
+    <string name="use_live_gps">Dùng GPS trực tiếp</string>
+    <string name="cache_offline_pack">Lưu gói ngoại tuyến</string>
+    <string name="offline_pack_ready">Gói ngoại tuyến: Sẵn sàng</string>
+    <string name="search_city_placeholder">Tìm thành phố, công viên, khu phố...</string>
+    <string name="quest_action_btn">Nhiệm vụ</string>
+    <string name="guild_pass_hub_title">THẺ BANG HỘI &amp; HẠN MỨC AI</string>
+    <string name="zero_bill_eco_title">CHẾ ĐỘ TIẾT KIỆM 0 ĐỒNG ($0)</string>
+    <string name="paid_image_studio_title">STUDIO ẢNH AI TRẢ PHÍ: ĐÃ BẬT</string>
+    <string name="zero_bill_eco_desc">Bộ nhớ đệm thông minh + OpenStreetMap + giọng đọc thiết bị giữ chi phí ở mức $0.</string>
+    <string name="guild_pass_title">THẺ BANG HỘI NHÀ THÁM HIỂM</string>
+    <string name="guild_pass_active_title">THẺ BANG HỘI (ĐANG BẬT)</string>
+    <string name="guild_pass_activate_btn">Kích hoạt đặc quyền Thẻ Bang Hội</string>
+    <string name="guild_pass_active_btn">Thẻ Bang Hội đang bật (1.5x XP)</string>
+    <string name="merchant_creator_title">TẠO ĐIỂM DỪNG ĐỐI TÁC ĐỊA PHƯƠNG</string>
+    <string name="merchant_creator_desc">Tài trợ điểm dừng nhiệm vụ cho quán cà phê, hiệu sách &amp; bảo tàng:</string>
+    <string name="partner_venue_label">Tên địa điểm / Quán cà phê</string>
+    <string name="partner_venue_placeholder">vd. Tiệm Cà Phê &amp; Sách Phố Cổ</string>
+    <string name="partner_offer_label">Ưu đãi cho Nhà thám hiểm</string>
+    <string name="partner_offer_placeholder">vd. Giảm 20% đồ uống đặc biệt</string>
+    <string name="pin_sponsored_stop_btn">Ghim điểm tài trợ lên Radar (+Ưu đãi)</string>
+    <string name="invite_explorer_title">MỜI BẠN THÁM HIỂM (+250 XP)</string>
+    <string name="invite_explorer_desc">Chia sẻ mã mời để bạn bè dùng thử Thẻ Bang Hội 7 ngày.</string>
+    <string name="invite_action_btn">Mời bạn</string>
+    <string name="dm_fact_check_chip">Kiểm chứng (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Đấu câu đố (+175 XP)</string>
+    <string name="dm_voice_log_chip">Ghi âm (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Mô tả chi tiết kiến trúc, bia đá hoặc quan sát thực tế...</string>
+    <string name="catalog_note_placeholder">Nhập ghi chú quan sát thực địa...</string>
 </resources>

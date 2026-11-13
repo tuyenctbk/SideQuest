@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">वास्तविक दुनिया ऑडियो आरपीजी और इंटरैक्टिव वॉक गाइड</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">बेहतर नक्शों और ऑफलाइन सपोर्ट के साथ SideQuest का नया संस्करण तैयार है।</string>
     <string name="prompt_update_action">अभी अपडेट करें</string>
     <string name="prompt_update_later">बाद में (7 दिन)</string>
+    <string name="sign_in_as_guest">अतिथि खोजकर्ता के रूप में जारी रखें</string>
+    <string name="nav_map">मानचित्र</string>
+    <string name="nav_dungeon">कालकोठरी</string>
+    <string name="nav_dm">डीएम</string>
+    <string name="nav_journal">डायरी</string>
+    <string name="nav_codex">कोडेक्स</string>
+    <string name="nav_settings">सेटिंग्स</string>
+    <string name="choose_character_archetype">चरित्र प्रकार चुनें</string>
+    <string name="pocket_dm_label">पॉकेट डीएम</string>
+    <string name="auto_voice_label">ऑटो आवाज़</string>
+    <string name="muted_label">म्यूट</string>
+    <string name="use_live_gps">लाइव GPS उपयोग करें</string>
+    <string name="cache_offline_pack">ऑफ़लाइन पैक सहेजें</string>
+    <string name="offline_pack_ready">ऑफ़लाइन पैक: तैयार</string>
+    <string name="search_city_placeholder">शहर, पार्क या इलाका खोजें...</string>
+    <string name="quest_action_btn">क्वेस्ट</string>
+    <string name="guild_pass_hub_title">गिल्ड पास और AI कोटा हब</string>
+    <string name="zero_bill_eco_title">ज़ीरो-बिल इको मोड ($0 सुरक्षा)</string>
+    <string name="paid_image_studio_title">पेड AI इमेज स्टूडियो: सक्रिय</string>
+    <string name="zero_bill_eco_desc">स्मार्ट कैश + OpenStreetMap + ऑन-डिवाइस आवाज़ रोज़ाना खोज को मुफ्त रखते हैं।</string>
+    <string name="guild_pass_title">एडवेंचरर गिल्ड पास</string>
+    <string name="guild_pass_active_title">एडवेंचरर गिल्ड पास (सक्रिय)</string>
+    <string name="guild_pass_activate_btn">गिल्ड पास लाभ सक्रिय करें</string>
+    <string name="guild_pass_active_btn">गिल्ड पास सक्रिय (1.5x XP)</string>
+    <string name="merchant_creator_title">स्थानीय व्यापारी स्टॉप निर्माता</string>
+    <string name="merchant_creator_desc">कैफे, बुकस्टोर और संग्रहालयों के लिए प्रायोजित क्वेस्ट स्टॉप बनाएं:</string>
+    <string name="partner_venue_label">स्थान / कैफे का नाम</string>
+    <string name="partner_venue_placeholder">उदा. नेबरहुड रोस्टर्स और बुक्स</string>
+    <string name="partner_offer_label">खोजकर्ता ऑफ़र</string>
+    <string name="partner_offer_placeholder">उदा. कॉफी पर 20% छूट</string>
+    <string name="pin_sponsored_stop_btn">प्रायोजित स्टॉप पिन करें (+वाउचर)</string>
+    <string name="invite_explorer_title">मित्र खोजकर्ता आमंत्रित करें (+250 XP)</string>
+    <string name="invite_explorer_desc">7-दिन के गिल्ड पास ट्रायल के लिए आमंत्रण साझा करें।</string>
+    <string name="invite_action_btn">आमंत्रित करें</string>
+    <string name="dm_fact_check_chip">तथ्य जांच (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">पहेली द्वंद्व (+175 XP)</string>
+    <string name="dm_voice_log_chip">वॉइस लॉग (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">किसी वास्तुकला विवरण या पट्टिका का वर्णन करें...</string>
+    <string name="catalog_note_placeholder">फ़ील्ड अवलोकन नोट्स दर्ज करें...</string>
 </resources>

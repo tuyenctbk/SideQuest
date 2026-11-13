@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">GDR audio nel mondo reale e guida a piedi interattiva</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">È disponibile una versione aggiornata di SideQuest con mappe ottimizzate.</string>
     <string name="prompt_update_action">Aggiorna ora</string>
     <string name="prompt_update_later">Più tardi (7 giorni)</string>
+    <string name="sign_in_as_guest">Continua come Esploratore Ospite</string>
+    <string name="nav_map">Mappa</string>
+    <string name="nav_dungeon">Dungeon</string>
+    <string name="nav_dm">DM</string>
+    <string name="nav_journal">Diario</string>
+    <string name="nav_codex">Codice</string>
+    <string name="nav_settings">Opzioni</string>
+    <string name="choose_character_archetype">SCEGLI ARCHETIPO PERSONAGGIO</string>
+    <string name="pocket_dm_label">DM Tascabile</string>
+    <string name="auto_voice_label">Voce Auto</string>
+    <string name="muted_label">Muto</string>
+    <string name="use_live_gps">Usa GPS Live</string>
+    <string name="cache_offline_pack">Salva Pacchetto Offline</string>
+    <string name="offline_pack_ready">Pacchetto Offline: Pronto</string>
+    <string name="search_city_placeholder">Cerca città, parco o quartiere...</string>
+    <string name="quest_action_btn">Quest</string>
+    <string name="guild_pass_hub_title">PASS GILDA &amp; QUOTA IA</string>
+    <string name="zero_bill_eco_title">MODALITÀ ECO ZERO SPESE ($0)</string>
+    <string name="paid_image_studio_title">STUDIO IMMAGINI IA A PAGAMENTO: ATTIVO</string>
+    <string name="zero_bill_eco_desc">Cache smart + OpenStreetMap + TTS locale mantengono l\'esplorazione a 0 $.</string>
+    <string name="guild_pass_title">PASS GILDA AVVENTURIERI</string>
+    <string name="guild_pass_active_title">PASS GILDA AVVENTURIERI (ATTIVO)</string>
+    <string name="guild_pass_activate_btn">Attiva Vantaggi Pass Gilda</string>
+    <string name="guild_pass_active_btn">Pass Gilda Attivo (1,5x XP)</string>
+    <string name="merchant_creator_title">CREATORE TAPPA COMMERCIANTE</string>
+    <string name="merchant_creator_desc">Sponsorizza una tappa per caffè, librerie e musei locali:</string>
+    <string name="partner_venue_label">Nome Locale / Caffè</string>
+    <string name="partner_venue_placeholder">es. Torrefazione &amp; Libri</string>
+    <string name="partner_offer_label">Vantaggio Esploratore</string>
+    <string name="partner_offer_placeholder">es. 20% di sconto sul caffè</string>
+    <string name="pin_sponsored_stop_btn">Fissa Tappa Sponsorizzata (+Voucher)</string>
+    <string name="invite_explorer_title">INVITA UN ESPLORATORE (+250 XP)</string>
+    <string name="invite_explorer_desc">Condividi l\'invito per 7 giorni di prova del Pass.</string>
+    <string name="invite_action_btn">Invita</string>
+    <string name="dm_fact_check_chip">Fatti Reali (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Duello Enigmi (+175 XP)</string>
+    <string name="dm_voice_log_chip">Nota Vocale (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Descrivi un dettaglio architettonico o una targa...</string>
+    <string name="catalog_note_placeholder">Inserisci note di campo...</string>
 </resources>

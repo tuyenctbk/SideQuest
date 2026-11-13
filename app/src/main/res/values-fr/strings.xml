@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Jeu de rôle audio réel et guide de marche interactif</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">Une version plus récente de SideQuest est prête avec des cartes et packs hors-ligne optimisés.</string>
     <string name="prompt_update_action">Mettre à jour</string>
     <string name="prompt_update_later">Plus tard (7 jours)</string>
+    <string name="sign_in_as_guest">Continuer en tant qu\'Invité</string>
+    <string name="nav_map">Carte</string>
+    <string name="nav_dungeon">Donjon</string>
+    <string name="nav_dm">MJ</string>
+    <string name="nav_journal">Journal</string>
+    <string name="nav_codex">Codex</string>
+    <string name="nav_settings">Réglages</string>
+    <string name="choose_character_archetype">CHOISIR UN ARCHÉTYPE</string>
+    <string name="pocket_dm_label">MJ de Poche</string>
+    <string name="auto_voice_label">Voix Auto</string>
+    <string name="muted_label">Muet</string>
+    <string name="use_live_gps">Utiliser GPS en Direct</string>
+    <string name="cache_offline_pack">Pack Hors Ligne</string>
+    <string name="offline_pack_ready">Pack Hors Ligne : Prêt</string>
+    <string name="search_city_placeholder">Chercher une ville, un parc ou un quartier...</string>
+    <string name="quest_action_btn">Quête</string>
+    <string name="guild_pass_hub_title">PASSE DE GUILDE &amp; QUOTA IA</string>
+    <string name="zero_bill_eco_title">MODE ÉCO ZÉRO FACTURE (0 $)</string>
+    <string name="paid_image_studio_title">STUDIO IMAGE IA PAYANT : ACTIF</string>
+    <string name="zero_bill_eco_desc">Cache intelligent + OpenStreetMap + TTS local gardent l\'exploration à 0 $.</string>
+    <string name="guild_pass_title">PASSE DE LA GUILDE</string>
+    <string name="guild_pass_active_title">PASSE DE LA GUILDE (ACTIF)</string>
+    <string name="guild_pass_activate_btn">Activer le Passe de Guilde</string>
+    <string name="guild_pass_active_btn">Passe de Guilde Actif (1,5x XP)</string>
+    <string name="merchant_creator_title">CRÉATEUR D\'ÉTAPE COMMERÇANTE</string>
+    <string name="merchant_creator_desc">Sponsorisez une étape pour cafés, librairies et musées locaux :</string>
+    <string name="partner_venue_label">Nom du Lieu / Café</string>
+    <string name="partner_venue_placeholder">ex. Torréfacteur &amp; Librairie</string>
+    <string name="partner_offer_label">Avantage Explorateur</string>
+    <string name="partner_offer_placeholder">ex. -20 % sur les boissons</string>
+    <string name="pin_sponsored_stop_btn">Épingler l\'Étape (+Coupon)</string>
+    <string name="invite_explorer_title">INVITER UN EXPLORATEUR (+250 XP)</string>
+    <string name="invite_explorer_desc">Partagez votre invitation pour 7 jours d\'essai du Passe.</string>
+    <string name="invite_action_btn">Inviter</string>
+    <string name="dm_fact_check_chip">Faits Réels (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Duel d\'Énigme (+175 XP)</string>
+    <string name="dm_voice_log_chip">Note Vocale (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Décrivez un détail architectural ou une plaque...</string>
+    <string name="catalog_note_placeholder">Saisissez vos notes de terrain...</string>
 </resources>

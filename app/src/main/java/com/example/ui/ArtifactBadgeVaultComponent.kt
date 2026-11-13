@@ -1604,14 +1604,10 @@ private fun CatalogFieldArtifactDialog(
         notes: String
     ) -> Unit
 ) {
-    var name by rememberSaveable { mutableStateOf("1898 Brass Ferry Token") }
+    var name by rememberSaveable { mutableStateOf("") }
     var landmark by rememberSaveable { mutableStateOf(defaultRegionName) }
-    var inscription by rememberSaveable {
-        mutableStateOf("Weathered brass plaque rubbing recovered near the waterfront archway.")
-    }
-    var notes by rememberSaveable {
-        mutableStateOf("Spotted beside the historic marker during afternoon patrol.")
-    }
+    var inscription by rememberSaveable { mutableStateOf("") }
+    var notes by rememberSaveable { mutableStateOf("") }
     var selectedCat by rememberSaveable { mutableStateOf(ArtifactCategory.PLAQUE_RUBBING) }
 
     Dialog(

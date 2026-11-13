@@ -114,6 +114,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -243,7 +244,7 @@ fun QuestMapScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(
-                    text = "CHOOSE CHARACTER ARCHETYPE",
+                    text = stringResource(id = R.string.choose_character_archetype),
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold
                 )
@@ -253,11 +254,12 @@ fun QuestMapScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    val pocketDmBase = stringResource(id = R.string.pocket_dm_label)
                     AssistChip(
                         onClick = { viewModel.togglePocketWalkMode() },
                         label = {
                             Text(
-                                text = if (isPocketWalkActive) "Pocket DM: ${pocketProximityMeters}m" else "Pocket DM",
+                                text = if (isPocketWalkActive) "$pocketDmBase: ${pocketProximityMeters}m" else pocketDmBase,
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1
                             )
@@ -281,7 +283,9 @@ fun QuestMapScreen(
                         onClick = { viewModel.voiceNarrator.toggleAutoNarrate() },
                         label = {
                             Text(
-                                text = if (autoNarrate) "Auto Voice" else "Muted",
+                                text = stringResource(
+                                    id = if (autoNarrate) R.string.auto_voice_label else R.string.muted_label
+                                ),
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1
                             )
@@ -474,7 +478,7 @@ fun QuestMapScreen(
                             onValueChange = { searchQuery = it },
                             placeholder = {
                                 Text(
-                                    "Search real city, park, or neighborhood...",
+                                    stringResource(id = R.string.search_city_placeholder),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             },
@@ -524,7 +528,7 @@ fun QuestMapScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Quest", style = MaterialTheme.typography.labelLarge)
+                            Text(stringResource(id = R.string.quest_action_btn), style = MaterialTheme.typography.labelLarge)
                         }
                     }
 
@@ -542,7 +546,7 @@ fun QuestMapScreen(
                                     )
                                 )
                             },
-                            label = { Text("Use Live GPS", maxLines = 1) },
+                            label = { Text(stringResource(id = R.string.use_live_gps), maxLines = 1) },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.MyLocation,
@@ -562,7 +566,9 @@ fun QuestMapScreen(
                             onClick = { viewModel.toggleOfflineExpeditionCache() },
                             label = {
                                 Text(
-                                    text = if (isOfflineCached) "Offline Pack: Ready" else "Cache Offline Pack",
+                                    text = stringResource(
+                                        id = if (isOfflineCached) R.string.offline_pack_ready else R.string.cache_offline_pack
+                                    ),
                                     maxLines = 1
                                 )
                             },

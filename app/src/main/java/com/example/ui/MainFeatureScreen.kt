@@ -447,7 +447,7 @@ fun MainFeatureScreen(
                                     },
                                     label = {
                                         Text(
-                                            text = "Map",
+                                            text = stringResource(id = R.string.nav_map),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
                                             style = MaterialTheme.typography.labelSmall
@@ -471,7 +471,7 @@ fun MainFeatureScreen(
                                     },
                                     label = {
                                         Text(
-                                            text = "Dungeon",
+                                            text = stringResource(id = R.string.nav_dungeon),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
                                             style = MaterialTheme.typography.labelSmall
@@ -495,7 +495,7 @@ fun MainFeatureScreen(
                                     },
                                     label = {
                                         Text(
-                                            text = "Journal",
+                                            text = stringResource(id = R.string.nav_journal),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
                                             style = MaterialTheme.typography.labelSmall
@@ -519,7 +519,7 @@ fun MainFeatureScreen(
                                     },
                                     label = {
                                         Text(
-                                            text = "Codex",
+                                            text = stringResource(id = R.string.nav_codex),
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
                                             style = MaterialTheme.typography.labelSmall
@@ -583,40 +583,40 @@ fun MainFeatureScreen(
                             NavigationRailItem(
                                 selected = currentTab == 0,
                                 onClick = { currentTab = 0 },
-                                icon = { Icon(Icons.Default.Explore, contentDescription = "Map") },
-                                label = { Text("Map") },
+                                icon = { Icon(Icons.Default.Explore, contentDescription = stringResource(id = R.string.nav_map)) },
+                                label = { Text(stringResource(id = R.string.nav_map)) },
                                 colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_map")
                             )
                             NavigationRailItem(
                                 selected = currentTab == 1,
                                 onClick = { currentTab = 1 },
-                                icon = { Icon(Icons.Default.RecordVoiceOver, contentDescription = "DM") },
-                                label = { Text("DM") },
+                                icon = { Icon(Icons.Default.RecordVoiceOver, contentDescription = stringResource(id = R.string.nav_dm)) },
+                                label = { Text(stringResource(id = R.string.nav_dm)) },
                                 colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_dm")
                             )
                             NavigationRailItem(
                                 selected = currentTab == 2,
                                 onClick = { currentTab = 2 },
-                                icon = { Icon(Icons.Default.HistoryEdu, contentDescription = "Quest Journal") },
-                                label = { Text("Journal") },
+                                icon = { Icon(Icons.Default.HistoryEdu, contentDescription = stringResource(id = R.string.nav_journal)) },
+                                label = { Text(stringResource(id = R.string.nav_journal)) },
                                 colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_quest_journal")
                             )
                             NavigationRailItem(
                                 selected = currentTab == 3,
                                 onClick = { currentTab = 3 },
-                                icon = { Icon(Icons.Default.Inventory2, contentDescription = "Codex") },
-                                label = { Text("Codex") },
+                                icon = { Icon(Icons.Default.Inventory2, contentDescription = stringResource(id = R.string.nav_codex)) },
+                                label = { Text(stringResource(id = R.string.nav_codex)) },
                                 colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_codex")
                             )
                             NavigationRailItem(
                                 selected = currentTab == 4,
                                 onClick = { currentTab = 4 },
-                                icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                                label = { Text("Settings") },
+                                icon = { Icon(Icons.Default.Settings, contentDescription = stringResource(id = R.string.nav_settings)) },
+                                label = { Text(stringResource(id = R.string.nav_settings)) },
                                 colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_settings")
                             )
@@ -763,8 +763,8 @@ private fun GuildBusinessPartnerModal(
     onSpawnSponsoredPartner: (String, String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var partnerName by rememberSaveable { mutableStateOf("Starlight Espresso & Books") }
-    var partnerOffer by rememberSaveable { mutableStateOf("Free Cold Brew Upgrade for SideQuest Walkers") }
+    var partnerName by rememberSaveable { mutableStateOf("") }
+    var partnerOffer by rememberSaveable { mutableStateOf("") }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -803,7 +803,7 @@ private fun GuildBusinessPartnerModal(
                             modifier = Modifier.size(24.dp)
                         )
                         Text(
-                            text = "GUILD PASS & AI QUOTA HUB",
+                            text = stringResource(id = R.string.guild_pass_hub_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = GuildGold,
                             fontWeight = FontWeight.Bold
@@ -842,15 +842,15 @@ private fun GuildBusinessPartnerModal(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = if (isPaidImageApiApproved) {
-                                        "PAID AI IMAGE STUDIO: OPTED IN"
+                                        stringResource(id = R.string.paid_image_studio_title)
                                     } else {
-                                        "ZERO-BILL ECO MODE ($0 API COST GUARD)"
+                                        stringResource(id = R.string.zero_bill_eco_title)
                                     },
                                     style = MaterialTheme.typography.labelLarge,
                                     color = if (isPaidImageApiApproved) GuildGold else ArcaneEmerald
                                 )
                                 Text(
-                                    text = "Smart Cache + OpenStreetMap + On-Device Voice/TTS keep daily exploration at $0 cost.",
+                                    text = stringResource(id = R.string.zero_bill_eco_desc),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -887,7 +887,9 @@ private fun GuildBusinessPartnerModal(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = if (isGuildPassActive) "ADVENTURER'S GUILD PASS (ACTIVE)" else "ADVENTURER'S GUILD PASS",
+                            text = stringResource(
+                                id = if (isGuildPassActive) R.string.guild_pass_active_title else R.string.guild_pass_title
+                            ),
                             style = MaterialTheme.typography.labelLarge,
                             color = if (isGuildPassActive) ArcaneEmerald else GuildGold
                         )
@@ -908,7 +910,9 @@ private fun GuildBusinessPartnerModal(
                             )
                         ) {
                             Text(
-                                text = if (isGuildPassActive) "Guild Pass Active (1.5x XP)" else "Activate Guild Pass Perks",
+                                text = stringResource(
+                                    id = if (isGuildPassActive) R.string.guild_pass_active_btn else R.string.guild_pass_activate_btn
+                                ),
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
@@ -936,20 +940,21 @@ private fun GuildBusinessPartnerModal(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "LOCAL MERCHANT 'TAVERN STOP' CREATOR",
+                                text = stringResource(id = R.string.merchant_creator_title),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = CyberCyan
                             )
                         }
                         Text(
-                            text = "Simulate how local cafes, bookstores & museums sponsor a quest stop to drive real-world foot traffic:",
+                            text = stringResource(id = R.string.merchant_creator_desc),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         OutlinedTextField(
                             value = partnerName,
                             onValueChange = { partnerName = it },
-                            label = { Text("Venue / Cafe Name") },
+                            label = { Text(stringResource(id = R.string.partner_venue_label)) },
+                            placeholder = { Text(stringResource(id = R.string.partner_venue_placeholder)) },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = CyberCyan,
@@ -962,7 +967,8 @@ private fun GuildBusinessPartnerModal(
                         OutlinedTextField(
                             value = partnerOffer,
                             onValueChange = { partnerOffer = it },
-                            label = { Text("Explorer Foot-Traffic Perk") },
+                            label = { Text(stringResource(id = R.string.partner_offer_label)) },
+                            placeholder = { Text(stringResource(id = R.string.partner_offer_placeholder)) },
                             singleLine = true,
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = CyberCyan,
@@ -985,7 +991,7 @@ private fun GuildBusinessPartnerModal(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                         ) {
                             Text(
-                                text = "Pin Sponsored Stop to Radar (+Voucher)",
+                                text = stringResource(id = R.string.pin_sponsored_stop_btn),
                                 style = MaterialTheme.typography.labelLarge,
                                 textAlign = TextAlign.Center
                             )
@@ -1009,12 +1015,12 @@ private fun GuildBusinessPartnerModal(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "INVITE A FELLOW EXPLORER (+250 XP)",
+                                text = stringResource(id = R.string.invite_explorer_title),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = GuildGold
                             )
                             Text(
-                                text = "Share your Guild Invite so friends start with a 7-Day Guild Pass trial.",
+                                text = stringResource(id = R.string.invite_explorer_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1044,7 +1050,7 @@ private fun GuildBusinessPartnerModal(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Invite", style = MaterialTheme.typography.labelMedium)
+                            Text(stringResource(id = R.string.invite_action_btn), style = MaterialTheme.typography.labelMedium)
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Echtes Audio-RPG und interaktiver Spazierbegleiter</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">Eine neuere Version von SideQuest mit verbesserten Offline-Karten steht bereit.</string>
     <string name="prompt_update_action">Jetzt aktualisieren</string>
     <string name="prompt_update_later">Später (7 Tage)</string>
+    <string name="sign_in_as_guest">Als Gast-Entdecker fortfahren</string>
+    <string name="nav_map">Karte</string>
+    <string name="nav_dungeon">Dungeon</string>
+    <string name="nav_dm">SL</string>
+    <string name="nav_journal">Tagebuch</string>
+    <string name="nav_codex">Kodex</string>
+    <string name="nav_settings">Optionen</string>
+    <string name="choose_character_archetype">CHARAKTER-ARCHETYP WÄHLEN</string>
+    <string name="pocket_dm_label">Taschen-SL</string>
+    <string name="auto_voice_label">Auto-Stimme</string>
+    <string name="muted_label">Stumm</string>
+    <string name="use_live_gps">Live-GPS nutzen</string>
+    <string name="cache_offline_pack">Offline-Paket speichern</string>
+    <string name="offline_pack_ready">Offline-Paket: Bereit</string>
+    <string name="search_city_placeholder">Stadt, Park oder Viertel suchen...</string>
+    <string name="quest_action_btn">Quest</string>
+    <string name="guild_pass_hub_title">GILDENPASS &amp; KI-KONTINGENT</string>
+    <string name="zero_bill_eco_title">NULL-KOSTEN-ÖKO-MODUS ($0 SCHUTZ)</string>
+    <string name="paid_image_studio_title">BEZAHLTES KI-BILDSTUDIO: AKTIV</string>
+    <string name="zero_bill_eco_desc">Smart-Cache + OpenStreetMap + Geräte-TTS halten tägliche Touren bei 0 $ Kosten.</string>
+    <string name="guild_pass_title">ABENTEURER-GILDENPASS</string>
+    <string name="guild_pass_active_title">ABENTEURER-GILDENPASS (AKTIV)</string>
+    <string name="guild_pass_activate_btn">Gildenpass-Vorteile aktivieren</string>
+    <string name="guild_pass_active_btn">Gildenpass aktiv (1,5x XP)</string>
+    <string name="merchant_creator_title">LOKALER HÄNDLER-STOPP-ERSTELLER</string>
+    <string name="merchant_creator_desc">Sponsere einen Quest-Stopp für Cafés, Buchläden &amp; Museen für mehr Laufkundschaft:</string>
+    <string name="partner_venue_label">Lokal- / Café-Name</string>
+    <string name="partner_venue_placeholder">z.B. Nachbarschafts-Rösterei</string>
+    <string name="partner_offer_label">Entdecker-Vorteil vor Ort</string>
+    <string name="partner_offer_placeholder">z.B. 20% Rabatt auf Spezialitätenkaffee</string>
+    <string name="pin_sponsored_stop_btn">Gesponserten Stopp anheften (+Gutschein)</string>
+    <string name="invite_explorer_title">ENTDECKER EINLADEN (+250 XP)</string>
+    <string name="invite_explorer_desc">Teile deine Gilden-Einladung für 7 Tage Gratis-Test.</string>
+    <string name="invite_action_btn">Einladen</string>
+    <string name="dm_fact_check_chip">Faktencheck (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Rätselduell (+175 XP)</string>
+    <string name="dm_voice_log_chip">Sprachnotiz (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Beschreibe ein architektonisches Detail oder eine Tafel...</string>
+    <string name="catalog_note_placeholder">Feldbeobachtungen eingeben...</string>
 </resources>

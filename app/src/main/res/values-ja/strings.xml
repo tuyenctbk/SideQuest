@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">現実世界を冒険する音声RPG＆散策ガイド</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">マップとオフライン性能が向上した新しいSideQuestが配信されています。</string>
     <string name="prompt_update_action">今すぐ更新</string>
     <string name="prompt_update_later">後で（7日後）</string>
+    <string name="sign_in_as_guest">ゲスト探索者として続ける</string>
+    <string name="nav_map">マップ</string>
+    <string name="nav_dungeon">ダンジョン</string>
+    <string name="nav_dm">DM</string>
+    <string name="nav_journal">日誌</string>
+    <string name="nav_codex">図鑑</string>
+    <string name="nav_settings">設定</string>
+    <string name="choose_character_archetype">キャラクタータイプを選択</string>
+    <string name="pocket_dm_label">ポケットDM</string>
+    <string name="auto_voice_label">自動音声</string>
+    <string name="muted_label">消音</string>
+    <string name="use_live_gps">現在地GPSを使用</string>
+    <string name="cache_offline_pack">オフライン保存</string>
+    <string name="offline_pack_ready">オフライン: 準備完了</string>
+    <string name="search_city_placeholder">都市・公園・地域を検索...</string>
+    <string name="quest_action_btn">クエスト</string>
+    <string name="guild_pass_hub_title">ギルドパス＆AIクォータハブ</string>
+    <string name="zero_bill_eco_title">ゼロ課金エコモード ($0保護)</string>
+    <string name="paid_image_studio_title">有料AI画像スタジオ: 有効</string>
+    <string name="zero_bill_eco_desc">スマートキャッシュ＋OpenStreetMap＋端末音声で毎日の探索を$0に維持。</string>
+    <string name="guild_pass_title">冒険者ギルドパス</string>
+    <string name="guild_pass_active_title">冒険者ギルドパス (有効)</string>
+    <string name="guild_pass_activate_btn">ギルドパス特典を有効化</string>
+    <string name="guild_pass_active_btn">ギルドパス有効 (1.5x XP)</string>
+    <string name="merchant_creator_title">地元店舗「酒場ストップ」作成</string>
+    <string name="merchant_creator_desc">カフェ・書店・博物館のスポンサー拠点を作成して来店を促進：</string>
+    <string name="partner_venue_label">店舗・カフェ名</string>
+    <string name="partner_venue_placeholder">例：街角ロースター＆ブックス</string>
+    <string name="partner_offer_label">探索者特典</string>
+    <string name="partner_offer_placeholder">例：スペシャルティコーヒー20%OFF</string>
+    <string name="pin_sponsored_stop_btn">スポンサー拠点をピン留め (+クーポン)</string>
+    <string name="invite_explorer_title">仲間の探索者を招待 (+250 XP)</string>
+    <string name="invite_explorer_desc">招待コードを共有して7日間のギルドパス体験を贈ろう。</string>
+    <string name="invite_action_btn">招待</string>
+    <string name="dm_fact_check_chip">史実チェック (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">謎解き決闘 (+175 XP)</string>
+    <string name="dm_voice_log_chip">音声ログ (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">建築の細部や碑文、気づきを記録...</string>
+    <string name="catalog_note_placeholder">フィールド観察メモを入力...</string>
 </resources>

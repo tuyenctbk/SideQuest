@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">RPG audio dunia nyata &amp; panduan jalan santai interaktif</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">Versi SideQuest terbaru sudah siap dengan peta offline yang lebih lancar.</string>
     <string name="prompt_update_action">Perbarui Sekarang</string>
     <string name="prompt_update_later">Nanti (7 hari)</string>
+    <string name="sign_in_as_guest">Lanjutkan sebagai Penjelajah Tamu</string>
+    <string name="nav_map">Peta</string>
+    <string name="nav_dungeon">Dungeon</string>
+    <string name="nav_dm">DM</string>
+    <string name="nav_journal">Jurnal</string>
+    <string name="nav_codex">Kodeks</string>
+    <string name="nav_settings">Setelan</string>
+    <string name="choose_character_archetype">PILIH ARKETIPE KARAKTER</string>
+    <string name="pocket_dm_label">DM Saku</string>
+    <string name="auto_voice_label">Suara Otomatis</string>
+    <string name="muted_label">Bisu</string>
+    <string name="use_live_gps">Gunakan GPS Langsung</string>
+    <string name="cache_offline_pack">Simpan Paket Offline</string>
+    <string name="offline_pack_ready">Paket Offline: Siap</string>
+    <string name="search_city_placeholder">Cari kota, taman, atau lingkungan...</string>
+    <string name="quest_action_btn">Misi</string>
+    <string name="guild_pass_hub_title">PAS SERIKAT &amp; KUOTA AI</string>
+    <string name="zero_bill_eco_title">MODE EKO NOL BIAYA ($0)</string>
+    <string name="paid_image_studio_title">STUDIO GAMBAR AI BERBAYAR: AKTIF</string>
+    <string name="zero_bill_eco_desc">Cache Pintar + OpenStreetMap + Suara Perangkat menjaga biaya tetap $0.</string>
+    <string name="guild_pass_title">PAS SERIKAT PETUALANG</string>
+    <string name="guild_pass_active_title">PAS SERIKAT PETUALANG (AKTIF)</string>
+    <string name="guild_pass_activate_btn">Aktifkan Keuntungan Pas Serikat</string>
+    <string name="guild_pass_active_btn">Pas Serikat Aktif (1,5x XP)</string>
+    <string name="merchant_creator_title">PEMBUAT TITIK MITRA LOKAL</string>
+    <string name="merchant_creator_desc">Sponsori titik misi untuk kafe, toko buku &amp; museum lokal:</string>
+    <string name="partner_venue_label">Nama Tempat / Kafe</string>
+    <string name="partner_venue_placeholder">mis. Kedai Kopi &amp; Buku Lokal</string>
+    <string name="partner_offer_label">Promo Penjelajah</string>
+    <string name="partner_offer_placeholder">mis. Diskon 20% Kopi Spesial</string>
+    <string name="pin_sponsored_stop_btn">Sematkan Titik Sponsor (+Voucher)</string>
+    <string name="invite_explorer_title">UNDANG PENJELAJAH (+250 XP)</string>
+    <string name="invite_explorer_desc">Bagikan undangan untuk uji coba Pas Serikat 7 hari.</string>
+    <string name="invite_action_btn">Undang</string>
+    <string name="dm_fact_check_chip">Cek Fakta (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Duel Teka-Teki (+175 XP)</string>
+    <string name="dm_voice_log_chip">Catatan Suara (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Jelaskan detail arsitektur, prasasti, atau temuan...</string>
+    <string name="catalog_note_placeholder">Masukkan catatan observasi...</string>
 </resources>

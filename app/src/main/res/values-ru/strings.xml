@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Аудио-РПГ в реальном мире и умный гид для прогулок</string>
@@ -104,4 +104,43 @@
     <string name="prompt_update_desc">Доступна новая версия SideQuest с улучшенными картами и автономной работой.</string>
     <string name="prompt_update_action">Обновить сейчас</string>
     <string name="prompt_update_later">Позже (через 7 дней)</string>
+    <string name="sign_in_as_guest">Продолжить как Гость</string>
+    <string name="nav_map">Карта</string>
+    <string name="nav_dungeon">Подзем.</string>
+    <string name="nav_dm">Мастер</string>
+    <string name="nav_journal">Журнал</string>
+    <string name="nav_codex">Кодекс</string>
+    <string name="nav_settings">Опции</string>
+    <string name="choose_character_archetype">ВЫБЕРИТЕ АРХЕТИП ПЕРСОНАЖА</string>
+    <string name="pocket_dm_label">Карманный ДМ</string>
+    <string name="auto_voice_label">Автоголос</string>
+    <string name="muted_label">Без звука</string>
+    <string name="use_live_gps">Живой GPS</string>
+    <string name="cache_offline_pack">Офлайн-пакет</string>
+    <string name="offline_pack_ready">Офлайн-пакет: Готов</string>
+    <string name="search_city_placeholder">Поиск города, парка или района...</string>
+    <string name="quest_action_btn">Квест</string>
+    <string name="guild_pass_hub_title">ПРОПУСК ГИЛЬДИИ И КВОТА ИИ</string>
+    <string name="zero_bill_eco_title">ЭКО-РЕЖИМ БЕЗ ЗАТРАТ ($0)</string>
+    <string name="paid_image_studio_title">ПЛАТНАЯ ИИ-СТУДИЯ: ВКЛЮЧЕНА</string>
+    <string name="zero_bill_eco_desc">Умный кэш + OpenStreetMap + локальный голос сохраняют стоимость $0.</string>
+    <string name="guild_pass_title">ПРОПУСК ГИЛЬДИИ ИСКАТЕЛЕЙ</string>
+    <string name="guild_pass_active_title">ПРОПУСК ГИЛЬДИИ (АКТИВЕН)</string>
+    <string name="guild_pass_activate_btn">Активировать Пропуск Гильдии</string>
+    <string name="guild_pass_active_btn">Пропуск активен (1.5x XP)</string>
+    <string name="merchant_creator_title">ТОЧКА МЕСТНОГО ПАРТНЁРА</string>
+    <string name="merchant_creator_desc">Создайте спонсорскую точку для кафе, книжных и музеев:</string>
+    <string name="partner_venue_label">Название заведения / кафе</string>
+    <string name="partner_venue_placeholder">напр. Кофейня и Книги</string>
+    <string name="partner_offer_label">Бонус для исследователя</string>
+    <string name="partner_offer_placeholder">напр. Скидка 20% на кофе</string>
+    <string name="pin_sponsored_stop_btn">Закрепить точку на радаре (+Купон)</string>
+    <string name="invite_explorer_title">ПРИГЛАСИТЬ ИССЛЕДОВАТЕЛЯ (+250 XP)</string>
+    <string name="invite_explorer_desc">Поделитесь кодом для 7 дней Пропуска Гильдии.</string>
+    <string name="invite_action_btn">Пригласить</string>
+    <string name="dm_fact_check_chip">Проверка фактов (+110 XP)</string>
+    <string name="dm_riddle_duel_chip">Дуэль загадок (+175 XP)</string>
+    <string name="dm_voice_log_chip">Голосовой лог (+140 XP)</string>
+    <string name="dm_voice_field_placeholder">Опишите архитектурную деталь или табличку...</string>
+    <string name="catalog_note_placeholder">Введите полевые заметки...</string>
 </resources>
