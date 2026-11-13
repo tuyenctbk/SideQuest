@@ -1,6 +1,8 @@
 package com.example.ui
 
 import android.content.Intent
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -300,7 +302,7 @@ fun CodexInventoryScreen(
                 FilterChip(
                     selected = selectedSection == 0,
                     onClick = { selectedSection = 0 },
-                    label = { Text("Artifacts & Badges (${artifacts.size + badges.size})") },
+                    label = { Text(stringResource(id = R.string.codex_tab_artifacts_badges_format, artifacts.size + badges.size)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.MilitaryTech,
@@ -317,7 +319,7 @@ fun CodexInventoryScreen(
                 FilterChip(
                     selected = selectedSection == 1,
                     onClick = { selectedSection = 1 },
-                    label = { Text("Satchel & Forge (${inventory.size})") },
+                    label = { Text(stringResource(id = R.string.codex_tab_satchel_forge_format, inventory.size)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Inventory2,
@@ -334,7 +336,7 @@ fun CodexInventoryScreen(
                 FilterChip(
                     selected = selectedSection == 2,
                     onClick = { selectedSection = 2 },
-                    label = { Text("Quests & Studio (${quests.size})") },
+                    label = { Text(stringResource(id = R.string.codex_tab_quests_studio_format, quests.size)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.HistoryEdu,
@@ -351,7 +353,7 @@ fun CodexInventoryScreen(
                 FilterChip(
                     selected = selectedSection == 3,
                     onClick = { selectedSection = 3 },
-                    label = { Text("Party & District Rank") },
+                    label = { Text(stringResource(id = R.string.codex_tab_party_rank)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Group,
@@ -459,7 +461,7 @@ fun CodexInventoryScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Open Full Quest Journal Screen",
+                            text = stringResource(id = R.string.codex_open_full_journal_btn),
                             color = GuildGold,
                             style = MaterialTheme.typography.labelLarge
                         )
@@ -575,12 +577,12 @@ private fun CommunityCreatorQuestStudioCard(
                     )
                     Column {
                         Text(
-                            text = "CREATOR QUEST BUILDER STUDIO",
+                            text = stringResource(id = R.string.codex_creator_studio_eyebrow),
                             style = MaterialTheme.typography.labelLarge,
                             color = CyberCyan
                         )
                         Text(
-                            text = "Author & Publish Local Walking Trails (+200 XP)",
+                            text = stringResource(id = R.string.codex_creator_studio_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
@@ -604,7 +606,7 @@ private fun CommunityCreatorQuestStudioCard(
             }
 
             Text(
-                text = "Design a custom real-world landmark riddle for fellow explorers. Publishing mints a Creator Trailblazer Artifact & unlocks the 'Community Quest Architect' Badge.",
+                text = stringResource(id = R.string.codex_creator_studio_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -613,21 +615,21 @@ private fun CommunityCreatorQuestStudioCard(
                 OutlinedTextField(
                     value = questTitle,
                     onValueChange = { questTitle = it },
-                    label = { Text("Trail Title") },
+                    label = { Text(stringResource(id = R.string.codex_trail_title_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = landmarkStop,
                     onValueChange = { landmarkStop = it },
-                    label = { Text("Featured Real-World Landmark") },
+                    label = { Text(stringResource(id = R.string.codex_featured_landmark_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = riddleText,
                     onValueChange = { riddleText = it },
-                    label = { Text("On-Site Explorer Riddle") },
+                    label = { Text(stringResource(id = R.string.codex_onsite_riddle_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Button(
@@ -645,7 +647,7 @@ private fun CommunityCreatorQuestStudioCard(
                     )
                 ) {
                     Text(
-                        text = "Publish Creator Trail & Mint Artifact (+200 XP)",
+                        text = stringResource(id = R.string.codex_publish_trail_btn),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -687,7 +689,7 @@ private fun RelicAlchemyForgeCard(
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
-                        text = "RELIC ALCHEMY FORGE",
+                        text = stringResource(id = R.string.codex_alchemy_eyebrow),
                         style = MaterialTheme.typography.labelLarge,
                         color = GuildGold,
                         maxLines = 1,
@@ -696,14 +698,14 @@ private fun RelicAlchemyForgeCard(
                 }
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "+225 XP & Legendary Keystone",
+                    text = stringResource(id = R.string.codex_alchemy_reward_badge),
                     style = MaterialTheme.typography.labelMedium,
                     color = CyberCyan,
                     maxLines = 1
                 )
             }
             Text(
-                text = "Synthesize resonance from 2 collected relics in your satchel to mint a Legendary Astral Singularity Core.",
+                text = stringResource(id = R.string.codex_alchemy_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -759,12 +761,12 @@ private fun CoOpPartyExpeditionCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "CO-OP PARTY EXPEDITION LOBBY",
+                        text = stringResource(id = R.string.codex_coop_eyebrow),
                         style = MaterialTheme.typography.labelLarge,
                         color = CyberCyan
                     )
                     Text(
-                        text = "Party Room: $partyCode (3/3 Squad Synced)",
+                        text = stringResource(id = R.string.codex_party_room_format, partyCode),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White
                     )
@@ -776,12 +778,12 @@ private fun CoOpPartyExpeditionCard(
                     border = BorderStroke(1.dp, CyberCyan.copy(alpha = 0.6f)),
                     modifier = Modifier.testTag("switch_party_room_button")
                 ) {
-                    Text("Switch Room", color = CyberCyan, style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                    Text(stringResource(id = R.string.codex_switch_room_btn), color = CyberCyan, style = MaterialTheme.typography.labelMedium, maxLines = 1)
                 }
             }
 
             Text(
-                text = "SELECT YOUR PARTY ROLE",
+                text = stringResource(id = R.string.codex_select_party_role),
                 style = MaterialTheme.typography.labelMedium,
                 color = GuildGold
             )
@@ -816,12 +818,12 @@ private fun CoOpPartyExpeditionCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = "Your Role Perk: ${selectedRole.perk}",
+                        text = stringResource(id = R.string.codex_role_perk_format, selectedRole.perk),
                         style = MaterialTheme.typography.labelLarge,
                         color = GuildGold
                     )
                     Text(
-                        text = "Clue Specialty: ${selectedRole.clueSpecialty}",
+                        text = stringResource(id = R.string.codex_clue_specialty_format, selectedRole.clueSpecialty),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -854,7 +856,7 @@ private fun CoOpPartyExpeditionCard(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "${member.distanceMetersAway}m away • Ready",
+                                text = stringResource(id = R.string.codex_member_distance_ready_format, member.distanceMetersAway),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = ArcaneEmerald,
                                 maxLines = 1
@@ -910,12 +912,12 @@ private fun NeighborhoodLeaderboardCard(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "NEIGHBORHOOD SOVEREIGNTY LEADERBOARD",
+                text = stringResource(id = R.string.codex_leaderboard_eyebrow),
                 style = MaterialTheme.typography.labelLarge,
                 color = GuildGold
             )
             Text(
-                text = "Weekly Top Explorers in $regionName",
+                text = stringResource(id = R.string.codex_leaderboard_title_format, regionName),
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White
             )
@@ -963,7 +965,7 @@ private fun NeighborhoodLeaderboardCard(
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = "${entry.titleBadge} • ${entry.landmarksCleared} Landmarks",
+                                    text = stringResource(id = R.string.codex_leaderboard_stats_format, entry.titleBadge, entry.landmarksCleared),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
@@ -973,7 +975,7 @@ private fun NeighborhoodLeaderboardCard(
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "${entry.xpScore} XP",
+                            text = stringResource(id = R.string.codex_xp_score_format, entry.xpScore),
                             style = MaterialTheme.typography.labelLarge,
                             color = if (entry.isCurrentUser) GuildGold else CyberCyan,
                             maxLines = 1
@@ -1054,7 +1056,7 @@ private fun InventoryItemCard(
                     )
                 }
                 Text(
-                    text = "+${item.powerBonus} Resonance",
+                    text = stringResource(id = R.string.codex_resonance_bonus_format, item.powerBonus),
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold
                 )
@@ -1169,7 +1171,7 @@ private fun EarnedBadgeCard(badge: EarnedBadge) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Landmark: ${badge.landmarkName}",
+                    text = stringResource(id = R.string.codex_landmark_prefix_format, badge.landmarkName),
                     style = MaterialTheme.typography.labelMedium,
                     color = GuildGold
                 )
@@ -1206,7 +1208,7 @@ private fun QuestChronicleCard(
                     border = BorderStroke(1.dp, accent)
                 ) {
                     Text(
-                        text = "${quest.status} • ${quest.completedStops}/${quest.landmarksCount} STOPS",
+                        text = stringResource(id = R.string.codex_quest_status_stops_format, quest.status, quest.completedStops, quest.landmarksCount),
                         style = MaterialTheme.typography.labelMedium,
                         color = accent,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -1217,7 +1219,7 @@ private fun QuestChronicleCard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
-                        text = "+${quest.xpEarned} XP • ${quest.distanceMeters}m",
+                        text = stringResource(id = R.string.codex_quest_xp_dist_format, quest.xpEarned, quest.distanceMeters),
                         style = MaterialTheme.typography.labelLarge,
                         color = GuildGold
                     )
@@ -1255,7 +1257,7 @@ private fun QuestChronicleCard(
 
             if (quest.stopsSummary.isNotEmpty()) {
                 Text(
-                    text = "Waypoints: ${quest.stopsSummary.joinToString(" → ")}",
+                    text = stringResource(id = R.string.journal_waypoints_format, quest.stopsSummary.joinToString(" → ")),
                     style = MaterialTheme.typography.labelMedium,
                     color = GuildGold
                 )

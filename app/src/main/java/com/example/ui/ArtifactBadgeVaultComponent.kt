@@ -1,6 +1,8 @@
 package com.example.ui
 
 import android.content.Intent
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -242,7 +244,7 @@ fun ArtifactBadgeVaultComponent(
                         FilterChip(
                             selected = collectionTab == 0,
                             onClick = { collectionTab = 0 },
-                            label = { Text("All (${artifacts.size + badges.size})") },
+                            label = { Text(stringResource(id = R.string.vault_filter_all_format, artifacts.size + badges.size)) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = GuildGold.copy(alpha = 0.24f),
                                 selectedLabelColor = GuildGold
@@ -252,7 +254,7 @@ fun ArtifactBadgeVaultComponent(
                         FilterChip(
                             selected = collectionTab == 1,
                             onClick = { collectionTab = 1 },
-                            label = { Text("Found Artifacts (${artifacts.size})") },
+                            label = { Text(stringResource(id = R.string.vault_filter_artifacts_format, artifacts.size)) },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.AutoAwesome,
@@ -269,7 +271,7 @@ fun ArtifactBadgeVaultComponent(
                         FilterChip(
                             selected = collectionTab == 2,
                             onClick = { collectionTab = 2 },
-                            label = { Text("Badges (${badges.size})") },
+                            label = { Text(stringResource(id = R.string.vault_filter_badges_format, badges.size)) },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.MilitaryTech,
@@ -301,7 +303,7 @@ fun ArtifactBadgeVaultComponent(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search artifacts, badges, or landmarks...") },
+                    placeholder = { Text(stringResource(id = R.string.vault_search_placeholder)) },
                     singleLine = true,
                     leadingIcon = {
                         Icon(
@@ -338,7 +340,7 @@ fun ArtifactBadgeVaultComponent(
                     FilterChip(
                         selected = favoritesOnly,
                         onClick = { favoritesOnly = !favoritesOnly },
-                        label = { Text("★ Favorites ($favoriteCount)") },
+                        label = { Text(stringResource(id = R.string.vault_favorites_format, favoriteCount)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = GuildGold.copy(alpha = 0.25f),
                             selectedLabelColor = GuildGold
@@ -377,7 +379,7 @@ fun ArtifactBadgeVaultComponent(
                         FilterChip(
                             selected = selectedCategory == "ALL",
                             onClick = { selectedCategory = "ALL" },
-                            label = { Text("All Curio Types") },
+                            label = { Text(stringResource(id = R.string.vault_all_curio_types)) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = CyberCyan.copy(alpha = 0.2f),
                                 selectedLabelColor = CyberCyan
@@ -414,12 +416,12 @@ fun ArtifactBadgeVaultComponent(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = "FOUND ARTIFACTS VAULT (${filteredArtifacts.size})",
+                    text = stringResource(id = R.string.vault_artifacts_header_format, filteredArtifacts.size),
                     style = MaterialTheme.typography.labelLarge,
                     color = CyberCyan
                 )
                 Text(
-                    text = "Tap any curio to inspect & add field notes",
+                    text = stringResource(id = R.string.vault_artifacts_subhint),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -472,12 +474,12 @@ fun ArtifactBadgeVaultComponent(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = "UNLOCKED GUILD BADGES (${filteredBadges.size})",
+                    text = stringResource(id = R.string.vault_badges_header_format, filteredBadges.size),
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold
                 )
                 Text(
-                    text = "Tap crest for citation & share card",
+                    text = stringResource(id = R.string.vault_badges_subhint),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -640,12 +642,12 @@ private fun VaultMasterySummaryCard(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "FIRESTORE ARTIFACT & BADGE VAULT",
+                        text = stringResource(id = R.string.vault_eyebrow),
                         style = MaterialTheme.typography.labelLarge,
                         color = CyberCyan
                     )
                     Text(
-                        text = "Curio Archive & Honor Roll",
+                        text = stringResource(id = R.string.vault_title),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
@@ -658,7 +660,7 @@ private fun VaultMasterySummaryCard(
                     border = BorderStroke(1.dp, GuildGold)
                 ) {
                     Text(
-                        text = "+$totalResonance Resonance",
+                        text = stringResource(id = R.string.vault_total_resonance_format, totalResonance),
                         style = MaterialTheme.typography.labelLarge,
                         color = GuildGold,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -705,7 +707,7 @@ private fun VaultMasterySummaryCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Collection Rarity Spectrum",
+                        text = stringResource(id = R.string.vault_rarity_spectrum),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -776,7 +778,7 @@ private fun VaultMasterySummaryCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Catalog Field Discovery into Firestore (+120 XP)",
+                    text = stringResource(id = R.string.vault_catalog_discovery_btn),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -1018,7 +1020,7 @@ private fun FoundArtifactDetailRowCard(
                     shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(
-                        text = "🖋️ Field Note: ${artifact.inspectionNotes}",
+                        text = stringResource(id = R.string.vault_field_note_format, artifact.inspectionNotes),
                         style = MaterialTheme.typography.labelMedium,
                         color = GuildGold,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -1054,7 +1056,7 @@ private fun FoundArtifactDetailRowCard(
                 }
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "+${artifact.resonanceValue} Resonance • ${artifact.discoveryMethod}",
+                    text = stringResource(id = R.string.vault_resonance_method_format, artifact.resonanceValue, artifact.discoveryMethod),
                     style = MaterialTheme.typography.labelSmall,
                     color = CyberCyan,
                     maxLines = 1
@@ -1189,7 +1191,7 @@ private fun EarnedBadgeDetailRowCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "Earned at: ${badge.landmarkName}",
+                    text = stringResource(id = R.string.vault_earned_at_format, badge.landmarkName),
                     style = MaterialTheme.typography.labelSmall,
                     color = GuildGold
                 )
@@ -1241,7 +1243,7 @@ private fun ArtifactInspectorDialog(
                 .fillMaxWidth()
                 .widthIn(max = 540.dp)
                 .systemBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 40.dp)
+                .padding(horizontal = 24.dp, vertical = 48.dp)
                 .testTag("artifact_inspector_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
@@ -1249,9 +1251,9 @@ private fun ArtifactInspectorDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(18.dp)
+                    .padding(20.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1329,7 +1331,7 @@ private fun ArtifactInspectorDialog(
                 )
 
                 Text(
-                    text = "+${artifact.resonanceValue} Ley-Resonance • Method: ${artifact.discoveryMethod}",
+                    text = stringResource(id = R.string.vault_ley_resonance_method_format, artifact.resonanceValue, artifact.discoveryMethod),
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold,
                     textAlign = TextAlign.Center,
@@ -1347,7 +1349,7 @@ private fun ArtifactInspectorDialog(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            text = "LORE INSCRIPTION",
+                            text = stringResource(id = R.string.vault_lore_inscription),
                             style = MaterialTheme.typography.labelSmall,
                             color = CyberCyan
                         )
@@ -1358,7 +1360,7 @@ private fun ArtifactInspectorDialog(
                         )
                         HorizontalDivider(color = SlateCardSurface, modifier = Modifier.padding(vertical = 4.dp))
                         Text(
-                            text = "📍 Landmark: ${artifact.originLandmark} (${artifact.regionName})",
+                            text = stringResource(id = R.string.vault_landmark_location_format, artifact.originLandmark, artifact.regionName),
                             style = MaterialTheme.typography.labelMedium,
                             color = GuildGold
                         )
@@ -1379,8 +1381,8 @@ private fun ArtifactInspectorDialog(
                 OutlinedTextField(
                     value = notesDraft,
                     onValueChange = { notesDraft = it },
-                    label = { Text("Explorer Field Notes (Saved to Firestore)") },
-                    placeholder = { Text("Add your personal memories or observations...") },
+                    label = { Text(stringResource(id = R.string.vault_explorer_notes_firestore_label)) },
+                    placeholder = { Text(stringResource(id = R.string.vault_explorer_notes_placeholder)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.EditNote,
@@ -1411,7 +1413,7 @@ private fun ArtifactInspectorDialog(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Listen", color = CyberCyan)
+                        Text(stringResource(id = R.string.vault_listen_btn), color = CyberCyan)
                     }
 
                     Button(
@@ -1425,7 +1427,7 @@ private fun ArtifactInspectorDialog(
                             contentColor = MidnightAbyss
                         )
                     ) {
-                        Text("Save Notes", fontWeight = FontWeight.Bold)
+                        Text(stringResource(id = R.string.vault_save_notes_btn), fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -1439,7 +1441,8 @@ private fun ArtifactInspectorDialog(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = ArcaneEmerald,
                         contentColor = MidnightAbyss
-                    )
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Share,
@@ -1448,7 +1451,7 @@ private fun ArtifactInspectorDialog(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Export Illustrated Travelogue Postcard",
+                        text = stringResource(id = R.string.vault_export_postcard_btn),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold
                     )
@@ -1458,7 +1461,7 @@ private fun ArtifactInspectorDialog(
                     onClick = onDismiss,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Close Inspector", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(id = R.string.vault_close_inspector_btn), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -1482,7 +1485,7 @@ private fun BadgeInspectorDialog(
                 .fillMaxWidth()
                 .widthIn(max = 540.dp)
                 .systemBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 40.dp)
+                .padding(horizontal = 24.dp, vertical = 48.dp)
                 .testTag("badge_inspector_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
@@ -1490,10 +1493,10 @@ private fun BadgeInspectorDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(18.dp)
+                    .padding(20.dp)
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -1516,7 +1519,7 @@ private fun BadgeInspectorDialog(
                     border = BorderStroke(1.dp, color)
                 ) {
                     Text(
-                        text = "${badge.rarity} • ${badge.category} CREST",
+                        text = stringResource(id = R.string.vault_crest_format, badge.rarity, badge.category),
                         style = MaterialTheme.typography.labelMedium,
                         color = color,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -1539,7 +1542,7 @@ private fun BadgeInspectorDialog(
                 )
 
                 Text(
-                    text = "📍 Landmark Citation: ${badge.landmarkName}",
+                    text = stringResource(id = R.string.vault_landmark_citation_format, badge.landmarkName),
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold,
                     textAlign = TextAlign.Center
@@ -1562,7 +1565,7 @@ private fun BadgeInspectorDialog(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Listen", color = CyberCyan)
+                        Text(stringResource(id = R.string.vault_listen_btn), color = CyberCyan)
                     }
 
                     Button(
@@ -1580,12 +1583,12 @@ private fun BadgeInspectorDialog(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Share Crest", fontWeight = FontWeight.Bold)
+                        Text(stringResource(id = R.string.vault_share_crest_btn), fontWeight = FontWeight.Bold)
                     }
                 }
 
                 TextButton(onClick = onDismiss) {
-                    Text("Close", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(id = R.string.vault_close_btn), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -1619,7 +1622,7 @@ private fun CatalogFieldArtifactDialog(
                 .fillMaxWidth()
                 .widthIn(max = 540.dp)
                 .systemBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 40.dp)
+                .padding(horizontal = 24.dp, vertical = 48.dp)
                 .testTag("catalog_field_artifact_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
@@ -1627,17 +1630,17 @@ private fun CatalogFieldArtifactDialog(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(18.dp)
+                    .padding(20.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "CATALOG FIELD DISCOVERY",
+                    text = stringResource(id = R.string.vault_catalog_eyebrow),
                     style = MaterialTheme.typography.labelLarge,
                     color = CyberCyan
                 )
                 Text(
-                    text = "Record a Found Artifact in Cloud Firestore",
+                    text = stringResource(id = R.string.vault_catalog_title),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -1665,7 +1668,7 @@ private fun CatalogFieldArtifactDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Artifact Title") },
+                    label = { Text(stringResource(id = R.string.vault_artifact_title_label)) },
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1675,7 +1678,7 @@ private fun CatalogFieldArtifactDialog(
                 OutlinedTextField(
                     value = landmark,
                     onValueChange = { landmark = it },
-                    label = { Text("Origin Landmark") },
+                    label = { Text(stringResource(id = R.string.vault_origin_landmark_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -1683,14 +1686,14 @@ private fun CatalogFieldArtifactDialog(
                 OutlinedTextField(
                     value = inscription,
                     onValueChange = { inscription = it },
-                    label = { Text("Lore Inscription / Description") },
+                    label = { Text(stringResource(id = R.string.vault_lore_desc_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
                     value = notes,
                     onValueChange = { notes = it },
-                    label = { Text("Explorer Field Notes") },
+                    label = { Text(stringResource(id = R.string.vault_explorer_notes_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -1702,7 +1705,7 @@ private fun CatalogFieldArtifactDialog(
                         onClick = onDismiss,
                         modifier = Modifier.weight(0.75f)
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(id = R.string.vault_cancel_btn))
                     }
                     Button(
                         onClick = {
@@ -1717,7 +1720,7 @@ private fun CatalogFieldArtifactDialog(
                             contentColor = MidnightAbyss
                         )
                     ) {
-                        Text("Save (+120 XP)", fontWeight = FontWeight.Bold, maxLines = 1)
+                        Text(stringResource(id = R.string.vault_save_xp_btn), fontWeight = FontWeight.Bold, maxLines = 1)
                     }
                 }
             }
@@ -1811,14 +1814,14 @@ private fun AiRelicArtStudioCard(
                     )
                     Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
-                            text = "AI RELIC & POSTCARD ART STUDIO",
+                            text = stringResource(id = R.string.studio_eyebrow),
                             style = MaterialTheme.typography.labelLarge,
                             color = GuildGold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            text = "Generate & Remix Curio Portraits (+150 XP)",
+                            text = stringResource(id = R.string.studio_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
@@ -1900,7 +1903,7 @@ private fun AiRelicArtStudioCard(
                 OutlinedTextField(
                     value = promptDraft,
                     onValueChange = { promptDraft = it },
-                    label = { Text("AI Image Prompt (Text-to-Image)") },
+                    label = { Text(stringResource(id = R.string.studio_prompt_label)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("ai_relic_art_prompt_input"),
@@ -1948,7 +1951,7 @@ private fun AiRelicArtStudioCard(
                 OutlinedTextField(
                     value = editInstructionDraft,
                     onValueChange = { editInstructionDraft = it },
-                    label = { Text("Image-to-Image Remix Instruction") },
+                    label = { Text(stringResource(id = R.string.studio_remix_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
@@ -1957,7 +1960,7 @@ private fun AiRelicArtStudioCard(
                 when (val state = relicArtUiState) {
                     is RelicArtUiState.Idle -> {
                         Text(
-                            text = "Use Gemini Image Generation to illustrate your discovered artifacts or remix a landmark plaque into custom RPG concept art.",
+                            text = stringResource(id = R.string.studio_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1978,7 +1981,7 @@ private fun AiRelicArtStudioCard(
                             ) {
                                 CircularProgressIndicator(color = GuildGold)
                                 Text(
-                                    text = "Synthesizing AI Relic Art with Gemini (may take 30-60s)...",
+                                    text = stringResource(id = R.string.studio_synthesizing),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = GuildGold,
                                     textAlign = TextAlign.Center
@@ -2021,7 +2024,7 @@ private fun AiRelicArtStudioCard(
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 TextButton(onClick = onClearArt) {
-                                    Text("Clear", color = CyberCyan)
+                                    Text(stringResource(id = R.string.studio_clear_btn), color = CyberCyan)
                                 }
                             }
                         }
@@ -2034,7 +2037,7 @@ private fun AiRelicArtStudioCard(
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                         ) {
                             Text(
-                                text = "Error: ${state.message}",
+                                text = stringResource(id = R.string.studio_error_format, state.message),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.padding(12.dp)

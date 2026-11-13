@@ -228,7 +228,10 @@ fun DungeonMasterChatScreen(
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = "Anchored at: ${activeLandmark?.name ?: "Local Sector"}",
+                                text = stringResource(
+                                    id = R.string.anchored_at_format,
+                                    activeLandmark?.name ?: stringResource(id = R.string.local_sector)
+                                ),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = GuildGold,
                                 maxLines = 1,
@@ -396,7 +399,7 @@ fun DungeonMasterChatScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "LIVE VOICE FIELD-LOG TRANSCRIBER (GEMINI AI)",
+                            text = stringResource(id = R.string.live_voice_transcriber_title),
                             style = MaterialTheme.typography.labelLarge,
                             color = ArcaneEmerald,
                             modifier = Modifier.weight(1f)
@@ -417,7 +420,7 @@ fun DungeonMasterChatScreen(
                     OutlinedTextField(
                         value = voiceFieldLogDraft,
                         onValueChange = { voiceFieldLogDraft = it },
-                        label = { Text("Spoken / Dictated Field Observation") },
+                        label = { Text(stringResource(id = R.string.spoken_field_obs_label)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("voice_field_log_input"),
@@ -441,7 +444,7 @@ fun DungeonMasterChatScreen(
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
-                            Text("Dictate Voice", color = ArcaneEmerald)
+                            Text(stringResource(id = R.string.dictate_voice_btn), color = ArcaneEmerald)
                         }
 
                         Button(
@@ -566,7 +569,7 @@ fun DungeonMasterChatScreen(
                 onValueChange = { inputText = it },
                 placeholder = {
                     Text(
-                        text = "Ask ${style.narratorTitle} or tap mic to speak...",
+                        text = stringResource(id = R.string.ask_narrator_placeholder, style.narratorTitle),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 },
@@ -658,7 +661,7 @@ private fun AiLandmarkRiddleDuelCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "🧩 AI LANDMARK RIDDLE DUEL • ${riddle.landmarkName.uppercase()}",
+                    text = stringResource(id = R.string.riddle_duel_header_format, riddle.landmarkName.uppercase()),
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold,
                     modifier = Modifier.weight(1f)
@@ -741,7 +744,7 @@ private fun LandmarkFactDossierCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "🏛️ VERIFIED FACT-CHECK DOSSIER • ${dossier.verifiedEra.uppercase()}",
+                    text = stringResource(id = R.string.fact_check_header_format, dossier.verifiedEra.uppercase()),
                     style = MaterialTheme.typography.labelLarge,
                     color = CyberCyan,
                     modifier = Modifier.weight(1f)
@@ -772,7 +775,7 @@ private fun LandmarkFactDossierCard(
             }
 
             Text(
-                text = "🔍 Walker Tip: ${dossier.localInsiderTip}",
+                text = stringResource(id = R.string.walker_tip_format, dossier.localInsiderTip),
                 style = MaterialTheme.typography.labelMedium,
                 color = GuildGold
             )

@@ -775,16 +775,16 @@ private fun GuildBusinessPartnerModal(
                 .fillMaxWidth()
                 .widthIn(max = 560.dp)
                 .systemBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 40.dp),
+                .padding(horizontal = 24.dp, vertical = 48.dp),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
             border = BorderStroke(1.5.dp, GuildGold)
         ) {
             Column(
                 modifier = Modifier
-                    .padding(20.dp)
+                    .padding(22.dp)
                     .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -811,7 +811,7 @@ private fun GuildBusinessPartnerModal(
                     }
                     IconButton(
                         onClick = onDismiss,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
@@ -831,8 +831,8 @@ private fun GuildBusinessPartnerModal(
                     )
                 ) {
                     Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -869,7 +869,12 @@ private fun GuildBusinessPartnerModal(
                             )
                         }
                         Text(
-                            text = "📊 Session Quota: $cacheHitsSaved Calls Saved by Cache • $freeTierCallsUsed Free-Tier Flash Calls • $paidImageCallsUsed Paid Image Calls",
+                            text = stringResource(
+                                id = R.string.session_quota_format,
+                                cacheHitsSaved,
+                                freeTierCallsUsed,
+                                paidImageCallsUsed
+                            ),
                             style = MaterialTheme.typography.labelMedium,
                             color = CyberCyan
                         )
@@ -883,8 +888,8 @@ private fun GuildBusinessPartnerModal(
                     border = BorderStroke(1.dp, if (isGuildPassActive) ArcaneEmerald else GuildGold.copy(alpha = 0.45f))
                 ) {
                     Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text(
                             text = stringResource(
@@ -894,7 +899,7 @@ private fun GuildBusinessPartnerModal(
                             color = if (isGuildPassActive) ArcaneEmerald else GuildGold
                         )
                         Text(
-                            text = "• 1.5x XP on all Landmarks, Bounties & Vision Scans\n• Offline City Lore & Audio Pack Pre-Caching\n• Daily Walking Streak Shield & Relic Forge Boost",
+                            text = stringResource(id = R.string.guild_pass_perks_bullets),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White
                         )
@@ -907,13 +912,15 @@ private fun GuildBusinessPartnerModal(
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (isGuildPassActive) ArcaneEmerald else GuildGold,
                                 contentColor = MidnightAbyss
-                            )
+                            ),
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                         ) {
                             Text(
                                 text = stringResource(
                                     id = if (isGuildPassActive) R.string.guild_pass_active_btn else R.string.guild_pass_activate_btn
                                 ),
-                                style = MaterialTheme.typography.labelLarge
+                                style = MaterialTheme.typography.labelLarge,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -926,8 +933,8 @@ private fun GuildBusinessPartnerModal(
                     border = BorderStroke(1.dp, CyberCyan.copy(alpha = 0.5f))
                 ) {
                     Column(
-                        modifier = Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -1009,7 +1016,7 @@ private fun GuildBusinessPartnerModal(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(14.dp),
+                            .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1042,7 +1049,7 @@ private fun GuildBusinessPartnerModal(
                                 containerColor = GuildGold,
                                 contentColor = MidnightAbyss
                             ),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
@@ -1137,7 +1144,7 @@ private fun AudioNarratorMiniBar(
                 }
                 Column {
                     Text(
-                        text = "LIVE AUDIO NARRATION • $narrator",
+                        text = stringResource(id = R.string.live_audio_narration_format, narrator),
                         style = MaterialTheme.typography.labelMedium,
                         color = GuildGold
                     )

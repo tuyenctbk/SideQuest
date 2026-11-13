@@ -210,7 +210,7 @@ fun SideQuestSplashScreen(
                 border = BorderStroke(1.dp, GuildGold.copy(alpha = 0.6f))
             ) {
                 Text(
-                    text = "SOLOPRONO • REAL-WORLD AUDIO RPG",
+                    text = stringResource(id = R.string.splash_subtitle),
                     style = MaterialTheme.typography.labelMedium,
                     color = GuildGold,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp)
@@ -251,7 +251,7 @@ fun SideQuestSplashScreen(
             Spacer(modifier = Modifier.height(14.dp))
 
             Text(
-                text = "Tap anywhere to enter immediately",
+                text = stringResource(id = R.string.splash_tap_to_enter),
                 style = MaterialTheme.typography.labelMedium,
                 color = ArcaneEmerald.copy(alpha = 0.85f),
                 textAlign = TextAlign.Center

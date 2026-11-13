@@ -1,6 +1,8 @@
 package com.example.ui
 
 import android.app.Activity
+import androidx.compose.ui.res.stringResource
+import com.example.R
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -355,12 +357,12 @@ fun SupportDevelopmentScreen(
                 }
                 Column {
                     Text(
-                        text = "SETTINGS / SUPPORT DEVELOPMENT",
+                        text = stringResource(id = R.string.settings_support_eyebrow),
                         style = MaterialTheme.typography.labelMedium,
                         color = GuildGold
                     )
                     Text(
-                        text = "Support Development",
+                        text = stringResource(id = R.string.settings_support_title),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
@@ -420,13 +422,13 @@ fun SupportDevelopmentScreen(
                         }
                         Column {
                             Text(
-                                text = "SUPPORT US",
+                                text = stringResource(id = R.string.support_us_eyebrow),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = GuildGold,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Support Independent Development",
+                                text = stringResource(id = R.string.support_indie_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
@@ -440,7 +442,7 @@ fun SupportDevelopmentScreen(
                         border = BorderStroke(1.dp, CyberCyan.copy(alpha = 0.5f))
                     ) {
                         Text(
-                            text = "Static • No Pop-Ups",
+                            text = stringResource(id = R.string.support_static_badge),
                             style = MaterialTheme.typography.labelSmall,
                             color = CyberCyan,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -449,7 +451,7 @@ fun SupportDevelopmentScreen(
                 }
 
                 Text(
-                    text = "SideQuest is 100% ad-free and privacy-first. Choose a predefined amount below to support ongoing development directly via PayPal or Ko-fi.",
+                    text = stringResource(id = R.string.support_adfree_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -487,7 +489,7 @@ fun SupportDevelopmentScreen(
                     onValueChange = { input ->
                         customAmountInput = input.filter { it.isDigit() }.take(4)
                     },
-                    label = { Text("Custom Amount (USD) — Optional (Active: $$effectiveUsdAmount USD)") },
+                    label = { Text(stringResource(id = R.string.support_custom_amount_label, effectiveUsdAmount)) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = CyberCyan,
@@ -615,7 +617,7 @@ fun SupportDevelopmentScreen(
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Copy", color = CyberCyan, style = MaterialTheme.typography.labelSmall)
+                                    Text(stringResource(id = R.string.support_copy_btn), color = CyberCyan, style = MaterialTheme.typography.labelSmall)
                                 }
                                 OutlinedButton(
                                     onClick = { showQrPreview = !showQrPreview },
@@ -656,7 +658,7 @@ fun SupportDevelopmentScreen(
                                         .testTag("paypal_live_qr_image")
                                 )
                                 Text(
-                                    text = "Scan with PayPal or Banking App ($$effectiveUsdAmount USD)",
+                                    text = stringResource(id = R.string.support_scan_qr_format, effectiveUsdAmount),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = CyberCyan
                                 )
@@ -710,13 +712,13 @@ fun SupportDevelopmentScreen(
                         }
                         Column {
                             Text(
-                                text = "GOOGLE PLAY PREMIUM",
+                                text = stringResource(id = R.string.gplay_premium_eyebrow),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = GuildGold.copy(alpha = 0.85f),
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Native In-App Billing & Supporter Pass",
+                                text = stringResource(id = R.string.gplay_premium_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color.White.copy(alpha = 0.9f),
                                 fontWeight = FontWeight.Bold
@@ -730,7 +732,7 @@ fun SupportDevelopmentScreen(
                         border = BorderStroke(1.dp, GuildGold.copy(alpha = 0.6f))
                     ) {
                         Text(
-                            text = "UPCOMING",
+                            text = stringResource(id = R.string.gplay_upcoming_badge),
                             style = MaterialTheme.typography.labelSmall,
                             color = GuildGold,
                             fontWeight = FontWeight.Bold,
@@ -740,7 +742,7 @@ fun SupportDevelopmentScreen(
                 }
 
                 Text(
-                    text = "Google Play Premium in-app billing ($1.99 – $19.99 supporter tiers & automatic Active Supporter badge unlocking) is currently upcoming and scheduled for a future release. In the meantime, you can support development via PayPal or Ko-fi above.",
+                    text = stringResource(id = R.string.gplay_upcoming_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -842,7 +844,7 @@ fun SupportDevelopmentScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Google Play Premium Billing — Coming Soon in Upcoming Release",
+                            text = stringResource(id = R.string.gplay_coming_soon_btn),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -953,12 +955,12 @@ fun SettingsSupportScreen(
                             }
                             Column {
                                 Text(
-                                    text = "SETTINGS MENU",
+                                    text = stringResource(id = R.string.settings_menu_eyebrow),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = GuildGold
                                 )
                                 Text(
-                                    text = "Support Development & Preferences",
+                                    text = stringResource(id = R.string.settings_menu_title),
                                     style = MaterialTheme.typography.titleLarge,
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold
@@ -973,7 +975,7 @@ fun SettingsSupportScreen(
                                 border = BorderStroke(1.dp, ArcaneEmerald)
                             ) {
                                 Text(
-                                    text = "★ SUPPORTER",
+                                    text = stringResource(id = R.string.supporter_badge),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = ArcaneEmerald,
                                     fontWeight = FontWeight.Bold,
@@ -1014,13 +1016,13 @@ fun SettingsSupportScreen(
                                 )
                                 Column {
                                     Text(
-                                        text = "Open Dedicated Support Development Screen",
+                                        text = stringResource(id = R.string.open_support_screen_title),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Text(
-                                        text = "Support Us (PayPal / Ko-fi) & Google Play Premium Upcoming Preview",
+                                        text = stringResource(id = R.string.open_support_screen_desc),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -1103,7 +1105,7 @@ fun SettingsSupportScreen(
                                 color = if (isPaidImageApiApproved) GuildGold else ArcaneEmerald
                             )
                             Text(
-                                text = "Smart in-memory caching + OpenStreetMap + on-device Voice/TTS keep daily exploration at $0 cost.",
+                                text = stringResource(id = R.string.zero_bill_settings_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1123,7 +1125,7 @@ fun SettingsSupportScreen(
                     }
 
                     Text(
-                        text = "📊 Session Quota: $cacheHitsSaved Calls Saved by Cache • $freeTierCallsUsed Free-Tier Flash Calls • $paidImageCallsUsed Paid Image Calls",
+                        text = stringResource(id = R.string.session_quota_format, cacheHitsSaved, freeTierCallsUsed, paidImageCallsUsed),
                         style = MaterialTheme.typography.labelMedium,
                         color = CyberCyan
                     )
@@ -1154,7 +1156,7 @@ fun SettingsSupportScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "VOICE NARRATION & OFFLINE EXPEDITION SETTINGS",
+                            text = stringResource(id = R.string.voice_offline_settings_eyebrow),
                             style = MaterialTheme.typography.labelLarge,
                             color = CyberCyan
                         )
@@ -1167,13 +1169,13 @@ fun SettingsSupportScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Auto-Narrate Waypoint Lore & DM Replies",
+                                text = stringResource(id = R.string.auto_narrate_title),
                                 style = MaterialTheme.typography.titleSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Uses zero-cost on-device Android TextToSpeech with persona pitch modulation.",
+                                text = stringResource(id = R.string.auto_narrate_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1194,13 +1196,13 @@ fun SettingsSupportScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Pre-Cache Offline Neighborhood Lore Pack",
+                                text = stringResource(id = R.string.precache_pack_title),
                                 style = MaterialTheme.typography.titleSmall,
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                text = "Keep current region waypoints & voice scripts cached for zero-data walks.",
+                                text = stringResource(id = R.string.precache_pack_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1249,7 +1251,7 @@ fun SettingsSupportScreen(
                     }
 
                     Text(
-                        text = "• 1.5x XP on all Landmarks, Bounties & Vision Scans\n• Offline City Lore & Audio Pack Pre-Caching\n• Daily Walking Streak Shield & Relic Forge Boost",
+                        text = stringResource(id = R.string.guild_pass_perks_bullets),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White
                     )
@@ -1285,7 +1287,7 @@ fun SettingsSupportScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Text(
-                            text = "LOCAL MERCHANT 'TAVERN STOP' SANDBOX",
+                            text = stringResource(id = R.string.merchant_sandbox_eyebrow),
                             style = MaterialTheme.typography.labelLarge,
                             color = CyberCyan
                         )
@@ -1294,7 +1296,7 @@ fun SettingsSupportScreen(
                     OutlinedTextField(
                         value = partnerName,
                         onValueChange = { partnerName = it },
-                        label = { Text("Venue / Cafe Name") },
+                        label = { Text(stringResource(id = R.string.partner_venue_label)) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = CyberCyan,
@@ -1308,7 +1310,7 @@ fun SettingsSupportScreen(
                     OutlinedTextField(
                         value = partnerOffer,
                         onValueChange = { partnerOffer = it },
-                        label = { Text("Explorer Foot-Traffic Perk") },
+                        label = { Text(stringResource(id = R.string.partner_offer_label)) },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = CyberCyan,
@@ -1334,7 +1336,7 @@ fun SettingsSupportScreen(
                         )
                     ) {
                         Text(
-                            text = "Pin Sponsored Stop to Radar (+Voucher)",
+                            text = stringResource(id = R.string.pin_sponsored_stop_btn),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -1361,7 +1363,7 @@ fun SettingsSupportScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Sign Out of Adventurer Account",
+                    text = stringResource(id = R.string.sign_out_adventurer_btn),
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold
@@ -1420,7 +1422,7 @@ fun StaticSupportDevelopmentSectionCard(
                         color = if (engagementState.isPermanentSupporter) ArcaneEmerald else GuildGold
                     )
                     Text(
-                        text = "Navigate to Settings → Support Development (Support Us & Upcoming Google Play Premium).",
+                        text = stringResource(id = R.string.support_banner_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1437,7 +1439,7 @@ fun StaticSupportDevelopmentSectionCard(
                 modifier = Modifier.testTag("open_support_settings_screen_button")
             ) {
                 Text(
-                    text = "Open",
+                    text = stringResource(id = R.string.open_btn),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold
                 )

@@ -268,7 +268,7 @@ fun QuestJournalContent(
                     }
 
                     Text(
-                        text = "Your permanent ledger of completed real-world walking quests, locations explored, and completion dates synced with Cloud Firestore.",
+                        text = stringResource(id = R.string.journal_ledger_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -280,19 +280,19 @@ fun QuestJournalContent(
                         JournalMetricPill(
                             modifier = Modifier.weight(1f),
                             value = "$totalCompletedCount",
-                            label = "Quests Completed",
+                            label = stringResource(id = R.string.journal_quests_completed),
                             accentColor = ArcaneEmerald
                         )
                         JournalMetricPill(
                             modifier = Modifier.weight(1f),
                             value = "+$totalXpEarned",
-                            label = "Journal XP",
+                            label = stringResource(id = R.string.journal_xp_label),
                             accentColor = GuildGold
                         )
                         JournalMetricPill(
                             modifier = Modifier.weight(1f),
                             value = "${totalDistanceMeters}m",
-                            label = "Distance Walked",
+                            label = stringResource(id = R.string.journal_distance_walked),
                             accentColor = CyberCyan
                         )
                     }
@@ -311,14 +311,14 @@ fun QuestJournalContent(
                                 verticalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Text(
-                                    text = "RECORD COMPLETED QUEST IN FIRESTORE",
+                                    text = stringResource(id = R.string.journal_record_title),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = CyberCyan
                                 )
                                 OutlinedTextField(
                                     value = newQuestName,
                                     onValueChange = { newQuestName = it },
-                                    label = { Text("Quest Name") },
+                                    label = { Text(stringResource(id = R.string.journal_quest_name_label)) },
                                     singleLine = true,
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = CyberCyan,
@@ -333,7 +333,7 @@ fun QuestJournalContent(
                                 OutlinedTextField(
                                     value = newQuestLocation,
                                     onValueChange = { newQuestLocation = it },
-                                    label = { Text("Location / Neighborhood") },
+                                    label = { Text(stringResource(id = R.string.journal_location_label)) },
                                     singleLine = true,
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = CyberCyan,
@@ -348,7 +348,7 @@ fun QuestJournalContent(
                                 OutlinedTextField(
                                     value = newQuestSummary,
                                     onValueChange = { newQuestSummary = it },
-                                    label = { Text("Field Summary & Landmarks Cleared") },
+                                    label = { Text(stringResource(id = R.string.journal_summary_label)) },
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = CyberCyan,
                                         unfocusedBorderColor = SlateCardSurface,
@@ -384,7 +384,7 @@ fun QuestJournalContent(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "Save to Firestore (+250 XP)",
+                                        text = stringResource(id = R.string.journal_save_firestore_btn),
                                         style = MaterialTheme.typography.labelLarge,
                                         fontWeight = FontWeight.Bold,
                                         maxLines = 1
@@ -403,7 +403,7 @@ fun QuestJournalContent(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search by quest name, location, or landmark...") },
+                    placeholder = { Text(stringResource(id = R.string.journal_search_placeholder)) },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
@@ -444,7 +444,7 @@ fun QuestJournalContent(
                     FilterChip(
                         selected = showOnlyCompleted,
                         onClick = { showOnlyCompleted = true },
-                        label = { Text("Completed History ($totalCompletedCount)") },
+                        label = { Text(stringResource(id = R.string.journal_completed_history_format, totalCompletedCount)) },
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
@@ -465,9 +465,9 @@ fun QuestJournalContent(
                         label = {
                             Text(
                                 if (activeQuestsCount > 0) {
-                                    "All Quests (${allQuests.size} • $activeQuestsCount Active)"
+                                    stringResource(id = R.string.journal_all_quests_active_format, allQuests.size, activeQuestsCount)
                                 } else {
-                                    "All Quests (${allQuests.size})"
+                                    stringResource(id = R.string.journal_all_quests_format, allQuests.size)
                                 }
                             )
                         },
@@ -488,7 +488,7 @@ fun QuestJournalContent(
                     FilterChip(
                         selected = selectedStyleFilter == "ALL",
                         onClick = { selectedStyleFilter = "ALL" },
-                        label = { Text("All Personas") },
+                        label = { Text(stringResource(id = R.string.journal_all_personas)) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = CyberCyan.copy(alpha = 0.22f),
                             selectedLabelColor = CyberCyan
@@ -537,21 +537,17 @@ fun QuestJournalContent(
                             modifier = Modifier.size(40.dp)
                         )
                         Text(
-                            text = if (searchQuery.isNotBlank()) {
-                                "No Matching Quests in Journal"
-                            } else {
-                                "No Completed Quests Recorded Yet"
-                            },
+                            text = stringResource(
+                                id = if (searchQuery.isNotBlank()) R.string.journal_empty_search_title else R.string.journal_empty_completed_title
+                            ),
                             style = MaterialTheme.typography.titleLarge,
                             color = Color.White,
                             textAlign = TextAlign.Center
                         )
                         Text(
-                            text = if (searchQuery.isNotBlank()) {
-                                "Try clearing your search filter or switching persona filters above."
-                            } else {
-                                "Complete all waypoints on a walking quest or tap 'Log Quest' above to record your expedition in Cloud Firestore."
-                            },
+                            text = stringResource(
+                                id = if (searchQuery.isNotBlank()) R.string.journal_empty_search_desc else R.string.journal_empty_completed_desc
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
@@ -562,7 +558,7 @@ fun QuestJournalContent(
                                 shape = RoundedCornerShape(12.dp),
                                 border = BorderStroke(1.dp, GuildGold)
                             ) {
-                                Text("Log Completed Quest", color = GuildGold)
+                                Text(stringResource(id = R.string.journal_log_completed_btn), color = GuildGold)
                             }
                             Button(
                                 onClick = onNavigateToMap,
@@ -578,7 +574,7 @@ fun QuestJournalContent(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
-                                Text("Explore Map")
+                                Text(stringResource(id = R.string.journal_explore_map_btn))
                             }
                         }
                     }
@@ -749,12 +745,12 @@ fun QuestJournalEntryCard(
                         )
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Location",
+                                text = stringResource(id = R.string.journal_location_field_label),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = quest.location.ifBlank { "Local Exploration Sector" },
+                                text = quest.location.ifBlank { stringResource(id = R.string.journal_local_sector) },
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White,
                                 fontWeight = FontWeight.SemiBold,
@@ -784,7 +780,9 @@ fun QuestJournalEntryCard(
                             )
                             Column {
                                 Text(
-                                    text = if (isCompleted) "Date Completed" else "Started On",
+                                    text = stringResource(
+                                        id = if (isCompleted) R.string.journal_date_completed_label else R.string.journal_started_on_label
+                                    ),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -809,7 +807,12 @@ fun QuestJournalEntryCard(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = "${quest.distanceMeters}m • ${quest.completedStops}/${quest.landmarksCount} stops",
+                                text = stringResource(
+                                    id = R.string.journal_distance_stops_format,
+                                    quest.distanceMeters,
+                                    quest.completedStops,
+                                    quest.landmarksCount
+                                ),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = ArcaneEmerald
                             )
@@ -840,7 +843,7 @@ fun QuestJournalEntryCard(
                         modifier = Modifier.size(15.dp)
                     )
                     Text(
-                        text = "Waypoints: ${quest.stopsSummary.joinToString(" → ")}",
+                        text = stringResource(id = R.string.journal_waypoints_format, quest.stopsSummary.joinToString(" → ")),
                         style = MaterialTheme.typography.labelMedium,
                         color = GuildGold,
                         maxLines = 2,
@@ -871,7 +874,7 @@ fun QuestJournalEntryCard(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Narrate",
+                            text = stringResource(id = R.string.journal_narrate_btn),
                             style = MaterialTheme.typography.labelMedium,
                             color = GuildGold
                         )
@@ -895,7 +898,7 @@ fun QuestJournalEntryCard(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Mark Complete",
+                                text = stringResource(id = R.string.journal_mark_complete_btn),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold
                             )

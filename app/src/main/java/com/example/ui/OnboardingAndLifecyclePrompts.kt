@@ -82,6 +82,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -174,7 +175,7 @@ fun OnboardingFlowScreen(
                     }
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Step ${pagerState.currentPage + 1} of 4",
+                        text = stringResource(id = R.string.onboarding_step_of_4, pagerState.currentPage + 1),
                         style = MaterialTheme.typography.labelMedium,
                         color = GuildGold
                     )
@@ -185,7 +186,7 @@ fun OnboardingFlowScreen(
                     modifier = Modifier.testTag("onboarding_skip_button")
                 ) {
                     Text(
-                        text = "Skip Tour",
+                        text = stringResource(id = R.string.onboarding_skip_tour),
                         style = MaterialTheme.typography.labelLarge,
                         color = CyberCyan
                     )
@@ -250,7 +251,7 @@ fun OnboardingFlowScreen(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(6.dp))
-                        Text("Back", color = Color.White)
+                        Text(stringResource(id = R.string.onboarding_back_btn), color = Color.White)
                     }
                 }
 
@@ -328,7 +329,7 @@ private fun OnboardingStepOneRadar() {
                     border = BorderStroke(1.dp, GuildGold)
                 ) {
                     Text(
-                        text = "STEP 1 • REAL-WORLD TACTICAL RADAR",
+                        text = stringResource(id = R.string.onboarding_step1_eyebrow),
                         style = MaterialTheme.typography.labelSmall,
                         color = GuildGold,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -336,7 +337,7 @@ private fun OnboardingStepOneRadar() {
                 }
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Turn Every Walk Into an Audio RPG",
+                    text = stringResource(id = R.string.onboarding_step1_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -376,19 +377,19 @@ private fun OnboardingStepTwoPersonas(
     onPreviewVoice: (CharacterStyle) -> Unit
 ) {
     Text(
-        text = "STEP 2 • CHOOSE YOUR NARRATOR ARCHETYPE",
+        text = stringResource(id = R.string.onboarding_step2_eyebrow),
         style = MaterialTheme.typography.labelLarge,
         color = CyberCyan
     )
     Text(
-        text = "Select Your Dungeon Master Persona",
+        text = stringResource(id = R.string.onboarding_step2_title),
         style = MaterialTheme.typography.headlineMedium,
         color = Color.White,
         fontWeight = FontWeight.Bold,
         textAlign = TextAlign.Center
     )
     Text(
-        text = "Your chosen persona transforms how real-world parks, plaques, and cafes are narrated and styled across the map.",
+        text = stringResource(id = R.string.onboarding_step2_desc),
         style = MaterialTheme.typography.bodyMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center
@@ -437,7 +438,7 @@ private fun OnboardingStepTwoPersonas(
                                 shape = RoundedCornerShape(50)
                             ) {
                                 Text(
-                                    text = "SELECTED",
+                                    text = stringResource(id = R.string.onboarding_selected_badge),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = GuildGold,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -446,7 +447,7 @@ private fun OnboardingStepTwoPersonas(
                         }
                     }
                     Text(
-                        text = "Narrator: ${style.narratorTitle}",
+                        text = stringResource(id = R.string.onboarding_narrator_format, style.narratorTitle),
                         style = MaterialTheme.typography.labelMedium,
                         color = CyberCyan
                     )
@@ -477,12 +478,12 @@ private fun OnboardingStepTwoPersonas(
 @Composable
 private fun OnboardingStepThreeAiAndEco() {
     Text(
-        text = "STEP 3 • MULTIMODAL AI & ZERO-BILL ECO GUARD",
+        text = stringResource(id = R.string.onboarding_step3_eyebrow),
         style = MaterialTheme.typography.labelLarge,
         color = ArcaneEmerald
     )
     Text(
-        text = "Gemini Vision, Riddles & Smart Caching",
+        text = stringResource(id = R.string.onboarding_step3_title),
         style = MaterialTheme.typography.headlineMedium,
         color = Color.White,
         fontWeight = FontWeight.Bold,
@@ -521,12 +522,12 @@ private fun OnboardingStepThreeAiAndEco() {
 @Composable
 private fun OnboardingStepFourFirestoreJournal() {
     Text(
-        text = "STEP 4 • CLOUD FIRESTORE CHRONICLE",
+        text = stringResource(id = R.string.onboarding_step4_eyebrow),
         style = MaterialTheme.typography.labelLarge,
         color = GuildGold
     )
     Text(
-        text = "Your Quest Journal & Artifact Vault",
+        text = stringResource(id = R.string.onboarding_step4_title),
         style = MaterialTheme.typography.headlineMedium,
         color = Color.White,
         fontWeight = FontWeight.Bold,
@@ -644,13 +645,13 @@ fun OnboardingQuickStartBanner(
                 }
                 Column {
                     Text(
-                        text = "NEW EXPLORER ONBOARDING GUIDE",
+                        text = stringResource(id = R.string.onboarding_banner_eyebrow),
                         style = MaterialTheme.typography.labelSmall,
                         color = CyberCyan,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Take the 4-step interactive tour & customize your AI persona",
+                        text = stringResource(id = R.string.onboarding_banner_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White
                     )
@@ -668,7 +669,7 @@ fun OnboardingQuickStartBanner(
                     modifier = Modifier.testTag("launch_onboarding_screen_button")
                 ) {
                     Text(
-                        text = "Start Tour",
+                        text = stringResource(id = R.string.onboarding_start_tour_btn),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -762,16 +763,16 @@ private fun RateAppPromptDialog(
                 .fillMaxWidth()
                 .widthIn(max = 520.dp)
                 .systemBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 40.dp)
+                .padding(horizontal = 24.dp, vertical = 48.dp)
                 .testTag("rate_app_prompt_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
             border = BorderStroke(1.5.dp, GuildGold)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Surface(
                     color = GuildGold.copy(alpha = 0.18f),
@@ -779,7 +780,7 @@ private fun RateAppPromptDialog(
                     border = BorderStroke(1.dp, GuildGold)
                 ) {
                     Text(
-                        text = "MILESTONE REACHED • VALUE REALIZED",
+                        text = stringResource(id = R.string.prompt_milestone_eyebrow),
                         style = MaterialTheme.typography.labelSmall,
                         color = GuildGold,
                         fontWeight = FontWeight.Bold,
@@ -788,7 +789,7 @@ private fun RateAppPromptDialog(
                 }
 
                 Text(
-                    text = "Enjoying Your SideQuest Walks?",
+                    text = stringResource(id = R.string.prompt_rate_heading),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -796,7 +797,7 @@ private fun RateAppPromptDialog(
                 )
 
                 Text(
-                    text = "You've cleared multiple real-world landmarks! A quick rating helps fellow walkers discover SideQuest. Once rated, we'll never ask again.",
+                    text = stringResource(id = R.string.prompt_rate_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -824,7 +825,7 @@ private fun RateAppPromptDialog(
                 OutlinedTextField(
                     value = feedbackNote,
                     onValueChange = { feedbackNote = it },
-                    label = { Text("Optional Explorer Note") },
+                    label = { Text(stringResource(id = R.string.prompt_optional_note_label)) },
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = GuildGold,
@@ -847,7 +848,7 @@ private fun RateAppPromptDialog(
                             .weight(0.75f)
                             .testTag("dismiss_rate_app_button")
                     ) {
-                        Text("Later", color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(stringResource(id = R.string.prompt_later_btn), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     }
 
                     Button(
@@ -862,7 +863,7 @@ private fun RateAppPromptDialog(
                             .testTag("confirm_rate_app_button")
                     ) {
                         Text(
-                            text = "Rate ($selectedStars★) +100 XP",
+                            text = stringResource(id = R.string.prompt_rate_submit_format, selectedStars),
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             style = MaterialTheme.typography.labelLarge
@@ -890,16 +891,16 @@ private fun ShareAppPromptDialog(
                 .fillMaxWidth()
                 .widthIn(max = 520.dp)
                 .systemBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 40.dp)
+                .padding(horizontal = 24.dp, vertical = 48.dp)
                 .testTag("share_app_prompt_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
             border = BorderStroke(1.5.dp, CyberCyan)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -917,7 +918,7 @@ private fun ShareAppPromptDialog(
                 }
 
                 Text(
-                    text = "Recruit Fellow Explorers!",
+                    text = stringResource(id = R.string.prompt_share_heading),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -925,7 +926,7 @@ private fun ShareAppPromptDialog(
                 )
 
                 Text(
-                    text = "$adventurerName, you've chronicled $completedQuestsCount walking quest(s)! Invite a friend to join your Co-Op Party on SideQuest and earn +75 Guild XP.",
+                    text = stringResource(id = R.string.prompt_share_body_format, adventurerName, completedQuestsCount),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -943,7 +944,7 @@ private fun ShareAppPromptDialog(
                             .weight(0.75f)
                             .testTag("dismiss_share_app_button")
                     ) {
-                        Text("Later", color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Text(stringResource(id = R.string.prompt_later_btn), color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     }
 
                     Button(
@@ -957,7 +958,7 @@ private fun ShareAppPromptDialog(
                             .weight(1.25f)
                             .testTag("confirm_share_app_button")
                     ) {
-                        Text("Share (+75 XP)", fontWeight = FontWeight.Bold, maxLines = 1)
+                        Text(stringResource(id = R.string.prompt_share_xp_btn), fontWeight = FontWeight.Bold, maxLines = 1)
                     }
                 }
             }
@@ -981,16 +982,16 @@ private fun UpdateAppPromptDialog(
                 .fillMaxWidth()
                 .widthIn(max = 520.dp)
                 .systemBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 40.dp)
+                .padding(horizontal = 24.dp, vertical = 48.dp)
                 .testTag("update_app_prompt_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
             border = BorderStroke(1.5.dp, ArcaneEmerald)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Box(
                     modifier = Modifier
@@ -1008,7 +1009,7 @@ private fun UpdateAppPromptDialog(
                 }
 
                 Text(
-                    text = "SideQuest v$availableVersionName Update Ready",
+                    text = stringResource(id = R.string.prompt_update_title_format, availableVersionName),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -1016,7 +1017,7 @@ private fun UpdateAppPromptDialog(
                 )
 
                 Text(
-                    text = "You are currently on v$installedVersionName. Version $availableVersionName brings expanded offline heritage packs, faster radar rendering, and new Quest Journal filters.",
+                    text = stringResource(id = R.string.prompt_update_body_format, installedVersionName, availableVersionName),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -1034,7 +1035,7 @@ private fun UpdateAppPromptDialog(
                             .weight(1f)
                             .testTag("dismiss_update_app_button")
                     ) {
-                        Text("Later (7d)", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(id = R.string.prompt_later_7d_btn), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
 
                     Button(
@@ -1048,7 +1049,7 @@ private fun UpdateAppPromptDialog(
                             .weight(1f)
                             .testTag("confirm_update_app_button")
                     ) {
-                        Text("Update Now", fontWeight = FontWeight.Bold)
+                        Text(stringResource(id = R.string.prompt_update_now_btn), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -1101,12 +1102,12 @@ fun EngagementTelemetryAndPromptsCard(
                     )
                     Column {
                         Text(
-                            text = "ONBOARDING, EVENT LOGGING & SMART PROMPTS",
+                            text = stringResource(id = R.string.lifecycle_section_eyebrow),
                             style = MaterialTheme.typography.labelLarge,
                             color = CyberCyan
                         )
                         Text(
-                            text = "Anti-Spam Algorithm & Lifecycle Actions",
+                            text = stringResource(id = R.string.lifecycle_section_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = Color.White,
                             fontWeight = FontWeight.Bold
@@ -1122,7 +1123,7 @@ fun EngagementTelemetryAndPromptsCard(
                     modifier = Modifier.testTag("settings_open_onboarding_button")
                 ) {
                     Text(
-                        text = "Onboarding Tour",
+                        text = stringResource(id = R.string.lifecycle_tour_btn),
                         style = MaterialTheme.typography.labelMedium,
                         color = GuildGold
                     )
@@ -1141,7 +1142,7 @@ fun EngagementTelemetryAndPromptsCard(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
-                        text = "Smart Algorithm Decision: ${telemetryState.lastDecisionReason}",
+                        text = stringResource(id = R.string.lifecycle_decision_format, telemetryState.lastDecisionReason),
                         style = MaterialTheme.typography.labelMedium,
                         color = ArcaneEmerald
                     )
@@ -1177,7 +1178,7 @@ fun EngagementTelemetryAndPromptsCard(
                         modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Rate App", color = GuildGold, style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(id = R.string.lifecycle_rate_btn), color = GuildGold, style = MaterialTheme.typography.labelMedium)
                 }
 
                 OutlinedButton(
@@ -1196,7 +1197,7 @@ fun EngagementTelemetryAndPromptsCard(
                         modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Share App", color = CyberCyan, style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(id = R.string.lifecycle_share_btn), color = CyberCyan, style = MaterialTheme.typography.labelMedium)
                 }
 
                 OutlinedButton(
@@ -1215,7 +1216,7 @@ fun EngagementTelemetryAndPromptsCard(
                         modifier = Modifier.size(15.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Update", color = ArcaneEmerald, style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(id = R.string.lifecycle_update_btn), color = ArcaneEmerald, style = MaterialTheme.typography.labelMedium)
                 }
             }
 
@@ -1226,7 +1227,7 @@ fun EngagementTelemetryAndPromptsCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Tracked App Events (${telemetryState.eventHistory.size})",
+                    text = stringResource(id = R.string.lifecycle_tracked_events_format, telemetryState.eventHistory.size),
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White,
                     modifier = Modifier.weight(1f)

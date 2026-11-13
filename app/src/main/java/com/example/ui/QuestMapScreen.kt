@@ -358,7 +358,7 @@ fun QuestMapScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "DAILY WALKING CADENCE",
+                                text = stringResource(id = R.string.daily_walking_cadence),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = Color.White
                             )
@@ -401,7 +401,7 @@ fun QuestMapScreen(
                             onClick = { viewModel.logWalkStepBoost() },
                             label = {
                                 Text(
-                                    text = "+250m Step Boost (+50 XP)",
+                                    text = stringResource(id = R.string.step_boost_btn),
                                     style = MaterialTheme.typography.labelMedium,
                                     maxLines = 1
                                 )
@@ -433,7 +433,7 @@ fun QuestMapScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "WORLD ATMOSPHERE: ${activeAtmosphere.title.uppercase()}",
+                                    text = stringResource(id = R.string.world_atmosphere_format, activeAtmosphere.title.uppercase()),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = CyberCyan
                                 )
@@ -444,7 +444,7 @@ fun QuestMapScreen(
                                 )
                             }
                             Text(
-                                text = "Shift Weather ↻",
+                                text = stringResource(id = R.string.shift_weather_btn),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = CyberCyan
                             )
@@ -652,7 +652,7 @@ fun QuestMapScreen(
                             border = BorderStroke(1.dp, GuildGold.copy(alpha = 0.5f))
                         ) {
                             Text(
-                                text = "$clearedCount / ${landmarks.size} Stops",
+                                text = stringResource(id = R.string.stops_progress_format, clearedCount, landmarks.size),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = GuildGold,
                                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -673,7 +673,7 @@ fun QuestMapScreen(
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Text(
-                                text = "🚶 ${totalDistanceMeters}m • ~$estimatedMinutes min walk • 🔥 $estimatedKcal kcal",
+                                text = stringResource(id = R.string.walk_stats_format, totalDistanceMeters, estimatedMinutes, estimatedKcal),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = CyberCyan,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -686,7 +686,7 @@ fun QuestMapScreen(
                                 border = BorderStroke(1.dp, GuildGold)
                             ) {
                                 Text(
-                                    text = "1.5x GUILD PASS",
+                                    text = stringResource(id = R.string.guild_pass_badge),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = GuildGold,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -711,7 +711,7 @@ fun QuestMapScreen(
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "Pinpointing real parks, historical plaques & cafes + consulting Gemini Dungeon Master...",
+                                text = stringResource(id = R.string.pinpointing_landmarks_desc),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = GuildGold
                             )
@@ -838,7 +838,7 @@ fun QuestMapScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "OFFICIAL TOURISM & CULTURAL HERITAGE TRAILS (1.5X XP)",
+                    text = stringResource(id = R.string.official_trails_header),
                     style = MaterialTheme.typography.labelLarge,
                     color = CyberCyan
                 )
@@ -861,7 +861,7 @@ fun QuestMapScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "DAILY GUILD BOUNTIES & LOCAL PARTNER PERKS",
+                    text = stringResource(id = R.string.daily_bounties_header),
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold
                 )
@@ -890,7 +890,7 @@ fun QuestMapScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    text = "TAVERN REST STOP VOUCHERS (LOCAL CAFE & MUSEUM REWARDS)",
+                    text = stringResource(id = R.string.tavern_vouchers_header),
                     style = MaterialTheme.typography.labelLarge,
                     color = ArcaneEmerald
                 )
@@ -951,7 +951,7 @@ private fun OfficialHeritageTrailCard(
                     )
                 }
                 Text(
-                    text = "${trail.durationMinutes} min",
+                    text = stringResource(id = R.string.trail_duration_format, trail.durationMinutes),
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold
                 )
@@ -980,7 +980,7 @@ private fun OfficialHeritageTrailCard(
                     color = GuildGold
                 )
                 Text(
-                    text = "Launch →",
+                    text = stringResource(id = R.string.launch_trail_btn),
                     style = MaterialTheme.typography.labelLarge,
                     color = CyberCyan
                 )
@@ -1516,7 +1516,7 @@ private fun TacticalRealWorldMapCanvas(
             shape = RoundedCornerShape(10.dp)
         ) {
             Text(
-                text = "Tap any waypoint pin on the map",
+                text = stringResource(id = R.string.tap_waypoint_hint),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -1663,7 +1663,7 @@ private fun ActiveWaypointEncounterCard(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "${style.narratorTitle} Audio Lore",
+                            text = stringResource(id = R.string.audio_lore_btn_format, style.narratorTitle),
                             style = MaterialTheme.typography.labelLarge,
                             color = GuildGold
                         )
@@ -1683,7 +1683,7 @@ private fun ActiveWaypointEncounterCard(
             ) {
                 Column(modifier = Modifier.padding(10.dp)) {
                     Text(
-                        text = "REAL LANDMARK INTEL",
+                        text = stringResource(id = R.string.real_landmark_intel),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1728,7 +1728,7 @@ private fun ActiveWaypointEncounterCard(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "GEMINI VISION RELIC SCANNER",
+                                text = stringResource(id = R.string.gemini_vision_scanner),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = CyberCyan,
                                 maxLines = 1,
@@ -1736,14 +1736,14 @@ private fun ActiveWaypointEncounterCard(
                             )
                         }
                         Text(
-                            text = "+175 XP & Epic Relic",
+                            text = stringResource(id = R.string.vision_reward_badge),
                             style = MaterialTheme.typography.labelMedium,
                             color = GuildGold
                         )
                     }
 
                     Text(
-                        text = "Point your lens at ${landmark.name}'s plaque, facade, or surroundings so ${style.narratorTitle} can inspect it with Gemini Vision.",
+                        text = stringResource(id = R.string.vision_scanner_desc, landmark.name, style.narratorTitle),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1760,7 +1760,7 @@ private fun ActiveWaypointEncounterCard(
                                 strokeWidth = 2.dp
                             )
                             Text(
-                                text = "Gemini Multimodal Vision is analyzing landmark inscription & minting relic...",
+                                text = stringResource(id = R.string.vision_analyzing_desc),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = CyberCyan
                             )
@@ -1788,7 +1788,7 @@ private fun ActiveWaypointEncounterCard(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Camera", style = MaterialTheme.typography.labelLarge)
+                                Text(stringResource(id = R.string.vision_camera_btn), style = MaterialTheme.typography.labelLarge)
                             }
 
                             OutlinedButton(
@@ -1807,7 +1807,7 @@ private fun ActiveWaypointEncounterCard(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Photo", color = CyberCyan, style = MaterialTheme.typography.labelLarge)
+                                Text(stringResource(id = R.string.vision_photo_btn), color = CyberCyan, style = MaterialTheme.typography.labelLarge)
                             }
 
                             OutlinedButton(
@@ -1826,7 +1826,7 @@ private fun ActiveWaypointEncounterCard(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Scan Plaque", color = GuildGold, style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                                Text(stringResource(id = R.string.vision_scan_plaque_btn), color = GuildGold, style = MaterialTheme.typography.labelLarge, maxLines = 1)
                             }
                         }
                     }
@@ -1851,12 +1851,12 @@ private fun ActiveWaypointEncounterCard(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "VISION VERIFIED • +${lastVisionScan.bonusXp} XP",
+                                            text = stringResource(id = R.string.vision_verified_format, lastVisionScan.bonusXp),
                                             style = MaterialTheme.typography.labelMedium,
                                             color = ArcaneEmerald
                                         )
                                         Text(
-                                            text = "Dismiss",
+                                            text = stringResource(id = R.string.dismiss_btn),
                                             style = MaterialTheme.typography.labelMedium,
                                             color = GuildGold,
                                             modifier = Modifier.clickable { onDismissVisionResult() }
@@ -1874,7 +1874,7 @@ private fun ActiveWaypointEncounterCard(
                                         color = Color.White
                                     )
                                     Text(
-                                        text = "Minted Epic Relic: ${lastVisionScan.awardedRelicName}",
+                                        text = stringResource(id = R.string.minted_relic_format, lastVisionScan.awardedRelicName),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = GuildGold
                                     )
@@ -1886,7 +1886,7 @@ private fun ActiveWaypointEncounterCard(
             }
 
             Text(
-                text = "CHOOSE YOUR ACTION AT THIS LANDMARK (+${landmark.xpReward} XP & '${landmark.rewardItemName}')",
+                text = stringResource(id = R.string.choose_landmark_action_format, landmark.xpReward, landmark.rewardItemName),
                 style = MaterialTheme.typography.labelLarge,
                 color = GuildGold
             )
@@ -1945,7 +1945,7 @@ private fun ActiveWaypointEncounterCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Google Maps",
+                        text = stringResource(id = R.string.google_maps_btn),
                         color = GuildGold,
                         style = MaterialTheme.typography.labelLarge
                     )
@@ -1967,7 +1967,7 @@ private fun ActiveWaypointEncounterCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Ask DM Lore",
+                        text = stringResource(id = R.string.ask_dm_lore_btn),
                         color = MaterialTheme.colorScheme.primary,
                         style = MaterialTheme.typography.labelLarge
                     )
