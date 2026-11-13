@@ -2,7 +2,9 @@
 <resources>
     <string name="app_name">SideQuest</string>
     <string name="app_tagline">Real-World Audio RPG &amp; Interactive Walking Tour</string>
+    <string name="default_web_client_id" translatable="false">mock-client-id.apps.googleusercontent.com</string>
     <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_in_as_guest">Continue as Guest Explorer</string>
     <string name="auth_subtitle">Turn daily walks into an AI-narrated audio RPG anchored to real parks, historical plaques, and coffee shops.</string>
     <string name="auth_hero_badge">REAL-WORLD AUDIO RPG &amp; TOUR GUIDE</string>
     <string name="auth_onboarding_tour_btn">Interactive 4-Step Onboarding Tour</string>

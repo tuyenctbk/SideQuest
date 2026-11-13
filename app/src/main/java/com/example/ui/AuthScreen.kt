@@ -101,6 +101,11 @@ fun attemptAutoSignIn(
         return
     }
 
+    if (clientId.isBlank() || clientId.startsWith("mock-")) {
+        onUnauthenticated()
+        return
+    }
+
     val googleIdOption = GetGoogleIdOption.Builder()
         .setFilterByAuthorizedAccounts(true)
         .setServerClientId(clientId)
@@ -141,6 +146,19 @@ fun onGoogleSignInClicked(
         context.getString(R.string.default_web_client_id)
     } catch (e: Exception) {
         onAuthError("Google Sign-In configuration missing: default_web_client_id not found")
+        return
+    }
+
+    if (clientId.isBlank() || clientId.startsWith("mock-")) {
+        // Fallback for mock/local configurations
+        scope.launch {
+            try {
+                Firebase.auth.signInAnonymously().await()
+                onAuthSuccess()
+            } catch (e: Exception) {
+                onAuthError("Google Client ID not configured. Please use Guest Explorer sign-in.")
+            }
+        }
         return
     }
 
@@ -192,7 +210,8 @@ fun signOut(
 
 @Composable
 fun AuthScreen(
-    onAuthSuccess: () -> Unit
+    onAuthSuccess: () -> Unit,
+    onContinueAsGuest: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -459,6 +478,35 @@ fun AuthScreen(
                             fontWeight = FontWeight.Bold
                         )
                     }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                androidx.compose.material3.OutlinedButton(
+                    onClick = {
+                        onContinueAsGuest()
+                    },
+                    enabled = !isLoading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .testTag("guest_sign_in_button"),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, GuildGold.copy(alpha = 0.6f))
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Explore,
+                        contentDescription = null,
+                        tint = GuildGold,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = stringResource(id = R.string.sign_in_as_guest),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = GuildGold,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

@@ -4,7 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.example.BuildConfig
+import com.example.R
 import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
 import com.google.firebase.appcheck.FirebaseAppCheck
 import com.google.firebase.appcheck.debug.DebugAppCheckProviderFactory
 import com.google.firebase.appcheck.recaptcha.RecaptchaAppCheckProviderFactory
@@ -21,7 +23,25 @@ fun configureAppCheck(context: Context, intent: Intent?) {
     try {
         // 1. Ensure FirebaseApp is initialized
         if (FirebaseApp.getApps(context).isEmpty()) {
-            FirebaseApp.initializeApp(context)
+            val app = try {
+                FirebaseApp.initializeApp(context)
+            } catch (e: Exception) {
+                null
+            }
+            if (app == null) {
+                val dbId = try {
+                    context.getString(R.string.firestore_database_id)
+                } catch (e: Exception) {
+                    "ai-studio-android-sideques-7f0c7660-0e5c-483d-b2e5-5f343a6e5930"
+                }
+                val options = FirebaseOptions.Builder()
+                    .setApplicationId(context.packageName)
+                    .setApiKey("AIzaSyMockKeyForAppCheckAndAuthInit")
+                    .setProjectId(dbId)
+                    .build()
+                FirebaseApp.initializeApp(context, options)
+                Log.d(TAG, "FirebaseApp initialized with fallback options")
+            }
         }
 
         if (BuildConfig.DEBUG) {

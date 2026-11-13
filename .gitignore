@@ -1,19 +1,129 @@
-*.iml
-.gradle
-.kotlin
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# ==============================================================================
+# SideQuest Android & Multiplatform .gitignore
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Android Packages, Binaries & Build Outputs
+# ------------------------------------------------------------------------------
+*.apk
+*.ap_
+*.aab
+*.dex
+*.dm
+*.flat
+*.class
+*.kotlin_module
+*.idsig
+*.prof
+*.profm
+*.aar
+*.hprof
+
+# Standalone and intermediate archives (exempt Gradle wrapper)
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.zip
+*.tar.gz
+
+# ------------------------------------------------------------------------------
+# 2. Build Directories & Gradle Cache
+# ------------------------------------------------------------------------------
+.gradle/
+build/
+*/build/
+app/build/
+bin/
+out/
+captures/
+
+# Native C/C++ builds (CMake & NDK)
+.cxx/
+.externalNativeBuild/
+CMakeFiles/
+CMakeCache.txt
+
+# ------------------------------------------------------------------------------
+# 3. Local Configurations, Secrets & Keystores
+# ------------------------------------------------------------------------------
+# Android SDK & release signing properties
 local.properties
+/local.properties
+secrets.properties
+
+# Environment variable files (preserve templates)
 .env
+.env.*
+!.env.example
+!.env.template
+
+# Signing keystores and certificates
+*.jks
+*.keystore
+*.p12
+*.key
+*.pem
 debug.keystore
+
+# ------------------------------------------------------------------------------
+# 4. IDEs, Editors & Tools
+# ------------------------------------------------------------------------------
+# Android Studio & IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Visual Studio Code
+.vscode/
+
+# Editor backup files
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+
+# ------------------------------------------------------------------------------
+# 5. Operating System Junk
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ------------------------------------------------------------------------------
+# 6. Logs & Crash Reports
+# ------------------------------------------------------------------------------
+*.log
 *-debug.log
+hs_err_pid*.log
+replay_pid*.log
+
+# ------------------------------------------------------------------------------
+# 7. Node.js & Web (Firestore Tests)
+# ------------------------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ------------------------------------------------------------------------------
+# 8. Python Scripts & Local Tools (tools/ directory)
+# ------------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/

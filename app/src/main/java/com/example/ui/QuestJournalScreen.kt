@@ -249,7 +249,7 @@ fun QuestJournalContent(
                                 containerColor = GuildGold,
                                 contentColor = MidnightAbyss
                             ),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                             modifier = Modifier.testTag("toggle_log_completed_quest_button")
                         ) {
                             Icon(
@@ -261,7 +261,8 @@ fun QuestJournalContent(
                             Text(
                                 text = if (showLogQuestForm) stringResource(id = R.string.action_close) else stringResource(id = R.string.journal_log_manual_btn),
                                 style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
                             )
                         }
                     }
@@ -383,9 +384,10 @@ fun QuestJournalContent(
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "Save Completed Quest to Firestore (+250 XP)",
+                                        text = "Save to Firestore (+250 XP)",
                                         style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1
                                     )
                                 }
                             }
@@ -658,6 +660,7 @@ fun QuestJournalEntryCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f, fill = false),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -681,7 +684,8 @@ fun QuestJournalEntryCard(
                                 text = if (isCompleted) "COMPLETED" else "IN PROGRESS (${quest.completedStops}/${quest.landmarksCount})",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = statusAccent,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1
                             )
                         }
                     }
@@ -695,16 +699,20 @@ fun QuestJournalEntryCard(
                             text = persona.title,
                             style = MaterialTheme.typography.labelSmall,
                             color = CyberCyan,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
                 }
 
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "+${quest.xpEarned} XP",
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
                 )
             }
 

@@ -1,1 +1,14 @@
-/build
+# Module build directory
+/build/
+
+# Native intermediate build directories (CMake / NDK)
+/.cxx/
+/.externalNativeBuild/
+
+# Local build artifacts
+*.apk
+*.ap_
+*.aab
+*.dex
+*.dm
+*.flat

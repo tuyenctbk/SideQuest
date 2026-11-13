@@ -1,11 +1,14 @@
 package com.example.ui
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -30,7 +33,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,6 +50,7 @@ import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.filled.Verified
@@ -62,6 +68,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -89,9 +96,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.credentials.CredentialManager
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -118,7 +127,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun MainFeatureScreen(
     currentUserId: String,
-    displayName: String
+    displayName: String,
+    onSignOut: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -251,29 +261,42 @@ fun MainFeatureScreen(
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.app_name),
-                                    style = MaterialTheme.typography.headlineMedium,
+                                    style = if (isExpandedScreen) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.titleLarge,
                                     color = Color.White
                                 )
+                                val animatedXp by animateIntAsState(
+                                    targetValue = (profile?.xp ?: 0L).toInt(),
+                                    animationSpec = tween(durationMillis = 550, easing = FastOutSlowInEasing),
+                                    label = "xp_counter"
+                                )
+                                val badgeAccent by animateColorAsState(
+                                    targetValue = if (isGuildPassActive) ArcaneEmerald else GuildGold,
+                                    animationSpec = tween(durationMillis = 350),
+                                    label = "guild_badge_accent"
+                                )
                                 Surface(
-                                    modifier = Modifier.clickable { showBusinessHubDialog = true },
-                                    color = if (isGuildPassActive) ArcaneEmerald.copy(alpha = 0.2f) else GuildGold.copy(alpha = 0.18f),
+                                    onClick = { showBusinessHubDialog = true },
+                                    color = badgeAccent.copy(alpha = 0.18f),
                                     shape = RoundedCornerShape(50),
-                                    border = BorderStroke(1.dp, if (isGuildPassActive) ArcaneEmerald else GuildGold)
+                                    border = BorderStroke(1.dp, badgeAccent)
                                 ) {
                                     Text(
-                                        text = "LVL $level ${rank.title} • ${profile?.xp ?: 0} XP",
+                                        text = if (isExpandedScreen) {
+                                            "LVL $level ${rank.title} • $animatedXp XP"
+                                        } else {
+                                            "LVL $level • $animatedXp XP"
+                                        },
                                         style = MaterialTheme.typography.labelMedium,
-                                        color = if (isGuildPassActive) ArcaneEmerald else GuildGold,
+                                        color = badgeAccent,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                     )
                                 }
-                                if (donationEngagementState.isPermanentSupporter) {
+                                if (donationEngagementState.isPermanentSupporter && isExpandedScreen) {
                                     Surface(
-                                        modifier = Modifier
-                                            .clickable { currentTab = 4 }
-                                            .testTag("active_supporter_header_badge"),
+                                        onClick = { currentTab = 4 },
+                                        modifier = Modifier.testTag("active_supporter_header_badge"),
                                         color = ArcaneEmerald.copy(alpha = 0.22f),
                                         shape = RoundedCornerShape(50),
                                         border = BorderStroke(1.dp, ArcaneEmerald)
@@ -301,58 +324,98 @@ fun MainFeatureScreen(
                             }
                         },
                         actions = {
-                            IconButton(
-                                onClick = { showOnboardingFlow = true },
-                                modifier = Modifier.testTag("header_open_onboarding_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.AutoAwesome,
-                                    contentDescription = "Interactive Onboarding Tour",
-                                    tint = CyberCyan
-                                )
-                            }
-                            IconButton(
-                                onClick = { currentTab = 2 },
-                                modifier = Modifier.testTag("header_open_quest_journal_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.HistoryEdu,
-                                    contentDescription = stringResource(id = R.string.tab_quest_journal),
-                                    tint = if (currentTab == 2) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            IconButton(
-                                onClick = { currentTab = 4 },
-                                modifier = Modifier.testTag("header_open_settings_support_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Settings,
-                                    contentDescription = "Settings & Support Development",
-                                    tint = if (currentTab == 4) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            IconButton(
-                                onClick = { showBusinessHubDialog = true },
-                                modifier = Modifier.testTag("open_business_hub_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.WorkspacePremium,
-                                    contentDescription = "Guild Pass & Partner Hub",
-                                    tint = if (isGuildPassActive) ArcaneEmerald else GuildGold
-                                )
-                            }
-                            IconButton(
-                                onClick = {
-                                    viewModel.voiceNarrator.stop()
-                                    signOut(credentialManager, scope)
-                                },
-                                modifier = Modifier.testTag("sign_out_button")
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Logout,
-                                    contentDescription = "Sign Out",
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                            if (isExpandedScreen) {
+                                IconButton(
+                                    onClick = { showOnboardingFlow = true },
+                                    modifier = Modifier.testTag("header_open_onboarding_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = "Interactive Onboarding Tour",
+                                        tint = CyberCyan
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { currentTab = 2 },
+                                    modifier = Modifier.testTag("header_open_quest_journal_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.HistoryEdu,
+                                        contentDescription = stringResource(id = R.string.tab_quest_journal),
+                                        tint = if (currentTab == 2) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { currentTab = 4 },
+                                    modifier = Modifier.testTag("header_open_settings_support_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = "Settings & Support Development",
+                                        tint = if (currentTab == 4) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { showBusinessHubDialog = true },
+                                    modifier = Modifier.testTag("open_business_hub_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.WorkspacePremium,
+                                        contentDescription = "Guild Pass & Partner Hub",
+                                        tint = if (isGuildPassActive) ArcaneEmerald else GuildGold
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        viewModel.voiceNarrator.stop()
+                                        signOut(credentialManager, scope) {
+                                            onSignOut()
+                                        }
+                                    },
+                                    modifier = Modifier.testTag("sign_out_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                                        contentDescription = "Sign Out",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            } else {
+                                IconButton(
+                                    onClick = { showOnboardingFlow = true },
+                                    modifier = Modifier.testTag("header_open_onboarding_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.AutoAwesome,
+                                        contentDescription = "Interactive Onboarding Tour",
+                                        tint = CyberCyan
+                                    )
+                                }
+                                IconButton(
+                                    onClick = { showBusinessHubDialog = true },
+                                    modifier = Modifier.testTag("open_business_hub_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.WorkspacePremium,
+                                        contentDescription = "Guild Pass & Partner Hub",
+                                        tint = if (isGuildPassActive) ArcaneEmerald else GuildGold
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        viewModel.voiceNarrator.stop()
+                                        signOut(credentialManager, scope) {
+                                            onSignOut()
+                                        }
+                                    },
+                                    modifier = Modifier.testTag("sign_out_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Logout,
+                                        contentDescription = "Sign Out",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
@@ -382,7 +445,14 @@ fun MainFeatureScreen(
                                             contentDescription = stringResource(id = R.string.tab_map_quest)
                                         )
                                     },
-                                    label = { Text(stringResource(id = R.string.tab_map_quest)) },
+                                    label = {
+                                        Text(
+                                            text = "Map",
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = MidnightAbyss,
                                         selectedTextColor = GuildGold,
@@ -399,7 +469,14 @@ fun MainFeatureScreen(
                                             contentDescription = stringResource(id = R.string.tab_dungeon_master)
                                         )
                                     },
-                                    label = { Text(stringResource(id = R.string.tab_dungeon_master)) },
+                                    label = {
+                                        Text(
+                                            text = "Dungeon",
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = MidnightAbyss,
                                         selectedTextColor = GuildGold,
@@ -416,7 +493,14 @@ fun MainFeatureScreen(
                                             contentDescription = stringResource(id = R.string.tab_quest_journal)
                                         )
                                     },
-                                    label = { Text(stringResource(id = R.string.tab_quest_journal)) },
+                                    label = {
+                                        Text(
+                                            text = "Journal",
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = MidnightAbyss,
                                         selectedTextColor = GuildGold,
@@ -433,7 +517,14 @@ fun MainFeatureScreen(
                                             contentDescription = stringResource(id = R.string.tab_codex_loot)
                                         )
                                     },
-                                    label = { Text(stringResource(id = R.string.tab_codex_loot)) },
+                                    label = {
+                                        Text(
+                                            text = "Codex",
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = MidnightAbyss,
                                         selectedTextColor = GuildGold,
@@ -450,7 +541,14 @@ fun MainFeatureScreen(
                                             contentDescription = "Settings & Support"
                                         )
                                     },
-                                    label = { Text(stringResource(id = R.string.tab_settings)) },
+                                    label = {
+                                        Text(
+                                            text = stringResource(id = R.string.tab_settings),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    },
                                     colors = NavigationBarItemDefaults.colors(
                                         selectedIconColor = MidnightAbyss,
                                         selectedTextColor = GuildGold,
@@ -471,13 +569,23 @@ fun MainFeatureScreen(
                     if (isExpandedScreen) {
                         NavigationRail(
                             containerColor = ObsidianSurface,
-                            modifier = Modifier.fillMaxHeight()
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .testTag("tv_navigation_rail")
                         ) {
+                            val railItemColors = NavigationRailItemDefaults.colors(
+                                selectedIconColor = MidnightAbyss,
+                                selectedTextColor = GuildGold,
+                                indicatorColor = GuildGold,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                             NavigationRailItem(
                                 selected = currentTab == 0,
                                 onClick = { currentTab = 0 },
                                 icon = { Icon(Icons.Default.Explore, contentDescription = "Map") },
                                 label = { Text("Map") },
+                                colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_map")
                             )
                             NavigationRailItem(
@@ -485,6 +593,7 @@ fun MainFeatureScreen(
                                 onClick = { currentTab = 1 },
                                 icon = { Icon(Icons.Default.RecordVoiceOver, contentDescription = "DM") },
                                 label = { Text("DM") },
+                                colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_dm")
                             )
                             NavigationRailItem(
@@ -492,6 +601,7 @@ fun MainFeatureScreen(
                                 onClick = { currentTab = 2 },
                                 icon = { Icon(Icons.Default.HistoryEdu, contentDescription = "Quest Journal") },
                                 label = { Text("Journal") },
+                                colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_quest_journal")
                             )
                             NavigationRailItem(
@@ -499,13 +609,15 @@ fun MainFeatureScreen(
                                 onClick = { currentTab = 3 },
                                 icon = { Icon(Icons.Default.Inventory2, contentDescription = "Codex") },
                                 label = { Text("Codex") },
+                                colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_codex")
                             )
                             NavigationRailItem(
                                 selected = currentTab == 4,
                                 onClick = { currentTab = 4 },
                                 icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
-                                label = { Text(stringResource(id = R.string.tab_settings)) },
+                                label = { Text("Settings") },
+                                colors = railItemColors,
                                 modifier = Modifier.testTag("rail_tab_settings")
                             )
                         }
@@ -562,7 +674,8 @@ fun MainFeatureScreen(
                                             text = activeBanner.orEmpty(),
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = Color.White,
-                                            fontWeight = FontWeight.Medium
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.weight(1f, fill = false)
                                         )
                                     }
                                     IconButton(
@@ -620,7 +733,9 @@ fun MainFeatureScreen(
                                     viewModel = viewModel,
                                     onSignOut = {
                                         viewModel.voiceNarrator.stop()
-                                        signOut(credentialManager, scope)
+                                        signOut(credentialManager, scope) {
+                                            onSignOut()
+                                        }
                                     },
                                     onNavigateToMap = { currentTab = 0 },
                                     onReplayOnboarding = { showOnboardingFlow = true }
@@ -651,9 +766,16 @@ private fun GuildBusinessPartnerModal(
     var partnerName by rememberSaveable { mutableStateOf("Starlight Espresso & Books") }
     var partnerOffer by rememberSaveable { mutableStateOf("Free Cold Brew Upgrade for SideQuest Walkers") }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 560.dp)
+                .systemBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 40.dp),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
             border = BorderStroke(1.5.dp, GuildGold)
@@ -670,6 +792,7 @@ private fun GuildBusinessPartnerModal(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Row(
+                        modifier = Modifier.weight(1f),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -859,17 +982,74 @@ private fun GuildBusinessPartnerModal(
                                 containerColor = CyberCyan,
                                 contentColor = MidnightAbyss
                             ),
-                            contentPadding = PaddingValues(vertical = 10.dp)
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                         ) {
                             Text(
                                 text = "Pin Sponsored Stop to Radar (+Voucher)",
-                                style = MaterialTheme.typography.labelLarge
+                                style = MaterialTheme.typography.labelLarge,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
                 }
 
-                // 3. Static Support Independent Development Section (Navigates to Settings -> Support Development)
+                // 3. Viral Explorer Referral Loop
+                val shareContext = LocalContext.current
+                Surface(
+                    color = ObsidianSurface,
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, GuildGold.copy(alpha = 0.45f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "INVITE A FELLOW EXPLORER (+250 XP)",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = GuildGold
+                            )
+                            Text(
+                                text = "Share your Guild Invite so friends start with a 7-Day Guild Pass trial.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        "Join me on SideQuest — turn your daily walk into a live AI Audio RPG! Use Guild Code: SIDEQUEST-VIP"
+                                    )
+                                }
+                                shareContext.startActivity(Intent.createChooser(sendIntent, "Invite Explorer"))
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = GuildGold,
+                                contentColor = MidnightAbyss
+                            ),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Share Invite",
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Invite", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
+
+                // 4. Static Support Independent Development Section (Navigates to Settings -> Support Development)
                 StaticSupportDevelopmentSectionCard(
                     engagementState = donationEngagementState,
                     onOpenSupportScreen = onOpenDonationDialog

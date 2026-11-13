@@ -75,17 +75,26 @@ fun AppRoot() {
 fun AppNavigation(auth: FirebaseAuth = Firebase.auth) {
     val currentUser by auth.authStateFlow()
         .collectAsStateWithLifecycle(initialValue = auth.currentUser)
+    var guestUserId by rememberSaveable { mutableStateOf<String?>(null) }
     val user = currentUser
 
-    if (user == null) {
+    if (user == null && guestUserId == null) {
         AuthScreen(
-            onAuthSuccess = {}
+            onAuthSuccess = {},
+            onContinueAsGuest = {
+                guestUserId = "guest_${java.util.UUID.randomUUID().toString().take(8)}"
+            }
         )
     } else {
-        key(user.uid) {
+        val effectiveUid = user?.uid ?: guestUserId ?: "wanderer"
+        val effectiveName = user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest Explorer"
+        key(effectiveUid) {
             MainFeatureScreen(
-                currentUserId = user.uid,
-                displayName = user.displayName ?: user.email?.substringBefore("@") ?: "Wanderer"
+                currentUserId = effectiveUid,
+                displayName = effectiveName,
+                onSignOut = {
+                    guestUserId = null
+                }
             )
         }
     }

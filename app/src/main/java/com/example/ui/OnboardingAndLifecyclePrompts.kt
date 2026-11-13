@@ -5,6 +5,10 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,6 +26,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -82,6 +87,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.R
 import com.example.model.CharacterStyle
 import com.example.ui.theme.ArcaneEmerald
@@ -148,14 +154,22 @@ fun OnboardingFlowScreen(
                 ) {
                     repeat(4) { index ->
                         val isCurrent = pagerState.currentPage == index
+                        val dotWidth by animateDpAsState(
+                            targetValue = if (isCurrent) 28.dp else 10.dp,
+                            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing),
+                            label = "onboarding_dot_width_$index"
+                        )
+                        val dotColor by animateColorAsState(
+                            targetValue = if (isCurrent) GuildGold else SlateCardSurface,
+                            animationSpec = tween(durationMillis = 260),
+                            label = "onboarding_dot_color_$index"
+                        )
                         Box(
                             modifier = Modifier
                                 .height(8.dp)
-                                .width(if (isCurrent) 28.dp else 10.dp)
+                                .width(dotWidth)
                                 .clip(RoundedCornerShape(50))
-                                .background(
-                                    if (isCurrent) GuildGold else SlateCardSurface
-                                )
+                                .background(dotColor)
                         )
                     }
                     Spacer(modifier = Modifier.width(6.dp))
@@ -739,10 +753,16 @@ private fun RateAppPromptDialog(
     var selectedStars by rememberSaveable { mutableIntStateOf(5) }
     var feedbackNote by rememberSaveable { mutableStateOf("") }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 520.dp)
+                .systemBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 40.dp)
                 .testTag("rate_app_prompt_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
@@ -824,10 +844,10 @@ private fun RateAppPromptDialog(
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, SlateCardSurface),
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(0.75f)
                             .testTag("dismiss_rate_app_button")
                     ) {
-                        Text("Later (21d)", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Later", color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     }
 
                     Button(
@@ -838,12 +858,14 @@ private fun RateAppPromptDialog(
                             contentColor = MidnightAbyss
                         ),
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(1.25f)
                             .testTag("confirm_rate_app_button")
                     ) {
                         Text(
                             text = "Rate ($selectedStars★) +100 XP",
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            style = MaterialTheme.typography.labelLarge
                         )
                     }
                 }
@@ -859,10 +881,16 @@ private fun ShareAppPromptDialog(
     onShareNow: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 520.dp)
+                .systemBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 40.dp)
                 .testTag("share_app_prompt_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
@@ -912,10 +940,10 @@ private fun ShareAppPromptDialog(
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, SlateCardSurface),
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(0.75f)
                             .testTag("dismiss_share_app_button")
                     ) {
-                        Text("Not Now (14d)", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Later", color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                     }
 
                     Button(
@@ -926,10 +954,10 @@ private fun ShareAppPromptDialog(
                             contentColor = MidnightAbyss
                         ),
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(1.25f)
                             .testTag("confirm_share_app_button")
                     ) {
-                        Text("Share App (+75 XP)", fontWeight = FontWeight.Bold)
+                        Text("Share (+75 XP)", fontWeight = FontWeight.Bold, maxLines = 1)
                     }
                 }
             }
@@ -944,10 +972,16 @@ private fun UpdateAppPromptDialog(
     onUpdateNow: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 520.dp)
+                .systemBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 40.dp)
                 .testTag("update_app_prompt_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
@@ -1194,7 +1228,8 @@ fun EngagementTelemetryAndPromptsCard(
                 Text(
                     text = "Tracked App Events (${telemetryState.eventHistory.size})",
                     style = MaterialTheme.typography.labelLarge,
-                    color = Color.White
+                    color = Color.White,
+                    modifier = Modifier.weight(1f)
                 )
                 TextButton(
                     onClick = { showEventLog = !showEventLog },

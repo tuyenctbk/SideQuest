@@ -12,6 +12,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -71,6 +73,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.data.DungeonMasterAiRepository
 import com.example.model.AiLandmarkRiddle
@@ -213,17 +216,21 @@ fun DungeonMasterChatScreen(
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
-                        Column {
+                        Column(modifier = Modifier.weight(1f, fill = false)) {
                             Text(
                                 text = style.narratorTitle,
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color.White,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                             Text(
                                 text = "Anchored at: ${activeLandmark?.name ?: "Local Sector"}",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = GuildGold
+                                color = GuildGold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
@@ -284,19 +291,20 @@ fun DungeonMasterChatScreen(
                 }
 
                 // AI Power Action Chips: Fact-Check Dossier, AI Riddle Duel, & Voice Field Log
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     AssistChip(
                         onClick = { viewModel.requestLandmarkFactCheckDossier() },
                         enabled = !isGeneratingFactDossier,
                         label = {
                             Text(
-                                text = if (isGeneratingFactDossier) "Verifying Facts..." else "AI Fact-Check Dossier (+110 XP)",
-                                style = MaterialTheme.typography.labelMedium
+                                text = if (isGeneratingFactDossier) "Verifying..." else "Fact-Check (+110 XP)",
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1
                             )
                         },
                         leadingIcon = {
@@ -319,8 +327,9 @@ fun DungeonMasterChatScreen(
                         enabled = !isGeneratingRiddle,
                         label = {
                             Text(
-                                text = if (isGeneratingRiddle) "Crafting Riddle..." else "AI Riddle Duel (+175 XP)",
-                                style = MaterialTheme.typography.labelMedium
+                                text = if (isGeneratingRiddle) "Crafting..." else "Riddle Duel (+175 XP)",
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1
                             )
                         },
                         leadingIcon = {
@@ -342,8 +351,9 @@ fun DungeonMasterChatScreen(
                         onClick = { showVoiceFieldLogPanel = !showVoiceFieldLogPanel },
                         label = {
                             Text(
-                                text = "Voice Field Log (+140 XP)",
-                                style = MaterialTheme.typography.labelMedium
+                                text = "Voice Log (+140 XP)",
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1
                             )
                         },
                         leadingIcon = {
@@ -386,7 +396,8 @@ fun DungeonMasterChatScreen(
                         Text(
                             text = "LIVE VOICE FIELD-LOG TRANSCRIBER (GEMINI AI)",
                             style = MaterialTheme.typography.labelLarge,
-                            color = ArcaneEmerald
+                            color = ArcaneEmerald,
+                            modifier = Modifier.weight(1f)
                         )
                         IconButton(
                             onClick = { showVoiceFieldLogPanel = false },
@@ -647,7 +658,8 @@ private fun AiLandmarkRiddleDuelCard(
                 Text(
                     text = "🧩 AI LANDMARK RIDDLE DUEL • ${riddle.landmarkName.uppercase()}",
                     style = MaterialTheme.typography.labelLarge,
-                    color = GuildGold
+                    color = GuildGold,
+                    modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
                     Icon(
@@ -729,7 +741,8 @@ private fun LandmarkFactDossierCard(
                 Text(
                     text = "🏛️ VERIFIED FACT-CHECK DOSSIER • ${dossier.verifiedEra.uppercase()}",
                     style = MaterialTheme.typography.labelLarge,
-                    color = CyberCyan
+                    color = CyberCyan,
+                    modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
                     Icon(
@@ -813,7 +826,10 @@ private fun ChatMessageBubble(
                             message.isUser -> MaterialTheme.colorScheme.primary
                             message.isVisionScan -> ArcaneEmerald
                             else -> GuildGold
-                        }
+                        },
+                        modifier = Modifier.weight(1f, fill = false),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     if (!message.isUser) {
                         IconButton(

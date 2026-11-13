@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.material.icons.filled.AddLocationAlt
 import androidx.compose.material3.OutlinedTextField
@@ -170,17 +171,23 @@ fun CodexInventoryScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = "Total XP: $xp (${250L - (xp % 250L)} XP to next Level)",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f, fill = false),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = "Relic Power: +$equippedPower",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = GuildGold
+                                color = GuildGold,
+                                maxLines = 1
                             )
                         }
                         LinearProgressIndicator(
@@ -556,6 +563,7 @@ private fun CommunityCreatorQuestStudioCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -579,6 +587,7 @@ private fun CommunityCreatorQuestStudioCard(
                         )
                     }
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 OutlinedButton(
                     onClick = { expanded = !expanded },
                     shape = RoundedCornerShape(10.dp),
@@ -588,7 +597,8 @@ private fun CommunityCreatorQuestStudioCard(
                     Text(
                         text = if (expanded) "Hide" else "Create Trail",
                         color = CyberCyan,
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1
                     )
                 }
             }
@@ -666,6 +676,7 @@ private fun RelicAlchemyForgeCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f, fill = false),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
@@ -678,13 +689,17 @@ private fun RelicAlchemyForgeCard(
                     Text(
                         text = "RELIC ALCHEMY FORGE",
                         style = MaterialTheme.typography.labelLarge,
-                        color = GuildGold
+                        color = GuildGold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "+225 XP & Legendary Keystone",
                     style = MaterialTheme.typography.labelMedium,
-                    color = CyberCyan
+                    color = CyberCyan,
+                    maxLines = 1
                 )
             }
             Text(
@@ -742,7 +757,7 @@ private fun CoOpPartyExpeditionCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "CO-OP PARTY EXPEDITION LOBBY",
                         style = MaterialTheme.typography.labelLarge,
@@ -754,13 +769,14 @@ private fun CoOpPartyExpeditionCard(
                         color = Color.White
                     )
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 OutlinedButton(
                     onClick = onCyclePartyCode,
                     shape = RoundedCornerShape(10.dp),
                     border = BorderStroke(1.dp, CyberCyan.copy(alpha = 0.6f)),
                     modifier = Modifier.testTag("switch_party_room_button")
                 ) {
-                    Text("Switch Room", color = CyberCyan, style = MaterialTheme.typography.labelMedium)
+                    Text("Switch Room", color = CyberCyan, style = MaterialTheme.typography.labelMedium, maxLines = 1)
                 }
             }
 
@@ -825,17 +841,23 @@ private fun CoOpPartyExpeditionCard(
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = "${member.name} • ${member.role.title}",
                                 style = MaterialTheme.typography.labelLarge,
-                                color = Color.White
+                                color = Color.White,
+                                modifier = Modifier.weight(1f, fill = false),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = "${member.distanceMetersAway}m away • Ready",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = ArcaneEmerald
+                                color = ArcaneEmerald,
+                                maxLines = 1
                             )
                         }
                         Text(
@@ -916,6 +938,7 @@ private fun NeighborhoodLeaderboardCard(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
+                            modifier = Modifier.weight(1f),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
@@ -930,24 +953,30 @@ private fun NeighborhoodLeaderboardCard(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                 )
                             }
-                            Column {
+                            Column(modifier = Modifier.weight(1f, fill = false)) {
                                 Text(
                                     text = entry.explorerName,
                                     style = MaterialTheme.typography.titleMedium,
                                     color = if (entry.isCurrentUser) GuildGold else Color.White,
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = "${entry.titleBadge} • ${entry.landmarksCleared} Landmarks",
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "${entry.xpScore} XP",
                             style = MaterialTheme.typography.labelLarge,
-                            color = if (entry.isCurrentUser) GuildGold else CyberCyan
+                            color = if (entry.isCurrentUser) GuildGold else CyberCyan,
+                            maxLines = 1
                         )
                     }
                 }

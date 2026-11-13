@@ -241,68 +241,69 @@ fun QuestMapScreen(
     ) {
         // 1. Character Style Picker & Hands-Free Pocket DM / Voice Controls
         item {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = "CHOOSE CHARACTER ARCHETYPE",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = GuildGold
+                )
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "CHOOSE CHARACTER ARCHETYPE",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = GuildGold
+                    AssistChip(
+                        onClick = { viewModel.togglePocketWalkMode() },
+                        label = {
+                            Text(
+                                text = if (isPocketWalkActive) "Pocket DM: ${pocketProximityMeters}m" else "Pocket DM",
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Headphones,
+                                contentDescription = "Toggle Hands-Free Pocket Dungeon Master",
+                                modifier = Modifier.size(16.dp)
+                            )
+                        },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = if (isPocketWalkActive) ArcaneEmerald.copy(alpha = 0.22f) else ObsidianSurface,
+                            labelColor = if (isPocketWalkActive) ArcaneEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
+                            leadingIconContentColor = if (isPocketWalkActive) ArcaneEmerald else MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        modifier = Modifier.testTag("toggle_pocket_dm_chip")
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        AssistChip(
-                            onClick = { viewModel.togglePocketWalkMode() },
-                            label = {
-                                Text(
-                                    text = if (isPocketWalkActive) "Pocket DM: ${pocketProximityMeters}m" else "Pocket DM",
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Headphones,
-                                    contentDescription = "Toggle Hands-Free Pocket Dungeon Master",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = if (isPocketWalkActive) ArcaneEmerald.copy(alpha = 0.22f) else ObsidianSurface,
-                                labelColor = if (isPocketWalkActive) ArcaneEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
-                                leadingIconContentColor = if (isPocketWalkActive) ArcaneEmerald else MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            modifier = Modifier.testTag("toggle_pocket_dm_chip")
-                        )
 
-                        AssistChip(
-                            onClick = { viewModel.voiceNarrator.toggleAutoNarrate() },
-                            label = {
-                                Text(
-                                    text = if (autoNarrate) "Auto Voice" else "Muted",
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = if (autoNarrate) {
-                                        Icons.AutoMirrored.Filled.VolumeUp
-                                    } else {
-                                        Icons.AutoMirrored.Filled.VolumeOff
-                                    },
-                                    contentDescription = "Toggle Auto Narration",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = ObsidianSurface,
-                                labelColor = if (autoNarrate) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant,
-                                leadingIconContentColor = if (autoNarrate) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            modifier = Modifier.testTag("toggle_auto_narrate_chip")
-                        )
-                    }
+                    AssistChip(
+                        onClick = { viewModel.voiceNarrator.toggleAutoNarrate() },
+                        label = {
+                            Text(
+                                text = if (autoNarrate) "Auto Voice" else "Muted",
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = if (autoNarrate) {
+                                    Icons.AutoMirrored.Filled.VolumeUp
+                                } else {
+                                    Icons.AutoMirrored.Filled.VolumeOff
+                                },
+                                contentDescription = "Toggle Auto Narration",
+                                modifier = Modifier.size(16.dp)
+                            )
+                        },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = ObsidianSurface,
+                            labelColor = if (autoNarrate) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant,
+                            leadingIconContentColor = if (autoNarrate) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        modifier = Modifier.testTag("toggle_auto_narrate_chip")
+                    )
                 }
 
                 LazyRow(
@@ -331,8 +332,10 @@ fun QuestMapScreen(
                 )
             ) {
                 Column(
-                    modifier = Modifier.padding(14.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier
+                        .padding(14.dp)
+                        .animateContentSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -341,7 +344,8 @@ fun QuestMapScreen(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.weight(1f, fill = false)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.LocalFireDepartment,
@@ -350,26 +354,19 @@ fun QuestMapScreen(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "DAILY WALKING CADENCE • ${dailyWalkMeters}m / ${viewModel.dailyWalkGoalMeters}m",
+                                text = "DAILY WALKING CADENCE",
                                 style = MaterialTheme.typography.labelLarge,
                                 color = Color.White
                             )
                         }
-                        AssistChip(
-                            onClick = { viewModel.logWalkStepBoost() },
-                            label = {
-                                Text(
-                                    text = "+250m Step Boost (+50 XP)",
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = GuildGold.copy(alpha = 0.18f),
-                                labelColor = GuildGold
-                            ),
-                            modifier = Modifier.testTag("log_step_boost_chip")
+                        Text(
+                            text = "${dailyWalkMeters}m / ${viewModel.dailyWalkGoalMeters}m",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if (dailyWalkMeters >= viewModel.dailyWalkGoalMeters) ArcaneEmerald else GuildGold
                         )
                     }
+
                     LinearProgressIndicator(
                         progress = { walkGoalProgress },
                         modifier = Modifier
@@ -380,11 +377,44 @@ fun QuestMapScreen(
                         trackColor = MidnightAbyss
                     )
 
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (dailyWalkMeters >= viewModel.dailyWalkGoalMeters) {
+                                "Cadence Goal Reached! (+100 XP)"
+                            } else {
+                                "${viewModel.dailyWalkGoalMeters - dailyWalkMeters}m remaining today"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (dailyWalkMeters >= viewModel.dailyWalkGoalMeters) ArcaneEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+
+                        AssistChip(
+                            onClick = { viewModel.logWalkStepBoost() },
+                            label = {
+                                Text(
+                                    text = "+250m Step Boost (+50 XP)",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    maxLines = 1
+                                )
+                            },
+                            colors = AssistChipDefaults.assistChipColors(
+                                containerColor = GuildGold.copy(alpha = 0.18f),
+                                labelColor = GuildGold
+                            ),
+                            modifier = Modifier.testTag("log_step_boost_chip")
+                        )
+                    }
+
                     // Approved Suggestion: Dynamic Weather & Time-of-Day World Event Engine
                     Surface(
+                        onClick = { viewModel.cycleWorldAtmosphereEvent() },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { viewModel.cycleWorldAtmosphereEvent() }
                             .testTag("cycle_world_atmosphere_banner"),
                         color = MidnightAbyss,
                         shape = RoundedCornerShape(12.dp),
@@ -429,7 +459,9 @@ fun QuestMapScreen(
                 border = BorderStroke(1.dp, SlateCardSurface)
             ) {
                 Column(
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier
+                        .padding(14.dp)
+                        .animateContentSize(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(
@@ -497,9 +529,7 @@ fun QuestMapScreen(
                     }
 
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -512,7 +542,7 @@ fun QuestMapScreen(
                                     )
                                 )
                             },
-                            label = { Text("Use Live GPS") },
+                            label = { Text("Use Live GPS", maxLines = 1) },
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.MyLocation,
@@ -531,7 +561,10 @@ fun QuestMapScreen(
                         AssistChip(
                             onClick = { viewModel.toggleOfflineExpeditionCache() },
                             label = {
-                                Text(if (isOfflineCached) "Offline Pack: Ready" else "Cache Offline Pack")
+                                Text(
+                                    text = if (isOfflineCached) "Offline Pack: Ready" else "Cache Offline Pack",
+                                    maxLines = 1
+                                )
                             },
                             leadingIcon = {
                                 Icon(
@@ -547,7 +580,15 @@ fun QuestMapScreen(
                             ),
                             modifier = Modifier.testTag("offline_pack_chip")
                         )
+                    }
 
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         viewModel.presetRegions.forEach { preset ->
                             val selected = regionName == preset.name
                             FilterChip(
@@ -556,7 +597,8 @@ fun QuestMapScreen(
                                 label = {
                                     Text(
                                         text = preset.name.substringBefore(" —"),
-                                        style = MaterialTheme.typography.labelMedium
+                                        style = MaterialTheme.typography.labelMedium,
+                                        maxLines = 1
                                     )
                                 },
                                 colors = FilterChipDefaults.filterChipColors(
@@ -1146,7 +1188,7 @@ private fun CharacterStyleCard(
 
     Card(
         modifier = Modifier
-            .width(176.dp)
+            .width(192.dp)
             .height(118.dp)
             .clip(RoundedCornerShape(18.dp))
             .clickable(onClick = onClick)
@@ -1248,14 +1290,17 @@ private fun TacticalRealWorldMapCanvas(
             val cx = canvasWidth / 2f
             val cy = canvasHeight / 2f
 
+            val maxX = (canvasWidth - 28f).coerceAtLeast(28f)
+            val maxY = (canvasHeight - 28f).coerceAtLeast(28f)
+
             landmarks.map { lm ->
                 val nx = ((lm.longitude - minLon) / lonSpan).toFloat()
                 val ny = (1.0 - ((lm.latitude - minLat) / latSpan)).toFloat()
                 val baseX = padX + nx * usableW
                 val baseY = padY + ny * usableH
                 Offset(
-                    x = (cx + (baseX - cx) * zoomLevel).coerceIn(28f, canvasWidth - 28f),
-                    y = (cy + (baseY - cy) * zoomLevel).coerceIn(28f, canvasHeight - 28f)
+                    x = if (maxX > 28f) (cx + (baseX - cx) * zoomLevel).coerceIn(28f, maxX) else cx,
+                    y = if (maxY > 28f) (cy + (baseY - cy) * zoomLevel).coerceIn(28f, maxY) else cy
                 )
             }
         }
@@ -1510,6 +1555,7 @@ private fun ActiveWaypointEncounterCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
+                    modifier = Modifier.weight(1f, fill = false),
                     color = if (landmark.isCleared) {
                         ArcaneEmerald.copy(alpha = 0.2f)
                     } else {
@@ -1539,10 +1585,13 @@ private fun ActiveWaypointEncounterCard(
                                 "STOP $waypointNumber/$totalWaypoints • ${landmark.category.rpgLabelFor(style).uppercase(Locale.US)}"
                             },
                             style = MaterialTheme.typography.labelMedium,
-                            color = if (landmark.isCleared) ArcaneEmerald else GuildGold
+                            color = if (landmark.isCleared) ArcaneEmerald else GuildGold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
+                Spacer(modifier = Modifier.width(6.dp))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     IconButton(
@@ -1651,7 +1700,9 @@ private fun ActiveWaypointEncounterCard(
                 border = BorderStroke(1.dp, CyberCyan.copy(alpha = 0.55f))
             ) {
                 Column(
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier
+                        .padding(14.dp)
+                        .animateContentSize(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Row(
@@ -1661,7 +1712,8 @@ private fun ActiveWaypointEncounterCard(
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.weight(1f)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CameraAlt,
@@ -1670,9 +1722,11 @@ private fun ActiveWaypointEncounterCard(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "GEMINI VISION RELIC & PLAQUE SCANNER",
+                                text = "GEMINI VISION RELIC SCANNER",
                                 style = MaterialTheme.typography.labelLarge,
-                                color = CyberCyan
+                                color = CyberCyan,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                         Text(
@@ -1766,7 +1820,7 @@ private fun ActiveWaypointEncounterCard(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text("Scan Plaque", color = GuildGold, style = MaterialTheme.typography.labelLarge)
+                                Text("Scan Plaque", color = GuildGold, style = MaterialTheme.typography.labelLarge, maxLines = 1)
                             }
                         }
                     }

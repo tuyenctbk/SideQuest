@@ -22,7 +22,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -84,6 +86,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.Image
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.CircularProgressIndicator
@@ -406,10 +409,9 @@ fun ArtifactBadgeVaultComponent(
 
         // 3. Found Artifacts Section
         if (collectionTab == 0 || collectionTab == 1) {
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = "FOUND ARTIFACTS VAULT (${filteredArtifacts.size})",
@@ -418,7 +420,7 @@ fun ArtifactBadgeVaultComponent(
                 )
                 Text(
                     text = "Tap any curio to inspect & add field notes",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -465,10 +467,9 @@ fun ArtifactBadgeVaultComponent(
         // 4. Earned Badges Section
         if (collectionTab == 0 || collectionTab == 2) {
             Spacer(modifier = Modifier.height(4.dp))
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = "UNLOCKED GUILD BADGES (${filteredBadges.size})",
@@ -477,7 +478,7 @@ fun ArtifactBadgeVaultComponent(
                 )
                 Text(
                     text = "Tap crest for citation & share card",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -650,6 +651,7 @@ private fun VaultMasterySummaryCard(
                         fontWeight = FontWeight.Bold
                     )
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 Surface(
                     color = GuildGold.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(50),
@@ -659,7 +661,8 @@ private fun VaultMasterySummaryCard(
                         text = "+$totalResonance Resonance",
                         style = MaterialTheme.typography.labelLarge,
                         color = GuildGold,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        maxLines = 1
                     )
                 }
             }
@@ -964,17 +967,21 @@ private fun FoundArtifactDetailRowCard(
                             modifier = Modifier.size(24.dp)
                         )
                     }
-                    Column {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = "${artifact.rarity} • ${category.label.uppercase()}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = rarityColor
+                            color = rarityColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = artifact.name,
                             style = MaterialTheme.typography.titleMedium,
                             color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -1027,6 +1034,7 @@ private fun FoundArtifactDetailRowCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f, fill = false),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
@@ -1039,13 +1047,17 @@ private fun FoundArtifactDetailRowCard(
                     Text(
                         text = artifact.originLandmark,
                         style = MaterialTheme.typography.labelMedium,
-                        color = GuildGold
+                        color = GuildGold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = "+${artifact.resonanceValue} Resonance • ${artifact.discoveryMethod}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = CyberCyan
+                    color = CyberCyan,
+                    maxLines = 1
                 )
             }
         }
@@ -1220,10 +1232,16 @@ private fun ArtifactInspectorDialog(
         label = "emblem_scale"
     )
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 540.dp)
+                .systemBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 40.dp)
                 .testTag("artifact_inspector_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
@@ -1455,17 +1473,25 @@ private fun BadgeInspectorDialog(
     onShareBadge: () -> Unit
 ) {
     val color = vaultRarityColor(badge.rarity)
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 540.dp)
+                .systemBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 40.dp)
                 .testTag("badge_inspector_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
             border = BorderStroke(1.5.dp, color)
         ) {
             Column(
-                modifier = Modifier.padding(18.dp),
+                modifier = Modifier
+                    .padding(18.dp)
+                    .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -1588,10 +1614,16 @@ private fun CatalogFieldArtifactDialog(
     }
     var selectedCat by rememberSaveable { mutableStateOf(ArtifactCategory.PLAQUE_RUBBING) }
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .widthIn(max = 540.dp)
+                .systemBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 40.dp)
                 .testTag("catalog_field_artifact_dialog"),
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(containerColor = ElevatedSanctum),
@@ -1672,7 +1704,7 @@ private fun CatalogFieldArtifactDialog(
                 ) {
                     TextButton(
                         onClick = onDismiss,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(0.75f)
                     ) {
                         Text("Cancel")
                     }
@@ -1681,7 +1713,7 @@ private fun CatalogFieldArtifactDialog(
                             onConfirmCatalog(name, selectedCat, landmark, inscription, notes)
                         },
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(1.25f)
                             .testTag("confirm_catalog_artifact_button"),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -1689,7 +1721,7 @@ private fun CatalogFieldArtifactDialog(
                             contentColor = MidnightAbyss
                         )
                     ) {
-                        Text("Save to Vault (+120 XP)", fontWeight = FontWeight.Bold)
+                        Text("Save (+120 XP)", fontWeight = FontWeight.Bold, maxLines = 1)
                     }
                 }
             }
@@ -1781,20 +1813,25 @@ private fun AiRelicArtStudioCard(
                         tint = GuildGold,
                         modifier = Modifier.size(22.dp)
                     )
-                    Column {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = "AI RELIC & POSTCARD ART STUDIO",
                             style = MaterialTheme.typography.labelLarge,
-                            color = GuildGold
+                            color = GuildGold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = "Generate & Remix Curio Portraits (+150 XP)",
                             style = MaterialTheme.typography.titleMedium,
                             color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
+                Spacer(modifier = Modifier.width(8.dp))
                 OutlinedButton(
                     onClick = { expanded = !expanded },
                     shape = RoundedCornerShape(10.dp),
@@ -1804,7 +1841,8 @@ private fun AiRelicArtStudioCard(
                     Text(
                         text = if (expanded) "Hide Studio" else "Open Studio",
                         color = GuildGold,
-                        style = MaterialTheme.typography.labelMedium
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1
                     )
                 }
             }
