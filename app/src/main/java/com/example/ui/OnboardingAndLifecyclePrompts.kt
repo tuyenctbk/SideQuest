@@ -246,7 +246,7 @@ fun OnboardingFlowScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Previous step",
+                            contentDescription = stringResource(id = R.string.onboarding_prev_step_cd),
                             tint = Color.White,
                             modifier = Modifier.size(18.dp)
                         )
@@ -277,7 +277,7 @@ fun OnboardingFlowScreen(
                         .testTag(if (isLastPage) "onboarding_finish_button" else "onboarding_next_button")
                 ) {
                     Text(
-                        text = if (isLastPage) "Finish & Start Exploring" else "Next Step",
+                        text = stringResource(id = if (isLastPage) R.string.action_finish else R.string.action_next),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -305,7 +305,7 @@ private fun OnboardingStepOneRadar() {
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
                 painter = painterResource(id = R.drawable.img_hero_sidequest_1794444307373),
-                contentDescription = "SideQuest Real-World Radar",
+                contentDescription = stringResource(id = R.string.onboarding_radar_image_cd),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
@@ -358,13 +358,13 @@ private fun OnboardingStepOneRadar() {
         ) {
             OnboardingBulletRow(
                 icon = Icons.Default.Explore,
-                title = "Live OpenStreetMap & GPS Discovery",
-                description = "Scan your real device GPS or search any city worldwide to lock onto real parks, historical plaques, monuments, and coffee shops."
+                title = stringResource(id = R.string.onboarding_step1_b1_title),
+                description = stringResource(id = R.string.onboarding_step1_b1_desc)
             )
             OnboardingBulletRow(
                 icon = Icons.Default.RecordVoiceOver,
-                title = "Hands-Free Pocket Dungeon Master",
-                description = "Keep your phone in your pocket while walking—spatial proximity cues automatically narrate lore as you approach each landmark."
+                title = stringResource(id = R.string.onboarding_step1_b2_title),
+                description = stringResource(id = R.string.onboarding_step1_b2_desc)
             )
         }
     }
@@ -427,7 +427,7 @@ private fun OnboardingStepTwoPersonas(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = style.title,
+                            text = style.localizedTitle(),
                             style = MaterialTheme.typography.titleMedium,
                             color = if (isSelected) GuildGold else Color.White,
                             fontWeight = FontWeight.Bold
@@ -452,7 +452,7 @@ private fun OnboardingStepTwoPersonas(
                         color = CyberCyan
                     )
                     Text(
-                        text = style.tagline,
+                        text = style.localizedTagline(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -466,7 +466,10 @@ private fun OnboardingStepTwoPersonas(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                        contentDescription = "Preview ${style.title} Voice",
+                        contentDescription = stringResource(
+                            id = R.string.onboarding_preview_voice_cd_format,
+                            style.localizedTitle()
+                        ),
                         tint = GuildGold
                     )
                 }
@@ -502,18 +505,18 @@ private fun OnboardingStepThreeAiAndEco() {
         ) {
             OnboardingBulletRow(
                 icon = Icons.Default.CameraAlt,
-                title = "Gemini Multimodal Plaque & Landmark Scanner",
-                description = "Snap or pick a photo of any real plaque or monument to verify its history and mint an Epic Chronicle Relic."
+                title = stringResource(id = R.string.onboarding_step3_b1_title),
+                description = stringResource(id = R.string.onboarding_step3_b1_desc)
             )
             OnboardingBulletRow(
                 icon = Icons.Default.AutoAwesome,
-                title = "AI Cipher Duels & Grounded Fact Dossiers",
-                description = "Challenge the Dungeon Master to 3-option historical riddles or generate architectural fact-check dossiers."
+                title = stringResource(id = R.string.onboarding_step3_b2_title),
+                description = stringResource(id = R.string.onboarding_step3_b2_desc)
             )
             OnboardingBulletRow(
                 icon = Icons.Default.CheckCircle,
-                title = "Zero-Bill Eco Mode ($0 Default Cost Guard)",
-                description = "In-memory response caching, OpenStreetMap discovery, and on-device TTS keep everyday exploration at $0 API cost."
+                title = stringResource(id = R.string.onboarding_step3_b3_title),
+                description = stringResource(id = R.string.onboarding_step3_b3_desc)
             )
         }
     }
@@ -546,13 +549,13 @@ private fun OnboardingStepFourFirestoreJournal() {
         ) {
             OnboardingBulletRow(
                 icon = Icons.Default.HistoryEdu,
-                title = "Cloud Firestore Quest Journal",
-                description = "Every completed walking quest is permanently recorded with its quest name, neighborhood location, and completion timestamp."
+                title = stringResource(id = R.string.onboarding_step4_b1_title),
+                description = stringResource(id = R.string.onboarding_step4_b1_desc)
             )
             OnboardingBulletRow(
                 icon = Icons.Default.Star,
-                title = "Respectful, Non-Intrusive Experience",
-                description = "Zero startup pop-ups or ad clutter. Optional support and app feedback are tucked cleanly in Settings or shown only after major milestones."
+                title = stringResource(id = R.string.onboarding_step4_b2_title),
+                description = stringResource(id = R.string.onboarding_step4_b2_desc)
             )
         }
     }
@@ -680,7 +683,7 @@ fun OnboardingQuickStartBanner(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Dismiss onboarding banner",
+                        contentDescription = stringResource(id = R.string.onboarding_dismiss_banner_cd),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
@@ -710,9 +713,10 @@ fun SmartLifecyclePromptHost(
             RateAppPromptDialog(
                 onSubmitRating = { stars, feedback ->
                     openPlayStoreForApp(context)
+                    val note = feedback.ifBlank { context.getString(R.string.prompt_no_comment) }
                     onAcceptPrompt(
                         SmartPromptType.RATE_APP,
-                        "Rated $stars/5 stars (${feedback.ifBlank { "No comment" }})"
+                        context.getString(R.string.prompt_rated_detail_format, stars, note)
                     )
                 },
                 onDismiss = { onDismissPrompt(SmartPromptType.RATE_APP) }
@@ -724,7 +728,7 @@ fun SmartLifecyclePromptHost(
                 completedQuestsCount = completedQuestsCount,
                 onShareNow = {
                     launchShareAppIntent(context, adventurerName, completedQuestsCount)
-                    onAcceptPrompt(SmartPromptType.SHARE_APP, "Shared app invite sheet")
+                    onAcceptPrompt(SmartPromptType.SHARE_APP, context.getString(R.string.prompt_shared_detail))
                 },
                 onDismiss = { onDismissPrompt(SmartPromptType.SHARE_APP) }
             )
@@ -737,7 +741,10 @@ fun SmartLifecyclePromptHost(
                     openPlayStoreForApp(context)
                     onAcceptPrompt(
                         SmartPromptType.UPDATE_APP,
-                        "Opened Google Play update for v${telemetryState.availableUpdateVersionName}"
+                        context.getString(
+                            R.string.prompt_updated_detail_format,
+                            telemetryState.availableUpdateVersionName
+                        )
                     )
                 },
                 onDismiss = { onDismissPrompt(SmartPromptType.UPDATE_APP) }
@@ -814,7 +821,7 @@ private fun RateAppPromptDialog(
                         ) {
                             Icon(
                                 imageVector = if (star <= selectedStars) Icons.Default.Star else Icons.Default.StarBorder,
-                                contentDescription = "$star Stars",
+                                contentDescription = stringResource(id = R.string.prompt_star_cd_format, star),
                                 tint = GuildGold,
                                 modifier = Modifier.size(32.dp)
                             )
@@ -1147,10 +1154,13 @@ fun EngagementTelemetryAndPromptsCard(
                         color = ArcaneEmerald
                     )
                     Text(
-                        text = "• Startup Guard: Active (0 pop-ups at launch)\n" +
-                            "• Session Cap: ${telemetryState.promptsShownThisSession}/1 shown this session\n" +
-                            "• Value Milestones: ${telemetryState.positiveValueMoments} (Satisfaction Score: ${telemetryState.satisfactionScore})\n" +
-                            "• Cooldowns: Rate=21d (Rated=${telemetryState.hasRatedApp}) • Share=14d • Update=7d",
+                        text = stringResource(
+                            id = R.string.lifecycle_summary_format,
+                            telemetryState.promptsShownThisSession,
+                            telemetryState.positiveValueMoments,
+                            telemetryState.satisfactionScore,
+                            telemetryState.hasRatedApp.toString()
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1237,7 +1247,7 @@ fun EngagementTelemetryAndPromptsCard(
                     modifier = Modifier.testTag("toggle_app_event_log_button")
                 ) {
                     Text(
-                        text = if (showEventLog) "Hide Event Log" else "View Event Log",
+                        text = stringResource(id = if (showEventLog) R.string.lifecycle_hide_log else R.string.lifecycle_view_log),
                         color = CyberCyan,
                         style = MaterialTheme.typography.labelMedium
                     )
@@ -1262,7 +1272,7 @@ fun EngagementTelemetryAndPromptsCard(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Text(
-                                        text = event.type.label,
+                                        text = event.type.localizedLabel(),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = GuildGold,
                                         fontWeight = FontWeight.Bold
@@ -1322,15 +1332,19 @@ private fun launchShareAppIntent(
     adventurerName: String,
     completedQuestsCount: Int
 ) {
-    val shareText = "🧭 Join me ($adventurerName) on SideQuest — the real-world Audio RPG! " +
-        "I've completed $completedQuestsCount walking quests across local parks, plaques, and coffee shops. " +
-        "https://play.google.com/store/apps/details?id=${context.packageName}"
+    val storeUrl = "https://play.google.com/store/apps/details?id=${context.packageName}"
+    val shareText = context.getString(
+        R.string.share_app_invite_text_format,
+        adventurerName,
+        completedQuestsCount,
+        storeUrl
+    )
     val sendIntent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, shareText)
     }
     try {
-        val chooser = Intent.createChooser(sendIntent, "Share SideQuest")
+        val chooser = Intent.createChooser(sendIntent, context.getString(R.string.share_app_chooser))
         val hostActivity = context.findActivity()
         if (hostActivity != null) {
             hostActivity.startActivity(chooser)

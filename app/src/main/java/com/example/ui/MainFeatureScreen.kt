@@ -123,6 +123,11 @@ import com.example.util.AppEngagementTracker
 import com.example.util.VoiceNarrator
 import com.google.firebase.firestore.FirebaseFirestore
 
+import com.example.data.UsageQuotaManager
+import com.example.ui.QuotaSoftNudgeBanner
+import com.example.ui.SmartQuotaRecoveryDialog
+import com.example.ui.AiValueReceiptDialog
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainFeatureScreen(
@@ -143,6 +148,7 @@ fun MainFeatureScreen(
                 }
                 val databaseId = app.getString(R.string.firestore_database_id)
                 val db = FirebaseFirestore.getInstance(databaseId)
+                val quotaManager = UsageQuotaManager(app, db)
                 SideQuestViewModel(
                     firestoreRepo = SideQuestRepository(db),
                     landmarkRepo = LandmarkDiscoveryRepository(app),
@@ -150,7 +156,9 @@ fun MainFeatureScreen(
                     voiceNarrator = VoiceNarrator(app),
                     currentUserId = currentUserId,
                     initialDisplayName = displayName,
-                    engagementTracker = AppEngagementTracker(app)
+                    engagementTracker = AppEngagementTracker(app),
+                    usageQuotaManager = quotaManager,
+                    appContext = app
                 )
             }
         }
@@ -171,10 +179,16 @@ fun MainFeatureScreen(
     val isSpeaking by viewModel.voiceNarrator.isSpeaking.collectAsState()
     val speakingTitle by viewModel.voiceNarrator.currentTitle.collectAsState()
 
+    val usageQuotaLedger by viewModel.usageQuotaLedger.collectAsState()
+    val smartQuotaRecoveryState by viewModel.smartQuotaRecoveryState.collectAsState()
+    val isAiValueReceiptVisible by viewModel.isAiValueReceiptVisible.collectAsState()
+    val aiValueReceipt by viewModel.aiValueReceipt.collectAsState()
+
     var currentTab by rememberSaveable { mutableIntStateOf(0) }
     var showBusinessHubDialog by rememberSaveable { mutableStateOf(false) }
     var showOnboardingFlow by rememberSaveable { mutableStateOf(false) }
     var dismissedQuickStartBannerThisSession by rememberSaveable { mutableStateOf(false) }
+    var dismissedSoftNudge by rememberSaveable(usageQuotaLedger.dateIso) { mutableStateOf(false) }
 
     if (showOnboardingFlow) {
         BackHandler {
@@ -196,9 +210,13 @@ fun MainFeatureScreen(
                 onSelectStyle = { viewModel.selectCharacterStyle(it) },
                 onPreviewVoice = { style ->
                     viewModel.voiceNarrator.speak(
-                        text = "${style.narratorTitle}: ${style.tagline}",
+                        text = context.getString(
+                            R.string.narrator_tagline_format,
+                            style.narratorTitle,
+                            context.getString(style.taglineRes())
+                        ),
                         style = style,
-                        title = "${style.narratorTitle} • Preview"
+                        title = context.getString(R.string.voice_preview_title_format, style.narratorTitle)
                     )
                 },
                 onCompleteOnboarding = {
@@ -214,7 +232,7 @@ fun MainFeatureScreen(
         SmartLifecyclePromptHost(
             telemetryState = telemetryState,
             adventurerName = profile?.displayName ?: displayName,
-            completedQuestsCount = (profile?.questsCompleted ?: 1L).toInt().coerceAtLeast(1),
+            completedQuestsCount = (profile?.questsCompleted ?: 0L).toInt(),
             onAcceptPrompt = { promptType, detail ->
                 viewModel.acceptSmartPrompt(promptType, detail)
             },
@@ -243,6 +261,27 @@ fun MainFeatureScreen(
                     currentTab = 0
                 },
                 onDismiss = { showBusinessHubDialog = false }
+            )
+        }
+
+        // Playbook Stage 2 & 4 Dialogs: Smart Quota Recovery & Personal Value Receipt
+        if (smartQuotaRecoveryState.isVisible) {
+            SmartQuotaRecoveryDialog(
+                recoveryState = smartQuotaRecoveryState,
+                onClaimGraceCredits = { viewModel.claimDailyGraceCredits() },
+                onActivateEcoLite = { viewModel.toggleEcoLiteMode(true) },
+                onUseZeroQuotaAlternative = { capability ->
+                    viewModel.executeZeroQuotaAlternative(capability)
+                },
+                onOpenUpgradeSheet = { viewModel.showAiValueReceipt(true) },
+                onDismiss = { viewModel.dismissSmartQuotaRecovery() }
+            )
+        }
+
+        if (isAiValueReceiptVisible) {
+            AiValueReceiptDialog(
+                receipt = aiValueReceipt,
+                onDismiss = { viewModel.showAiValueReceipt(false) }
             )
         }
 
@@ -282,9 +321,18 @@ fun MainFeatureScreen(
                                 ) {
                                     Text(
                                         text = if (isExpandedScreen) {
-                                            "LVL $level ${rank.title} • $animatedXp XP"
+                                            stringResource(
+                                                id = R.string.header_level_rank_xp_format,
+                                                level,
+                                                rank.localizedTitle(),
+                                                animatedXp
+                                            )
                                         } else {
-                                            "LVL $level • $animatedXp XP"
+                                            stringResource(
+                                                id = R.string.header_level_xp_format,
+                                                level,
+                                                animatedXp
+                                            )
                                         },
                                         style = MaterialTheme.typography.labelMedium,
                                         color = badgeAccent,
@@ -331,7 +379,7 @@ fun MainFeatureScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.AutoAwesome,
-                                        contentDescription = "Interactive Onboarding Tour",
+                                        contentDescription = stringResource(id = R.string.cd_onboarding_tour),
                                         tint = CyberCyan
                                     )
                                 }
@@ -351,7 +399,7 @@ fun MainFeatureScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Settings,
-                                        contentDescription = "Settings & Support Development",
+                                        contentDescription = stringResource(id = R.string.cd_settings_support),
                                         tint = if (currentTab == 4) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -361,7 +409,7 @@ fun MainFeatureScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.WorkspacePremium,
-                                        contentDescription = "Guild Pass & Partner Hub",
+                                        contentDescription = stringResource(id = R.string.cd_guild_pass_hub),
                                         tint = if (isGuildPassActive) ArcaneEmerald else GuildGold
                                     )
                                 }
@@ -376,7 +424,7 @@ fun MainFeatureScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.Logout,
-                                        contentDescription = "Sign Out",
+                                        contentDescription = stringResource(id = R.string.cd_sign_out),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -387,7 +435,7 @@ fun MainFeatureScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.AutoAwesome,
-                                        contentDescription = "Interactive Onboarding Tour",
+                                        contentDescription = stringResource(id = R.string.cd_onboarding_tour),
                                         tint = CyberCyan
                                     )
                                 }
@@ -397,7 +445,7 @@ fun MainFeatureScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.WorkspacePremium,
-                                        contentDescription = "Guild Pass & Partner Hub",
+                                        contentDescription = stringResource(id = R.string.cd_guild_pass_hub),
                                         tint = if (isGuildPassActive) ArcaneEmerald else GuildGold
                                     )
                                 }
@@ -412,7 +460,7 @@ fun MainFeatureScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.Logout,
-                                        contentDescription = "Sign Out",
+                                        contentDescription = stringResource(id = R.string.cd_sign_out),
                                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
@@ -538,7 +586,7 @@ fun MainFeatureScreen(
                                     icon = {
                                         Icon(
                                             imageVector = Icons.Default.Settings,
-                                            contentDescription = "Settings & Support"
+                                            contentDescription = stringResource(id = R.string.cd_settings_and_support)
                                         )
                                     },
                                     label = {
@@ -684,13 +732,23 @@ fun MainFeatureScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Close,
-                                            contentDescription = "Dismiss notification",
+                                            contentDescription = stringResource(id = R.string.cd_dismiss_notification),
                                             tint = Color.White,
                                             modifier = Modifier.size(16.dp)
                                         )
                                     }
                                 }
                             }
+                        }
+
+                        // Playbook Stage 1: Soft Nudge Banner at 80% usage threshold
+                        if (usageQuotaLedger.ecoLiteMode || !dismissedSoftNudge) {
+                            QuotaSoftNudgeBanner(
+                                ledger = usageQuotaLedger,
+                                onToggleEcoLite = { viewModel.toggleEcoLiteMode(it) },
+                                onOpenRecoverySheet = { viewModel.showAiValueReceipt(true) },
+                                onDismiss = { dismissedSoftNudge = true }
+                            )
                         }
 
                         AnimatedVisibility(
@@ -815,7 +873,7 @@ private fun GuildBusinessPartnerModal(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Close,
-                            contentDescription = "Close",
+                            contentDescription = stringResource(id = R.string.action_close),
                             tint = Color.White
                         )
                     }
@@ -1039,10 +1097,12 @@ private fun GuildBusinessPartnerModal(
                                     type = "text/plain"
                                     putExtra(
                                         Intent.EXTRA_TEXT,
-                                        "Join me on SideQuest — turn your daily walk into a live AI Audio RPG! Use Guild Code: SIDEQUEST-VIP"
+                                        shareContext.getString(R.string.invite_share_body)
                                     )
                                 }
-                                shareContext.startActivity(Intent.createChooser(sendIntent, "Invite Explorer"))
+                                shareContext.startActivity(
+                                    Intent.createChooser(sendIntent, shareContext.getString(R.string.invite_share_chooser))
+                                )
                             },
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -1053,7 +1113,7 @@ private fun GuildBusinessPartnerModal(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
-                                contentDescription = "Share Invite",
+                                contentDescription = stringResource(id = R.string.cd_share_invite),
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -1167,7 +1227,7 @@ private fun AudioNarratorMiniBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Stop,
-                    contentDescription = "Stop Voice Narration",
+                    contentDescription = stringResource(id = R.string.cd_stop_voice_narration),
                     tint = GuildGold,
                     modifier = Modifier.size(16.dp)
                 )

@@ -1,14 +1,19 @@
 package com.example.ui
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.R
 import com.example.data.DungeonMasterAiRepository
 import com.example.data.LandmarkDiscoveryRepository
 import com.example.data.SideQuestRepository
+import com.example.data.UsageQuotaManager
 import com.example.model.AdventurerProfile
 import com.example.model.AiLandmarkRiddle
+import com.example.model.AiValueReceipt
 import com.example.model.ArtifactCategory
 import com.example.model.CharacterStyle
 import com.example.model.ChatMessage
@@ -27,15 +32,23 @@ import com.example.model.PresetCityRegion
 import com.example.model.RealLandmark
 import com.example.model.RelicArtUiState
 import com.example.model.SeedLandmark
+import com.example.model.SmartQuotaRecoveryState
 import com.example.model.TavernVoucher
+import com.example.model.UsageQuotaLedger
 import com.example.model.VisionScanResult
 import com.example.model.WorldAtmosphereEvent
+import com.example.util.AiModelConfig
+import com.example.util.AiModelConfig.AiCapability
+import com.example.util.AiModelConfig.AiExecutionTier
 import com.example.util.AppEngagementTracker
 import com.example.util.AppEventType
 import com.example.util.EngagementTelemetryState
 import com.example.util.SmartPromptType
 import com.example.util.VoiceNarrator
+import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.ai.type.QuotaExceededException
+import com.google.firebase.auth.auth
 import com.google.firebase.firestore.FirebaseFirestoreException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -46,6 +59,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -61,8 +75,25 @@ class SideQuestViewModel(
     val voiceNarrator: VoiceNarrator,
     private val currentUserId: String,
     private val initialDisplayName: String,
-    private val engagementTracker: AppEngagementTracker = AppEngagementTracker()
+    private val engagementTracker: AppEngagementTracker = AppEngagementTracker(),
+    private val usageQuotaManager: UsageQuotaManager? = null,
+    private val appContext: Context? = null
 ) : ViewModel() {
+
+    private val isAuthenticatedSession: Boolean = try {
+        Firebase.auth.currentUser?.uid == currentUserId
+    } catch (_: Exception) {
+        false
+    }
+
+    private fun getStr(@StringRes resId: Int, fallback: String, vararg args: Any): String {
+        val ctx = appContext ?: return fallback
+        return try {
+            if (args.isEmpty()) ctx.getString(resId) else ctx.getString(resId, *args)
+        } catch (_: Exception) {
+            fallback
+        }
+    }
 
     val engagementTelemetryState: StateFlow<EngagementTelemetryState> = engagementTracker.state
 
@@ -71,104 +102,152 @@ class SideQuestViewModel(
     private val _firestoreErrorMessage = MutableStateFlow<String?>(null)
     val firestoreErrorMessage: StateFlow<String?> = _firestoreErrorMessage.asStateFlow()
 
-    val profileState: StateFlow<AdventurerProfile?> = firestoreRepo.observeProfile(currentUserId)
-        .catch { error ->
-            val firestoreError = generateSequence(error) { it.cause }
-                .filterIsInstance<FirebaseFirestoreException>()
-                .firstOrNull()
-            if (firestoreError == null && error is CancellationException) throw error
-            val root = firestoreError ?: error
-            Log.w(TAG, "Error observing profile", root)
-            _firestoreErrorMessage.value = root.localizedMessage ?: "Failed to load adventurer profile"
-            emit(null)
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = null
+    // In-memory backing stores for Guest Explorer sessions (zero Firestore writes/reads when unauthenticated)
+    private val _guestProfileState = MutableStateFlow<AdventurerProfile?>(
+        if (isAuthenticatedSession) null else AdventurerProfile(
+            id = currentUserId,
+            userId = currentUserId,
+            displayName = initialDisplayName.ifBlank { getStr(R.string.guest_explorer_name, "Guest Explorer") },
+            characterStyle = CharacterStyle.CYBERPUNK_SCOUT.id,
+            xp = 0L,
+            level = 1L,
+            questsCompleted = 0L,
+            landmarksVisited = 0L
         )
+    )
+    private val _guestQuestsState = MutableStateFlow<List<CompletedQuest>>(emptyList())
+    private val _guestBadgesState = MutableStateFlow<List<EarnedBadge>>(emptyList())
+    private val _guestInventoryState = MutableStateFlow<List<InventoryItem>>(emptyList())
+    private val _guestArtifactsState = MutableStateFlow<List<FoundArtifact>>(emptyList())
 
-    val questsState: StateFlow<List<CompletedQuest>> = firestoreRepo.observeQuests(currentUserId)
-        .catch { error ->
-            val firestoreError = generateSequence(error) { it.cause }
-                .filterIsInstance<FirebaseFirestoreException>()
-                .firstOrNull()
-            if (firestoreError == null && error is CancellationException) throw error
-            val root = firestoreError ?: error
-            Log.w(TAG, "Error observing quests", root)
-            _firestoreErrorMessage.value = root.localizedMessage ?: "Failed to load quest log"
-            emit(emptyList())
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList()
-        )
+    val profileState: StateFlow<AdventurerProfile?> = if (isAuthenticatedSession) {
+        firestoreRepo.observeProfile(currentUserId)
+            .catch { error ->
+                val firestoreError = generateSequence(error) { it.cause }
+                    .filterIsInstance<FirebaseFirestoreException>()
+                    .firstOrNull()
+                if (firestoreError == null && error is CancellationException) throw error
+                val root = firestoreError ?: error
+                Log.w(TAG, "Error observing profile", root)
+                _firestoreErrorMessage.value = root.localizedMessage ?: getStr(R.string.vm_err_load_profile, "Failed to load adventurer profile")
+                emit(null)
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = null
+            )
+    } else {
+        _guestProfileState.asStateFlow()
+    }
 
-    val completedQuestsState: StateFlow<List<CompletedQuest>> = firestoreRepo.observeCompletedQuests(currentUserId)
-        .catch { error ->
-            val firestoreError = generateSequence(error) { it.cause }
-                .filterIsInstance<FirebaseFirestoreException>()
-                .firstOrNull()
-            if (firestoreError == null && error is CancellationException) throw error
-            val root = firestoreError ?: error
-            Log.w(TAG, "Error observing completed quests", root)
-            _firestoreErrorMessage.value = root.localizedMessage ?: "Failed to load quest journal"
-            emit(emptyList())
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList()
-        )
+    val questsState: StateFlow<List<CompletedQuest>> = if (isAuthenticatedSession) {
+        firestoreRepo.observeQuests(currentUserId)
+            .catch { error ->
+                val firestoreError = generateSequence(error) { it.cause }
+                    .filterIsInstance<FirebaseFirestoreException>()
+                    .firstOrNull()
+                if (firestoreError == null && error is CancellationException) throw error
+                val root = firestoreError ?: error
+                Log.w(TAG, "Error observing quests", root)
+                _firestoreErrorMessage.value = root.localizedMessage ?: getStr(R.string.vm_err_load_quest_log, "Failed to load quest log")
+                emit(emptyList())
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
+    } else {
+        _guestQuestsState.asStateFlow()
+    }
 
-    val badgesState: StateFlow<List<EarnedBadge>> = firestoreRepo.observeBadges(currentUserId)
-        .catch { error ->
-            val firestoreError = generateSequence(error) { it.cause }
-                .filterIsInstance<FirebaseFirestoreException>()
-                .firstOrNull()
-            if (firestoreError == null && error is CancellationException) throw error
-            val root = firestoreError ?: error
-            Log.w(TAG, "Error observing badges", root)
-            emit(emptyList())
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList()
-        )
+    val completedQuestsState: StateFlow<List<CompletedQuest>> = if (isAuthenticatedSession) {
+        firestoreRepo.observeCompletedQuests(currentUserId)
+            .catch { error ->
+                val firestoreError = generateSequence(error) { it.cause }
+                    .filterIsInstance<FirebaseFirestoreException>()
+                    .firstOrNull()
+                if (firestoreError == null && error is CancellationException) throw error
+                val root = firestoreError ?: error
+                Log.w(TAG, "Error observing completed quests", root)
+                _firestoreErrorMessage.value = root.localizedMessage ?: getStr(R.string.vm_err_load_journal, "Failed to load quest journal")
+                emit(emptyList())
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
+    } else {
+        _guestQuestsState
+            .map { list -> list.filter { it.status == "COMPLETED" } }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
+    }
 
-    val inventoryState: StateFlow<List<InventoryItem>> = firestoreRepo.observeInventory(currentUserId)
-        .catch { error ->
-            val firestoreError = generateSequence(error) { it.cause }
-                .filterIsInstance<FirebaseFirestoreException>()
-                .firstOrNull()
-            if (firestoreError == null && error is CancellationException) throw error
-            val root = firestoreError ?: error
-            Log.w(TAG, "Error observing inventory", root)
-            emit(emptyList())
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList()
-        )
+    val badgesState: StateFlow<List<EarnedBadge>> = if (isAuthenticatedSession) {
+        firestoreRepo.observeBadges(currentUserId)
+            .catch { error ->
+                val firestoreError = generateSequence(error) { it.cause }
+                    .filterIsInstance<FirebaseFirestoreException>()
+                    .firstOrNull()
+                if (firestoreError == null && error is CancellationException) throw error
+                val root = firestoreError ?: error
+                Log.w(TAG, "Error observing badges", root)
+                emit(emptyList())
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
+    } else {
+        _guestBadgesState.asStateFlow()
+    }
 
-    val artifactsState: StateFlow<List<FoundArtifact>> = firestoreRepo.observeArtifacts(currentUserId)
-        .catch { error ->
-            val firestoreError = generateSequence(error) { it.cause }
-                .filterIsInstance<FirebaseFirestoreException>()
-                .firstOrNull()
-            if (firestoreError == null && error is CancellationException) throw error
-            val root = firestoreError ?: error
-            Log.w(TAG, "Error observing found artifacts", root)
-            emit(emptyList())
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000L),
-            initialValue = emptyList()
-        )
+    val inventoryState: StateFlow<List<InventoryItem>> = if (isAuthenticatedSession) {
+        firestoreRepo.observeInventory(currentUserId)
+            .catch { error ->
+                val firestoreError = generateSequence(error) { it.cause }
+                    .filterIsInstance<FirebaseFirestoreException>()
+                    .firstOrNull()
+                if (firestoreError == null && error is CancellationException) throw error
+                val root = firestoreError ?: error
+                Log.w(TAG, "Error observing inventory", root)
+                emit(emptyList())
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
+    } else {
+        _guestInventoryState.asStateFlow()
+    }
+
+    val artifactsState: StateFlow<List<FoundArtifact>> = if (isAuthenticatedSession) {
+        firestoreRepo.observeArtifacts(currentUserId)
+            .catch { error ->
+                val firestoreError = generateSequence(error) { it.cause }
+                    .filterIsInstance<FirebaseFirestoreException>()
+                    .firstOrNull()
+                if (firestoreError == null && error is CancellationException) throw error
+                val root = firestoreError ?: error
+                Log.w(TAG, "Error observing found artifacts", root)
+                emit(emptyList())
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000L),
+                initialValue = emptyList()
+            )
+    } else {
+        _guestArtifactsState.asStateFlow()
+    }
 
     // Approved Suggestion: Dynamic Weather & Time-of-Day World Atmosphere Engine
     private val _activeAtmosphereEvent = MutableStateFlow(WorldAtmosphereEvent.GOLDEN_HOUR_SURGE)
@@ -244,6 +323,9 @@ class SideQuestViewModel(
     private val _riddleAnswerStatus = MutableStateFlow<String?>(null)
     val riddleAnswerStatus: StateFlow<String?> = _riddleAnswerStatus.asStateFlow()
 
+    private val _isActiveRiddleSolved = MutableStateFlow(false)
+    val isActiveRiddleSolved: StateFlow<Boolean> = _isActiveRiddleSolved.asStateFlow()
+
     // New AI Feature 4: Live Voice Field-Log Polisher & Transcriber (gemini-3.8-flash)
     private val _isPolishingVoiceNote = MutableStateFlow(false)
     val isPolishingVoiceNote: StateFlow<Boolean> = _isPolishingVoiceNote.asStateFlow()
@@ -255,6 +337,20 @@ class SideQuestViewModel(
     val freeTierCallsUsed: StateFlow<Int> = aiRepo.freeTierCallsUsed
     val cacheHitsSaved: StateFlow<Int> = aiRepo.cacheHitsSaved
     val paidImageCallsUsed: StateFlow<Int> = aiRepo.paidImageCallsUsed
+    val autoCascadeCount: StateFlow<Int> = aiRepo.autoCascadeCount
+
+    // Hybrid Quota Ledger & Smart Quota Recovery State (Playbook Sections 1 & 3)
+    val usageQuotaLedger: StateFlow<UsageQuotaLedger> = usageQuotaManager?.quotaState
+        ?: MutableStateFlow(UsageQuotaLedger()).asStateFlow()
+
+    private val _smartQuotaRecoveryState = MutableStateFlow(SmartQuotaRecoveryState())
+    val smartQuotaRecoveryState: StateFlow<SmartQuotaRecoveryState> = _smartQuotaRecoveryState.asStateFlow()
+
+    private val _isAiValueReceiptVisible = MutableStateFlow(false)
+    val isAiValueReceiptVisible: StateFlow<Boolean> = _isAiValueReceiptVisible.asStateFlow()
+
+    private val _aiValueReceipt = MutableStateFlow(AiValueReceipt())
+    val aiValueReceipt: StateFlow<AiValueReceipt> = _aiValueReceipt.asStateFlow()
 
     // Smart Non-Intrusive Donation Engagement Engine State (Never triggers at app startup)
     private val _donationEngagementState = MutableStateFlow(
@@ -441,27 +537,35 @@ class SideQuestViewModel(
                 id = UUID.randomUUID().toString(),
                 isUser = false,
                 senderName = _selectedStyle.value.narratorTitle,
-                text = "Welcome to SideQuest, explorer. I am ${_selectedStyle.value.narratorTitle}. Your tactical map has locked onto ${seeded.size} real-world landmarks in ${initialPreset.name}. Select any waypoint, scan a real plaque with Gemini Vision, or tap 'Quest' to weave a fresh adventure!",
+                text = getStr(
+                    R.string.vm_welcome_dm_format,
+                    "Welcome to SideQuest, explorer. I am ${_selectedStyle.value.narratorTitle}. Your tactical map has locked onto ${seeded.size} real-world landmarks in ${initialPreset.name}. Select any waypoint, scan a real plaque with Gemini Vision, or tap 'Quest' to weave a fresh adventure!",
+                    _selectedStyle.value.narratorTitle,
+                    seeded.size,
+                    initialPreset.name
+                ),
                 landmarkName = seeded.firstOrNull()?.name,
                 groundingSources = listOf("OpenStreetMap & Google Maps Grounding", initialPreset.name)
             )
         )
 
-        viewModelScope.launch {
-            try {
-                val profile = firestoreRepo.ensureAdventurerProfile(
-                    defaultName = initialDisplayName,
-                    style = _selectedStyle.value
-                )
-                val restoredStyle = CharacterStyle.fromId(profile.characterStyle)
-                if (restoredStyle != _selectedStyle.value) {
-                    _selectedStyle.value = restoredStyle
-                    restyleCurrentLandmarks(restoredStyle)
+        if (isAuthenticatedSession) {
+            viewModelScope.launch {
+                try {
+                    val profile = firestoreRepo.ensureAdventurerProfile(
+                        defaultName = initialDisplayName,
+                        style = _selectedStyle.value
+                    )
+                    val restoredStyle = CharacterStyle.fromId(profile.characterStyle)
+                    if (restoredStyle != _selectedStyle.value) {
+                        _selectedStyle.value = restoredStyle
+                        restyleCurrentLandmarks(restoredStyle)
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.w(TAG, "Initial profile check failed: ${e.message}")
                 }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Log.w(TAG, "Initial profile check failed: ${e.message}")
             }
         }
 
@@ -510,12 +614,310 @@ class SideQuestViewModel(
                 }
             }
         }
+
+        if (usageQuotaManager != null) {
+            viewModelScope.launch {
+                usageQuotaManager.observeUserQuota(currentUserId).collect {
+                    updateAiValueReceipt()
+                }
+            }
+        }
     }
 
     fun dismissBanners() {
         _aiErrorBanner.value = null
         _rewardBanner.value = null
         _firestoreErrorMessage.value = null
+    }
+
+    // =========================================================================
+    // FREE-TIER HANDLING, FALLBACK ARCHITECTURE & USER RECOVERY PLAYBOOK
+    // =========================================================================
+
+    fun updateAiValueReceipt() {
+        val prof = profileState.value
+        val quests = questsState.value
+        val artifacts = artifactsState.value
+        val verifiedLandmarks = artifacts.count { it.category == ArtifactCategory.VISION_SCAN.id }
+        val craftedRelics = artifacts.count { it.category == ArtifactCategory.RELIC_SHARD.id }
+        val voiceNotes = artifacts.count { it.category == ArtifactCategory.PLAQUE_RUBBING.id }
+        val completedQuestsCount = quests.count { it.status == "COMPLETED" }
+        val totalDistance = quests.sumOf { it.distanceMeters }
+        val totalXp = prof?.xp ?: (completedQuestsCount * 175L)
+
+        _aiValueReceipt.value = AiValueReceipt(
+            dateIso = AiModelConfig.getTodayDateIso(),
+            landmarksVerified = maxOf(verifiedLandmarks, (prof?.landmarksVisited ?: 0L).toInt()),
+            dmChatsExchanged = _chatMessages.value.count { it.isUser },
+            relicsCrafted = craftedRelics,
+            voiceNotesLogged = voiceNotes,
+            questsCompleted = completedQuestsCount,
+            distanceMetersWalked = maxOf(totalDistance, _dailyWalkMetersLogged.value.toLong()),
+            totalXpEarned = totalXp
+        )
+    }
+
+    fun toggleEcoLiteMode(enabled: Boolean) {
+        viewModelScope.launch {
+            usageQuotaManager?.toggleEcoLiteMode(enabled, currentUserId)
+            if (enabled) {
+                _rewardBanner.value = getStr(R.string.vm_eco_lite_enabled, "⚡ Eco Lite Mode Enabled: Running high-speed lightweight AI (3x-5x quota stretch)!")
+            } else {
+                _rewardBanner.value = getStr(R.string.vm_primary_ai_active, "Primary Standard AI Mode Active.")
+            }
+        }
+    }
+
+    fun claimDailyGraceCredits() {
+        viewModelScope.launch {
+            val success = usageQuotaManager?.claimDailyGraceCredits(currentUserId) ?: false
+            if (success) {
+                _smartQuotaRecoveryState.value = _smartQuotaRecoveryState.value.copy(isVisible = false)
+                _rewardBanner.value = getStr(R.string.vm_grace_claimed_banner, "🎁 +3 Free Grace Credits Claimed! Continue your exploration without interruption.")
+            } else {
+                _aiErrorBanner.value = getStr(R.string.vm_grace_already_claimed, "Daily Grace Credits already claimed for today. Quota resets at midnight.")
+            }
+        }
+    }
+
+    fun dismissSmartQuotaRecovery() {
+        _smartQuotaRecoveryState.value = _smartQuotaRecoveryState.value.copy(isVisible = false)
+    }
+
+    fun showAiValueReceipt(show: Boolean) {
+        updateAiValueReceipt()
+        _isAiValueReceiptVisible.value = show
+    }
+
+    fun showSmartQuotaRecovery(capability: AiCapability, isRateLimited429: Boolean = false, customMessage: String? = null) {
+        _smartQuotaRecoveryState.value = SmartQuotaRecoveryState(
+            isVisible = true,
+            triggeringCapability = capability,
+            isRateLimited429 = isRateLimited429,
+            ledger = usageQuotaLedger.value,
+            customContextMessage = customMessage
+        )
+    }
+
+    /**
+     * Executes the zero-quota deterministic local alternative based on capability (Playbook Section 2).
+     */
+    fun executeZeroQuotaAlternative(capability: AiCapability) {
+        dismissSmartQuotaRecovery()
+        viewModelScope.launch {
+            usageQuotaManager?.recordFallbackCascade(currentUserId)
+        }
+        when (capability) {
+            AiCapability.VISION_PROOF -> {
+                scanLandmarkPhotoWithHonorPledge()
+            }
+            AiCapability.COMPANION_CHAT -> {
+                triggerLocalReflexDmReply()
+            }
+            AiCapability.IMAGE_STUDIO -> {
+                craftLocalCanvasEmblem()
+            }
+            AiCapability.AUDIO_FIELD_NOTE -> {
+                _rewardBanner.value = getStr(R.string.vm_voice_preserved_banner, "Spoken note preserved in raw format — auto-cleanup will process when quota resets.")
+            }
+            AiCapability.FACT_DOSSIER -> {
+                val lm = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
+                if (lm != null) {
+                    _activeFactDossier.value = aiRepo.generateLocalFactDossierFallback(_selectedStyle.value, _regionName.value, lm)
+                    _rewardBanner.value = getStr(R.string.vm_local_dossier_loaded, "Local Historical Fact Dossier Loaded (0 cloud tokens).")
+                }
+            }
+            AiCapability.RIDDLE_CIPHER -> {
+                val lm = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
+                if (lm != null) {
+                    _activeAiRiddle.value = aiRepo.generateLocalRiddleFallback(_selectedStyle.value, _regionName.value, lm)
+                    _rewardBanner.value = getStr(R.string.vm_local_riddle_loaded, "Local Architectural Cipher Challenge Loaded (0 cloud tokens).")
+                }
+            }
+            AiCapability.QUEST_NARRATIVE -> {
+                regenerateAiQuestForCurrentArea()
+            }
+        }
+    }
+
+    /**
+     * Tier 3 Zero-Quota Honor Pledge Check-In:
+     * Protects walking streak and awards standard explorer XP (+100 XP) and an on-device Honor Crest without cloud tokens.
+     */
+    fun scanLandmarkPhotoWithHonorPledge() {
+        val activeLandmark = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
+        val style = _selectedStyle.value
+        val (lat, lon) = _userCoordinates.value
+        val fallbackResult = aiRepo.generateHonorPledgeScanResult(
+            style = style,
+            landmark = activeLandmark,
+            regionName = _regionName.value
+        )
+        _lastVisionScanResult.value = fallbackResult
+
+        viewModelScope.launch {
+            try {
+                persistAddInventoryItem(
+                    name = fallbackResult.awardedRelicName,
+                    loreDescription = "Honor-Verified at ${fallbackResult.landmarkTitle}: ${fallbackResult.historicalVerification}",
+                    itemType = "CHRONICLE",
+                    rarity = "RARE",
+                    originLandmark = activeLandmark?.name ?: fallbackResult.landmarkTitle,
+                    characterStyle = style,
+                    powerBonus = 35,
+                    equipped = true
+                )
+                persistRecordFoundArtifact(
+                    artifactCode = "HONOR_PLEDGE_SCAN",
+                    name = fallbackResult.awardedRelicName,
+                    loreInscription = fallbackResult.inCharacterAnalysis,
+                    category = ArtifactCategory.VISION_SCAN,
+                    rarity = "RARE",
+                    landmarkName = activeLandmark?.name ?: fallbackResult.landmarkTitle,
+                    regionName = _regionName.value,
+                    characterStyle = style,
+                    latitude = activeLandmark?.latitude ?: lat,
+                    longitude = activeLandmark?.longitude ?: lon,
+                    resonanceValue = 45,
+                    isFavorite = true,
+                    inspectionNotes = fallbackResult.historicalVerification
+                )
+                persistAwardProgress(
+                    xpDelta = fallbackResult.bonusXp.toLong(),
+                    landmarksDelta = 1L,
+                    questsCompletedDelta = 0L
+                )
+                persistUnlockBadgeIfAbsent(
+                    badgeId = "badge_honor_pledge_sentinel",
+                    badgeCode = "HONOR_PLEDGE_SENTINEL",
+                    title = "Honor-Pledged Sentinel",
+                    description = "Checked in via Zero-Quota Honor Pledge at ${fallbackResult.landmarkTitle} to maintain walking streak.",
+                    category = "EXPLORATION",
+                    rarity = "RARE",
+                    landmarkName = fallbackResult.landmarkTitle
+                )
+
+                val msg = ChatMessage(
+                    id = UUID.randomUUID().toString(),
+                    isUser = false,
+                    senderName = "${style.narratorTitle} • Honor Pledge",
+                    text = "🛡️ **[ZERO-QUOTA HONOR PLEDGE CHECK-IN: ${fallbackResult.landmarkTitle}]**\n\n" +
+                        "${fallbackResult.inCharacterAnalysis}\n\n" +
+                        "🏛️ *Verification:* ${fallbackResult.historicalVerification}\n" +
+                        "🎁 *Awarded:* **${fallbackResult.awardedRelicName}** (+${fallbackResult.bonusXp} XP)",
+                    landmarkName = activeLandmark?.name ?: fallbackResult.landmarkTitle,
+                    groundingSources = listOf("On-Device Local Honor Engine", fallbackResult.landmarkTitle),
+                    isVisionScan = true
+                )
+                _chatMessages.value = _chatMessages.value + msg
+                _rewardBanner.value = getStr(
+                    R.string.vm_honor_pledge_verified_format,
+                    "Honor Pledge Verified! +${fallbackResult.bonusXp} XP & Walking Streak Preserved (0 cloud tokens)!",
+                    fallbackResult.bonusXp
+                )
+                recordCoreOperationSuccess("Honor Pledge (${fallbackResult.landmarkTitle})")
+                engagementTracker.logEvent(
+                    type = AppEventType.VISION_SCAN_VERIFIED,
+                    detail = "Honor Pledge '${fallbackResult.landmarkTitle}' (+${fallbackResult.bonusXp} XP)",
+                    allowAutoPromptEvaluation = true
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Honor pledge error", e)
+            }
+        }
+    }
+
+    /**
+     * Tier 3 Instant Local Reflex Engine:
+     * Deterministic context-aware lore from rank, style, and landmark facts without cloud tokens.
+     */
+    fun triggerLocalReflexDmReply() {
+        val activeLandmark = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
+        val style = _selectedStyle.value
+        val reflexText = aiRepo.generateLocalReflexReply(
+            style = style,
+            regionName = _regionName.value,
+            landmark = activeLandmark,
+            userMessage = "Report area status and tactical briefing"
+        )
+        val msg = ChatMessage(
+            id = UUID.randomUUID().toString(),
+            isUser = false,
+            senderName = "${style.narratorTitle} • Reflex",
+            text = reflexText,
+            landmarkName = activeLandmark?.name,
+            groundingSources = listOf("On-Device Local Reflex Engine", _regionName.value)
+        )
+        _chatMessages.value = _chatMessages.value + msg
+        _rewardBanner.value = getStr(R.string.vm_reflex_dm_rendered, "Local Reflex DM briefing rendered (0 cloud tokens).")
+        if (voiceNarrator.autoNarrate.value) {
+            voiceNarrator.speak(reflexText, style, title = getStr(R.string.vm_reflex_dm_title, "Local Reflex DM"))
+        }
+    }
+
+    /**
+     * Tier 3 On-Device Canvas Emblem Generator:
+     * Composes a personalized high-contrast 512×512 emblem using Android Canvas saved with 0 cloud credits.
+     */
+    fun craftLocalCanvasEmblem() {
+        val activeLandmark = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
+        val landmarkName = activeLandmark?.name ?: _regionName.value
+        val style = _selectedStyle.value
+        val bitmap = aiRepo.generateLocalCanvasEmblem(
+            style = style,
+            landmarkName = landmarkName,
+            regionName = _regionName.value
+        )
+        val emblemTitle = "On-Device ${style.title} Canvas Emblem"
+        _relicArtUiState.value = RelicArtUiState.Success(bitmap, emblemTitle)
+
+        viewModelScope.launch {
+            try {
+                val (lat, lon) = _userCoordinates.value
+                persistAddInventoryItem(
+                    name = emblemTitle,
+                    loreDescription = "Geometric insignia synthesized directly on-device using Android Canvas for $landmarkName. Zero cloud credits consumed.",
+                    itemType = "INSIGNIA",
+                    rarity = "RARE",
+                    originLandmark = landmarkName,
+                    characterStyle = style,
+                    powerBonus = 40,
+                    equipped = true
+                )
+                persistRecordFoundArtifact(
+                    artifactCode = "CANVAS_EMBLEM",
+                    name = emblemTitle,
+                    loreInscription = "On-device Canvas emblem forged under $landmarkName. 100% zero-cost local art synthesis.",
+                    category = ArtifactCategory.RELIC_SHARD,
+                    rarity = "RARE",
+                    landmarkName = landmarkName,
+                    regionName = _regionName.value,
+                    characterStyle = style,
+                    latitude = activeLandmark?.latitude ?: lat,
+                    longitude = activeLandmark?.longitude ?: lon,
+                    resonanceValue = 50,
+                    isFavorite = true,
+                    inspectionNotes = "Synthesized on Android Canvas."
+                )
+                persistAwardProgress(xpDelta = 75L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                persistUnlockBadgeIfAbsent(
+                    badgeId = "badge_canvas_illuminator",
+                    badgeCode = "CANVAS_ARTISAN",
+                    title = "Local Canvas Artisan",
+                    description = "Synthesized an on-device geometric insignia using Android Canvas without cloud credits.",
+                    category = "MASTERY",
+                    rarity = "RARE",
+                    landmarkName = landmarkName
+                )
+                _rewardBanner.value = getStr(R.string.vm_canvas_emblem_crafted_75, "On-Device Canvas Emblem crafted! +75 XP (0 cloud credits used)!")
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.w(TAG, "Canvas emblem error", e)
+            }
+        }
     }
 
     // =========================================================================
@@ -547,7 +949,7 @@ class SideQuestViewModel(
         _donationEngagementState.value = _donationEngagementState.value.copy(
             isHomeBannerDismissedCooldownActive = true
         )
-        _rewardBanner.value = "Support banner silenced for 14 days. You can always find it in the Guild Hub or Codex."
+        _rewardBanner.value = getStr(R.string.vm_support_silenced_14d, "Support banner silenced for 14 days. You can always find it in the Guild Hub or Codex.")
     }
 
     fun dismissPostOperationSupportCard() {
@@ -578,7 +980,7 @@ class SideQuestViewModel(
 
     fun completeOnboardingTour() {
         engagementTracker.markOnboardingCompleted()
-        _rewardBanner.value = "Onboarding Tour Completed! Choose any real-world waypoint or scan a plaque to begin."
+        _rewardBanner.value = getStr(R.string.vm_onboarding_completed, "Onboarding Tour Completed! Choose any real-world waypoint or scan a plaque to begin.")
     }
 
     fun openSmartPromptManually(promptType: SmartPromptType) {
@@ -589,27 +991,28 @@ class SideQuestViewModel(
         engagementTracker.onPromptAccepted(promptType, detail)
         when (promptType) {
             SmartPromptType.RATE_APP -> {
-                _rewardBanner.value = "Thank you for rating SideQuest! +100 Explorer XP awarded."
+                _rewardBanner.value = getStr(R.string.vm_rated_thanks_xp, "Thank you for rating SideQuest! +100 Explorer XP awarded.")
                 viewModelScope.launch {
                     try {
-                        firestoreRepo.awardProgress(xpDelta = 100L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                        persistAwardProgress(xpDelta = 100L, landmarksDelta = 0L, questsCompletedDelta = 0L)
                     } catch (e: CancellationException) {
                         throw e
                     } catch (_: Exception) {}
                 }
             }
             SmartPromptType.SHARE_APP -> {
-                _rewardBanner.value = "SideQuest shared with fellow explorers! +75 Explorer XP awarded."
+                _rewardBanner.value = getStr(R.string.vm_shared_thanks_xp, "SideQuest shared with fellow explorers! +75 Explorer XP awarded.")
                 viewModelScope.launch {
                     try {
-                        firestoreRepo.awardProgress(xpDelta = 75L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                        persistAwardProgress(xpDelta = 75L, landmarksDelta = 0L, questsCompletedDelta = 0L)
                     } catch (e: CancellationException) {
                         throw e
                     } catch (_: Exception) {}
                 }
             }
             SmartPromptType.UPDATE_APP -> {
-                _rewardBanner.value = "Update check completed: v${engagementTracker.state.value.availableUpdateVersionName}"
+                val ver = engagementTracker.state.value.availableUpdateVersionName
+                _rewardBanner.value = getStr(R.string.vm_update_check_format, "Update check completed: v$ver", ver)
             }
             SmartPromptType.NONE -> Unit
         }
@@ -650,12 +1053,12 @@ class SideQuestViewModel(
 
         viewModelScope.launch {
             try {
-                firestoreRepo.awardProgress(
+                persistAwardProgress(
                     xpDelta = tier.bonusXp.toLong(),
                     landmarksDelta = 0L,
                     questsCompletedDelta = 0L
                 )
-                firestoreRepo.unlockBadgeIfAbsent(
+                persistUnlockBadgeIfAbsent(
                     badgeId = "badge_guild_supporter",
                     badgeCode = "ACTIVE_GUILD_SUPPORTER",
                     title = "Active Supporter: ${tier.title}",
@@ -664,7 +1067,7 @@ class SideQuestViewModel(
                     rarity = "LEGENDARY",
                     landmarkName = _regionName.value
                 )
-                firestoreRepo.recordFoundArtifact(
+                persistRecordFoundArtifact(
                     artifactCode = "PATRON_SUPPORTER_CREST",
                     name = "Patron Crest: ${tier.title}",
                     loreInscription = "Forged in gratitude for supporting independent, ad-free SideQuest development (${tier.tierLabel} • ${tier.priceDisplay}).",
@@ -679,12 +1082,16 @@ class SideQuestViewModel(
                     isFavorite = true,
                     inspectionNotes = "Verified Google Play 1-Tap Supporter Receipt (${tier.skuId})."
                 )
-                _rewardBanner.value = "Thank you, Active Supporter! +${tier.bonusXp} XP, Permanent Supporter Badge unlocked & all donation prompts disabled!"
+                _rewardBanner.value = getStr(
+                    R.string.vm_supporter_thanks_full_format,
+                    "Thank you, Active Supporter! +${tier.bonusXp} XP, Permanent Supporter Badge unlocked & all donation prompts disabled!",
+                    tier.bonusXp
+                )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.w(TAG, "Failed saving supporter badge to Firestore", e)
-                _rewardBanner.value = "Thank you, Active Supporter! Permanent Supporter status unlocked."
+                _rewardBanner.value = getStr(R.string.vm_supporter_thanks_short, "Thank you, Active Supporter! Permanent Supporter status unlocked.")
             }
         }
     }
@@ -703,9 +1110,9 @@ class SideQuestViewModel(
         viewModelScope.launch {
             try {
                 val bonusXp = if (justCrossedGoal) 150L else 50L
-                firestoreRepo.awardProgress(xpDelta = bonusXp, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                persistAwardProgress(xpDelta = bonusXp, landmarksDelta = 0L, questsCompletedDelta = 0L)
                 if (justCrossedGoal) {
-                    firestoreRepo.unlockBadgeIfAbsent(
+                    persistUnlockBadgeIfAbsent(
                         badgeId = "badge_daily_strider",
                         badgeCode = "DAILY_MARATHON_STRIDER",
                         title = "Daily 1km Vanguard Strider",
@@ -714,9 +1121,14 @@ class SideQuestViewModel(
                         rarity = "EPIC",
                         landmarkName = _regionName.value
                     )
-                    _rewardBanner.value = "1,000m Daily Walk Goal Reached! +150 Bonus XP & 'Daily 1km Vanguard Strider' Badge!"
+                    _rewardBanner.value = getStr(R.string.vm_walk_goal_reached, "1,000m Daily Walk Goal Reached! +150 Bonus XP & 'Daily 1km Vanguard Strider' Badge!")
                 } else {
-                    _rewardBanner.value = "Logged +250m Walking Cadence ($updated / ${dailyWalkGoalMeters}m) • +50 XP!"
+                    _rewardBanner.value = getStr(
+                        R.string.vm_walk_cadence_logged_format,
+                        "Logged +250m Walking Cadence ($updated / ${dailyWalkGoalMeters}m) • +50 XP!",
+                        updated,
+                        dailyWalkGoalMeters
+                    )
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -768,7 +1180,12 @@ class SideQuestViewModel(
             isRedeemed = false
         )
         _tavernVouchers.value = listOf(newVoucher) + _tavernVouchers.value
-        _rewardBanner.value = "Sponsored Waypoint '$cleanName' pinned to map + Voucher $code unlocked!"
+        _rewardBanner.value = getStr(
+            R.string.vm_sponsored_stop_pinned_format,
+            "Sponsored Waypoint '$cleanName' pinned to map + Voucher $code unlocked!",
+            cleanName,
+            code
+        )
     }
 
     // Suggestion 3: Toggle Adventurer's Guild Pass & Offline Pack Cache
@@ -777,9 +1194,9 @@ class SideQuestViewModel(
         _isGuildPassActive.value = next
         if (next) {
             _isOfflinePackCached.value = true
-            _rewardBanner.value = "Adventurer's Guild Pass Active! 1.5x XP Multiplier, Streak Shield & Offline Lore Pack unlocked."
+            _rewardBanner.value = getStr(R.string.vm_guild_pass_activated, "Adventurer's Guild Pass Active! 1.5x XP Multiplier, Streak Shield & Offline Lore Pack unlocked.")
         } else {
-            _rewardBanner.value = "Switched to Standard Explorer Tier."
+            _rewardBanner.value = getStr(R.string.vm_guild_pass_deactivated, "Switched to Standard Explorer Tier.")
         }
     }
 
@@ -787,9 +1204,18 @@ class SideQuestViewModel(
         val next = !_isOfflinePackCached.value
         _isOfflinePackCached.value = next
         _rewardBanner.value = if (next) {
-            "Offline Expedition Pack cached for ${_regionName.value} (${_landmarks.value.size} landmarks & voice scripts)."
+            getStr(
+                R.string.vm_offline_pack_cached_format,
+                "Offline Expedition Pack cached for ${_regionName.value} (${_landmarks.value.size} landmarks & voice scripts).",
+                _regionName.value,
+                _landmarks.value.size
+            )
         } else {
-            "Offline cache cleared for ${_regionName.value}."
+            getStr(
+                R.string.vm_offline_pack_cleared_format,
+                "Offline cache cleared for ${_regionName.value}.",
+                _regionName.value
+            )
         }
     }
 
@@ -803,8 +1229,17 @@ class SideQuestViewModel(
             val activeLm = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
             _pocketWalkProximityMeters.value = 95
             val startMsg = "Pocket Dungeon Master active. Keep your phone in your pocket—I will narrate spatial proximity cues as you approach ${activeLm?.name ?: "your next waypoint"}."
-            _rewardBanner.value = "Hands-Free Pocket DM Mode ON • Tracking proximity to ${activeLm?.name ?: "waypoint"}"
-            voiceNarrator.speak(startMsg, _selectedStyle.value, title = "Pocket DM • Hands-Free Mode")
+            val waypointFallback = activeLm?.name ?: "waypoint"
+            _rewardBanner.value = getStr(
+                R.string.vm_pocket_dm_on_format,
+                "Hands-Free Pocket DM Mode ON • Tracking proximity to $waypointFallback",
+                waypointFallback
+            )
+            voiceNarrator.speak(
+                startMsg,
+                _selectedStyle.value,
+                title = getStr(R.string.vm_pocket_dm_title, "Pocket DM • Hands-Free Mode")
+            )
 
             pocketWalkJob = viewModelScope.launch {
                 val steps = listOf(75, 45, 15, 0)
@@ -816,18 +1251,30 @@ class SideQuestViewModel(
                     when (dist) {
                         45 -> {
                             val cue = "Proximity alert: 45 meters to ${currentLm.name}. ${currentLm.rpgNodeTitle} energy signature rising."
-                            voiceNarrator.speak(cue, _selectedStyle.value, title = "45m to ${currentLm.name}")
+                            voiceNarrator.speak(
+                                cue,
+                                _selectedStyle.value,
+                                title = getStr(R.string.vm_pocket_proximity_title_format, "45m to ${currentLm.name}", currentLm.name)
+                            )
                         }
                         0 -> {
                             val arrival = "Waypoint reached: ${currentLm.name}. ${currentLm.loreSnippet} Challenge: ${currentLm.questChallenge}"
-                            _rewardBanner.value = "Arrived at ${currentLm.name}! Auto-narrating waypoint briefing."
-                            voiceNarrator.speak(arrival, _selectedStyle.value, title = "Arrived • ${currentLm.name}")
+                            _rewardBanner.value = getStr(
+                                R.string.vm_pocket_arrived_format,
+                                "Arrived at ${currentLm.name}! Auto-narrating waypoint briefing.",
+                                currentLm.name
+                            )
+                            voiceNarrator.speak(
+                                arrival,
+                                _selectedStyle.value,
+                                title = getStr(R.string.vm_pocket_arrived_title_format, "Arrived • ${currentLm.name}", currentLm.name)
+                            )
                         }
                     }
                 }
             }
         } else {
-            _rewardBanner.value = "Hands-Free Pocket DM Mode paused."
+            _rewardBanner.value = getStr(R.string.vm_pocket_dm_paused, "Hands-Free Pocket DM Mode paused.")
         }
     }
 
@@ -844,7 +1291,12 @@ class SideQuestViewModel(
         _activeFirestoreQuestId.value = null
         _lastVisionScanResult.value = null
 
-        _rewardBanner.value = "Official Trail Activated: ${trail.title} • ${trail.xpMultiplierLabel}"
+        _rewardBanner.value = getStr(
+            R.string.vm_trail_activated_format,
+            "Official Trail Activated: ${trail.title} • ${trail.xpMultiplierLabel}",
+            trail.title,
+            trail.xpMultiplierLabel
+        )
         generateQuestForCoordinates(
             lat = matchingPreset.latitude,
             lon = matchingPreset.longitude,
@@ -859,6 +1311,16 @@ class SideQuestViewModel(
         val activeLandmark = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
         val style = _selectedStyle.value
 
+        val quotaResult = usageQuotaManager?.evaluateTierForCapability(AiCapability.VISION_PROOF)
+            ?: com.example.model.QuotaAcquisitionResult.Allowed(AiExecutionTier.TIER_1_STANDARD)
+
+        if (quotaResult is com.example.model.QuotaAcquisitionResult.Exhausted) {
+            showSmartQuotaRecovery(AiCapability.VISION_PROOF, isRateLimited429 = false)
+            return
+        }
+
+        val preferredTier = (quotaResult as com.example.model.QuotaAcquisitionResult.Allowed).tier
+
         viewModelScope.launch {
             _isScanningVision.value = true
             _aiErrorBanner.value = null
@@ -867,15 +1329,19 @@ class SideQuestViewModel(
                     bitmap = bitmap,
                     style = style,
                     landmark = activeLandmark,
-                    regionName = _regionName.value
+                    regionName = _regionName.value,
+                    preferredTier = preferredTier
                 )
                 scanResult.onSuccess { result ->
+                    if (result.usedCloudQuota) {
+                        usageQuotaManager?.recordUsageSuccess(AiCapability.VISION_PROOF, currentUserId)
+                    }
                     val multiplier = if (_isGuildPassActive.value) 1.5 else 1.0
                     val finalXp = (result.bonusXp * multiplier).toInt()
                     val finalResult = result.copy(bonusXp = finalXp)
                     _lastVisionScanResult.value = finalResult
 
-                    firestoreRepo.addInventoryItem(
+                    persistAddInventoryItem(
                         name = finalResult.awardedRelicName,
                         loreDescription = "Vision-Verified at ${finalResult.landmarkTitle}: ${finalResult.historicalVerification}",
                         itemType = "CHRONICLE",
@@ -887,7 +1353,7 @@ class SideQuestViewModel(
                     )
 
                     val (scanLat, scanLon) = _userCoordinates.value
-                    firestoreRepo.recordFoundArtifact(
+                    persistRecordFoundArtifact(
                         artifactCode = "VISION_SCAN",
                         name = finalResult.awardedRelicName,
                         loreInscription = finalResult.inCharacterAnalysis,
@@ -903,13 +1369,13 @@ class SideQuestViewModel(
                         inspectionNotes = "Optical verification: ${finalResult.historicalVerification}"
                     )
 
-                    firestoreRepo.awardProgress(
+                    persistAwardProgress(
                         xpDelta = finalXp.toLong(),
                         landmarksDelta = 1L,
                         questsCompletedDelta = 0L
                     )
 
-                    firestoreRepo.unlockBadgeIfAbsent(
+                    persistUnlockBadgeIfAbsent(
                         badgeId = "badge_vision_scanner",
                         badgeCode = "GEMINI_VISION_SCANNER",
                         title = "Optical Lore Seeker",
@@ -934,7 +1400,12 @@ class SideQuestViewModel(
                         isVisionScan = true
                     )
                     _chatMessages.value = _chatMessages.value + msg
-                    _rewardBanner.value = "Vision Scan Verified! +$finalXp XP & Minted '${finalResult.awardedRelicName}'"
+                    _rewardBanner.value = getStr(
+                        R.string.vm_vision_verified_format,
+                        "Vision Scan Verified! +$finalXp XP & Minted '${finalResult.awardedRelicName}'",
+                        finalXp,
+                        finalResult.awardedRelicName
+                    )
                     recordCoreOperationSuccess("Gemini Vision Scan (${finalResult.landmarkTitle})")
                     engagementTracker.logEvent(
                         type = AppEventType.VISION_SCAN_VERIFIED,
@@ -948,13 +1419,29 @@ class SideQuestViewModel(
                         title = "Vision Scan • ${finalResult.landmarkTitle}"
                     )
                 }.onFailure { err ->
-                    _aiErrorBanner.value = err.localizedMessage ?: "Failed to analyze landmark image."
+                    val is429 = err is QuotaExceededException ||
+                        err.message?.contains("429") == true ||
+                        err.message?.contains("quota", ignoreCase = true) == true
+                    if (is429) {
+                        usageQuotaManager?.recordFallbackCascade(currentUserId)
+                        showSmartQuotaRecovery(AiCapability.VISION_PROOF, isRateLimited429 = true)
+                    } else {
+                        _aiErrorBanner.value = err.localizedMessage ?: getStr(R.string.vm_vision_err_analyze, "Failed to analyze landmark image.")
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Multimodal vision scan error", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Vision scanner encountered an error."
+                val is429 = e is QuotaExceededException ||
+                    e.message?.contains("429") == true ||
+                    e.message?.contains("quota", ignoreCase = true) == true
+                if (is429) {
+                    usageQuotaManager?.recordFallbackCascade(currentUserId)
+                    showSmartQuotaRecovery(AiCapability.VISION_PROOF, isRateLimited429 = true)
+                } else {
+                    _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_vision_err_generic, "Vision scanner encountered an error.")
+                }
             } finally {
                 _isScanningVision.value = false
             }
@@ -972,7 +1459,7 @@ class SideQuestViewModel(
 
         viewModelScope.launch {
             try {
-                firestoreRepo.addInventoryItem(
+                persistAddInventoryItem(
                     name = "Tavern Seal: ${target.partnerName.take(28)}",
                     loreDescription = "Redeemed Perk (${target.redemptionCode}): ${target.discountHeadline}",
                     itemType = "ELIXIR",
@@ -982,8 +1469,13 @@ class SideQuestViewModel(
                     powerBonus = 30,
                     equipped = false
                 )
-                firestoreRepo.awardProgress(xpDelta = 100L, landmarksDelta = 0L, questsCompletedDelta = 0L)
-                _rewardBanner.value = "Voucher Activated! Show code ${target.redemptionCode} at ${target.partnerName} (+100 XP)"
+                persistAwardProgress(xpDelta = 100L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                _rewardBanner.value = getStr(
+                    R.string.vm_voucher_activated_format,
+                    "Voucher Activated! Show code ${target.redemptionCode} at ${target.partnerName} (+100 XP)",
+                    target.redemptionCode,
+                    target.partnerName
+                )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -996,7 +1488,7 @@ class SideQuestViewModel(
     fun forgeLegendaryRelic() {
         val currentItems = inventoryState.value
         if (currentItems.size < 2) {
-            _aiErrorBanner.value = "Collect at least 2 Relics from waypoints or scans to use the Relic Alchemy Forge!"
+            _aiErrorBanner.value = getStr(R.string.vm_forge_need_2, "Collect at least 2 Relics from waypoints or scans to use the Relic Alchemy Forge!")
             return
         }
         val first = currentItems[0]
@@ -1007,7 +1499,7 @@ class SideQuestViewModel(
 
         viewModelScope.launch {
             try {
-                firestoreRepo.addInventoryItem(
+                persistAddInventoryItem(
                     name = forgedName,
                     loreDescription = "Synthesized in the Guild Alchemy Forge by fusing '${first.name}' and '${second.name}'. Radiates mythic neighborhood resonance.",
                     itemType = "KEYSTONE",
@@ -1018,7 +1510,7 @@ class SideQuestViewModel(
                     equipped = true
                 )
                 val (forgeLat, forgeLon) = _userCoordinates.value
-                firestoreRepo.recordFoundArtifact(
+                persistRecordFoundArtifact(
                     artifactCode = "ALCHEMY_FORGE",
                     name = forgedName,
                     loreInscription = "Synthesized in the Guild Alchemy Forge by fusing '${first.name}' and '${second.name}'. Radiates mythic neighborhood resonance.",
@@ -1033,8 +1525,8 @@ class SideQuestViewModel(
                     isFavorite = true,
                     inspectionNotes = "Alchemical fusion of ${first.name} + ${second.name}."
                 )
-                firestoreRepo.awardProgress(xpDelta = 225L, landmarksDelta = 0L, questsCompletedDelta = 0L)
-                firestoreRepo.unlockBadgeIfAbsent(
+                persistAwardProgress(xpDelta = 225L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                persistUnlockBadgeIfAbsent(
                     badgeId = "badge_relic_alchemist",
                     badgeCode = "RELIC_ALCHEMIST_MASTER",
                     title = "Grand Relic Alchemist",
@@ -1043,33 +1535,38 @@ class SideQuestViewModel(
                     rarity = "LEGENDARY",
                     landmarkName = _regionName.value
                 )
-                _rewardBanner.value = "Forged Legendary '$forgedName' (+$combinedPower Resonance & +225 XP)!"
+                _rewardBanner.value = getStr(
+                    R.string.vm_forge_success_format,
+                    "Forged Legendary '$forgedName' (+$combinedPower Resonance & +225 XP)!",
+                    forgedName,
+                    combinedPower
+                )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Failed forging legendary relic", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Failed to forge relic."
+                _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_forge_failed, "Failed to forge relic.")
             }
         }
     }
 
-    // Found Artifacts & Curio Vault Management (Firestore CRUD)
+    // Found Artifacts & Curio Vault Management (Firestore CRUD / Guest In-Memory)
     fun toggleFavoriteArtifact(artifact: FoundArtifact) {
         if (artifact.id.isBlank()) return
         val nextFav = !artifact.isFavorite
         viewModelScope.launch {
             try {
-                firestoreRepo.toggleFavoriteArtifact(artifact.id, nextFav)
+                persistToggleFavoriteArtifact(artifact.id, nextFav)
                 _rewardBanner.value = if (nextFav) {
-                    "Pinned '${artifact.name}' to Showcase Favorites ★"
+                    getStr(R.string.vm_fav_pinned_format, "Pinned '${artifact.name}' to Showcase Favorites ★", artifact.name)
                 } else {
-                    "Removed '${artifact.name}' from Showcase Favorites"
+                    getStr(R.string.vm_fav_removed_format, "Removed '${artifact.name}' from Showcase Favorites", artifact.name)
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.w(TAG, "Failed toggling favorite artifact", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Could not update artifact favorite status."
+                _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_fav_update_failed, "Could not update artifact favorite status.")
             }
         }
     }
@@ -1078,13 +1575,17 @@ class SideQuestViewModel(
         if (artifactId.isBlank()) return
         viewModelScope.launch {
             try {
-                firestoreRepo.updateArtifactInspectionNotes(artifactId, notes)
-                _rewardBanner.value = "Explorer field notes saved to Cloud Firestore!"
+                persistUpdateArtifactNotes(artifactId, notes)
+                _rewardBanner.value = if (isAuthenticatedSession) {
+                    getStr(R.string.vm_notes_saved_cloud, "Explorer field notes saved to Cloud Firestore!")
+                } else {
+                    getStr(R.string.vm_notes_saved_local, "Explorer field notes saved locally!")
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.w(TAG, "Failed updating artifact notes", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Could not save field notes."
+                _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_notes_save_failed, "Could not save field notes.")
             }
         }
     }
@@ -1093,8 +1594,8 @@ class SideQuestViewModel(
         if (artifactId.isBlank()) return
         viewModelScope.launch {
             try {
-                firestoreRepo.deleteFoundArtifact(artifactId)
-                _rewardBanner.value = "Artifact removed from Vault."
+                persistDeleteFoundArtifact(artifactId)
+                _rewardBanner.value = getStr(R.string.vm_artifact_removed, "Artifact removed from Vault.")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -1108,7 +1609,8 @@ class SideQuestViewModel(
         category: ArtifactCategory,
         landmarkName: String,
         inscription: String,
-        notes: String
+        notes: String,
+        overrideSuccessBanner: String? = null
     ) {
         val cleanName = name.trim().ifBlank { "Inscribed Street Curio" }.take(110)
         val cleanLandmark = landmarkName.trim().ifBlank {
@@ -1125,7 +1627,7 @@ class SideQuestViewModel(
 
         viewModelScope.launch {
             try {
-                firestoreRepo.recordFoundArtifact(
+                persistRecordFoundArtifact(
                     artifactCode = "FIELD_CATALOG",
                     name = cleanName,
                     loreInscription = cleanInscription,
@@ -1140,17 +1642,22 @@ class SideQuestViewModel(
                     isFavorite = true,
                     inspectionNotes = cleanNotes
                 )
-                firestoreRepo.awardProgress(xpDelta = 120L, landmarksDelta = 1L, questsCompletedDelta = 0L)
-                firestoreRepo.unlockBadgeIfAbsent(
+                persistAwardProgress(xpDelta = 120L, landmarksDelta = 1L, questsCompletedDelta = 0L)
+                persistUnlockBadgeIfAbsent(
                     badgeId = "badge_curio_archivist",
                     badgeCode = "CURIO_FIELD_ARCHIVIST",
                     title = "Guild Curio Archivist",
-                    description = "Cataloged '$cleanName' into the Firestore Artifact Vault.",
+                    description = "Cataloged '$cleanName' into the Artifact Vault.",
                     category = "HISTORIAN",
                     rarity = "RARE",
                     landmarkName = cleanLandmark
                 )
-                _rewardBanner.value = "Cataloged '$cleanName' into Firestore Vault (+120 XP & 'Guild Curio Archivist' Badge)!"
+                _rewardBanner.value = overrideSuccessBanner
+                    ?: getStr(
+                        R.string.vm_cataloged_artifact_format,
+                        "Cataloged '$cleanName' into Vault (+120 XP & 'Guild Curio Archivist' Badge)!",
+                        cleanName
+                    )
                 engagementTracker.logEvent(
                     type = AppEventType.ARTIFACT_CATALOGED,
                     detail = "Cataloged '$cleanName' at $cleanLandmark",
@@ -1160,7 +1667,7 @@ class SideQuestViewModel(
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Failed cataloging custom artifact", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Failed to catalog artifact."
+                _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_artifact_catalog_failed, "Failed to catalog artifact.")
             }
         }
     }
@@ -1179,7 +1686,12 @@ class SideQuestViewModel(
         val nextIdx = (entries.indexOf(_activeAtmosphereEvent.value) + 1) % entries.size
         val next = entries[nextIdx]
         _activeAtmosphereEvent.value = next
-        _rewardBanner.value = "World Atmosphere Shifted: ${next.title} • ${next.bonusLabel}"
+        _rewardBanner.value = getStr(
+            R.string.vm_atmosphere_shifted_format,
+            "World Atmosphere Shifted: ${next.title} • ${next.bonusLabel}",
+            next.title,
+            next.bonusLabel
+        )
     }
 
     // Approved Suggestion: Community Creator Quest Builder Studio
@@ -1225,7 +1737,7 @@ class SideQuestViewModel(
 
         viewModelScope.launch {
             try {
-                firestoreRepo.recordCompletedQuest(
+                persistRecordCompletedQuest(
                     title = "$cleanTitle (Creator Trail)",
                     characterStyle = style,
                     regionName = cleanRegion,
@@ -1235,7 +1747,7 @@ class SideQuestViewModel(
                     distanceMeters = updated.sumOf { it.distanceMeters },
                     stopsSummary = updated.map { it.name }
                 )
-                firestoreRepo.recordFoundArtifact(
+                persistRecordFoundArtifact(
                     artifactCode = "CREATOR_STUDIO",
                     name = "Trailblazer Seal: $cleanTitle",
                     loreInscription = "Minted by authoring the Community Walking Trail '$cleanTitle' in $cleanRegion. Featured riddle at $cleanStop: $cleanRiddle",
@@ -1250,8 +1762,8 @@ class SideQuestViewModel(
                     isFavorite = true,
                     inspectionNotes = "Published to Community Trail Exchange."
                 )
-                firestoreRepo.awardProgress(xpDelta = 200L, landmarksDelta = 1L, questsCompletedDelta = 1L)
-                firestoreRepo.unlockBadgeIfAbsent(
+                persistAwardProgress(xpDelta = 200L, landmarksDelta = 1L, questsCompletedDelta = 1L)
+                persistUnlockBadgeIfAbsent(
                     badgeId = "badge_community_trailblazer",
                     badgeCode = "COMMUNITY_QUEST_ARCHITECT",
                     title = "Community Quest Architect",
@@ -1260,7 +1772,11 @@ class SideQuestViewModel(
                     rarity = "EPIC",
                     landmarkName = cleanStop
                 )
-                _rewardBanner.value = "Published Creator Trail '$cleanTitle'! +200 XP, Trailblazer Artifact & Architect Badge unlocked!"
+                _rewardBanner.value = getStr(
+                    R.string.vm_creator_published_format,
+                    "Published Creator Trail '$cleanTitle'! +200 XP, Trailblazer Artifact & Architect Badge unlocked!",
+                    cleanTitle
+                )
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -1288,7 +1804,7 @@ class SideQuestViewModel(
 
         viewModelScope.launch {
             try {
-                firestoreRepo.recordCompletedQuest(
+                persistRecordCompletedQuest(
                     title = cleanName,
                     characterStyle = style,
                     regionName = cleanLocation,
@@ -1298,12 +1814,17 @@ class SideQuestViewModel(
                     distanceMeters = distanceMeters.coerceIn(100, 100_000),
                     stopsSummary = stops
                 )
-                firestoreRepo.awardProgress(
+                persistAwardProgress(
                     xpDelta = xpEarned.toLong(),
                     landmarksDelta = landmarksCount.toLong(),
                     questsCompletedDelta = 1L
                 )
-                _rewardBanner.value = "Quest '$cleanName' recorded in Quest Journal (+$xpEarned XP)!"
+                _rewardBanner.value = getStr(
+                    R.string.vm_quest_recorded_format,
+                    "Quest '$cleanName' recorded in Quest Journal (+$xpEarned XP)!",
+                    cleanName,
+                    xpEarned
+                )
                 engagementTracker.logEvent(
                     type = AppEventType.QUEST_COMPLETED,
                     detail = "Logged '$cleanName' in $cleanLocation (+$xpEarned XP)",
@@ -1312,8 +1833,8 @@ class SideQuestViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.e(TAG, "Failed logging completed quest to Firestore", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Failed to record completed quest."
+                Log.e(TAG, "Failed logging completed quest", e)
+                _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_quest_record_failed, "Failed to record completed quest.")
             }
         }
     }
@@ -1324,19 +1845,23 @@ class SideQuestViewModel(
         val earnedXp = (quest.xpEarned.toInt()).coerceAtLeast(totalStops * 110)
         viewModelScope.launch {
             try {
-                firestoreRepo.updateQuestProgress(
+                persistUpdateQuestProgress(
                     questId = quest.id,
                     completedStops = totalStops,
                     xpEarned = earnedXp,
                     status = "COMPLETED",
                     summary = "Completed all $totalStops waypoints in ${quest.regionName}. ${quest.summary}".take(950)
                 )
-                firestoreRepo.awardProgress(
+                persistAwardProgress(
                     xpDelta = 150L,
                     landmarksDelta = 1L,
                     questsCompletedDelta = 1L
                 )
-                _rewardBanner.value = "Quest '${quest.title}' marked COMPLETED in Quest Journal (+150 Bonus XP)!"
+                _rewardBanner.value = getStr(
+                    R.string.vm_quest_marked_completed_format,
+                    "Quest '${quest.title}' marked COMPLETED in Quest Journal (+150 Bonus XP)!",
+                    quest.title
+                )
                 engagementTracker.logEvent(
                     type = AppEventType.QUEST_COMPLETED,
                     detail = "Completed '${quest.title}' in ${quest.regionName}",
@@ -1345,8 +1870,8 @@ class SideQuestViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.e(TAG, "Failed completing quest in Firestore", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Could not mark quest completed."
+                Log.e(TAG, "Failed completing quest", e)
+                _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_quest_mark_complete_failed, "Could not mark quest completed.")
             }
         }
     }
@@ -1355,13 +1880,13 @@ class SideQuestViewModel(
         if (questId.isBlank()) return
         viewModelScope.launch {
             try {
-                firestoreRepo.deleteQuest(questId)
-                _rewardBanner.value = "Quest chronicle removed from Quest Journal."
+                persistDeleteQuest(questId)
+                _rewardBanner.value = getStr(R.string.vm_quest_removed, "Quest chronicle removed from Quest Journal.")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.w(TAG, "Failed deleting quest from Firestore", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Could not remove quest entry."
+                Log.w(TAG, "Failed deleting quest", e)
+                _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_quest_remove_failed, "Could not remove quest entry.")
             }
         }
     }
@@ -1378,25 +1903,34 @@ class SideQuestViewModel(
         _isPaidImageApiApproved.value = approved
         if (approved) {
             _relicArtUiState.value = RelicArtUiState.Idle
-            _rewardBanner.value = "Paid Image API Unlocked by User Opt-In. Live Gemini Relic Art Studio enabled."
+            _rewardBanner.value = getStr(R.string.vm_paid_studio_unlocked, "Paid Image API Unlocked by User Opt-In. Live Gemini Relic Art Studio enabled.")
         } else {
-            _rewardBanner.value = "Zero-Bill Free-Tier Eco Mode Active ($0 Cost Guard). Paid Image API calls locked."
+            _rewardBanner.value = getStr(R.string.vm_paid_studio_locked, "Zero-Bill Free-Tier Eco Mode Active ($0 Cost Guard). Paid Image API calls locked.")
         }
     }
 
     /**
-     * Generates custom RPG Relic / Travelogue artwork at runtime using `gemini-nano-banana-2.1`.
+     * Generates custom RPG Relic / Travelogue artwork at runtime using the studio image model tier.
      * Strictly follows Firebase AI Logic guidelines: 60s timeout, real loading state, no mock fallback,
      * and respects the user's Free-Tier Eco Mode opt-in preference.
      */
     fun generateAiRelicArtwork(customPrompt: String) {
         if (!_isPaidImageApiApproved.value) {
-            val msg = "Zero-Bill Eco Mode is active ($0 cost guard). Toggle 'Allow Paid Image API' in the studio card if you decide to run live Gemini Image Generation."
+            val msg = getStr(R.string.vm_studio_eco_blocked, "Zero-Bill Eco Mode is active ($0 cost guard). Toggle 'Allow Paid Image API' in the studio card if you decide to run live Gemini Image Generation.")
             _relicArtUiState.value = RelicArtUiState.Error(msg)
             _aiErrorBanner.value = msg
             return
         }
 
+        val quotaResult = usageQuotaManager?.evaluateTierForCapability(AiCapability.IMAGE_STUDIO)
+            ?: com.example.model.QuotaAcquisitionResult.Allowed(AiExecutionTier.TIER_1_STANDARD)
+
+        if (quotaResult is com.example.model.QuotaAcquisitionResult.Exhausted) {
+            showSmartQuotaRecovery(AiCapability.IMAGE_STUDIO, isRateLimited429 = false)
+            return
+        }
+
+        val preferredTier = (quotaResult as com.example.model.QuotaAcquisitionResult.Allowed).tier
         val style = _selectedStyle.value
         val activeLm = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
         val cleanPrompt = customPrompt.trim().ifBlank {
@@ -1406,54 +1940,89 @@ class SideQuestViewModel(
         viewModelScope.launch {
             _relicArtUiState.value = RelicArtUiState.Loading(cleanPrompt)
             try {
-                val bitmap = withTimeout(60_000L) {
-                    aiRepo.generateRelicArtworkWithGemini(cleanPrompt)
-                }
-                if (bitmap != null) {
-                    _relicArtUiState.value = RelicArtUiState.Success(bitmap, cleanPrompt)
-                    firestoreRepo.awardProgress(xpDelta = 150L, landmarksDelta = 0L, questsCompletedDelta = 0L)
-                    firestoreRepo.unlockBadgeIfAbsent(
-                        badgeId = "badge_arcane_illuminator",
-                        badgeCode = "AI_RELIC_ILLUMINATOR",
-                        title = "Arcane Relic Illuminator",
-                        description = "Synthesized custom RPG relic artwork using Gemini Image Generation.",
-                        category = "MASTERY",
-                        rarity = "EPIC",
-                        landmarkName = activeLm?.name ?: _regionName.value
+                val artResult = withTimeout(60_000L) {
+                    aiRepo.generateRelicArtworkWithGemini(
+                        promptText = cleanPrompt,
+                        style = style,
+                        landmarkName = activeLm?.name ?: _regionName.value,
+                        preferredTier = preferredTier
                     )
-                    _rewardBanner.value = "AI Relic Artwork Synthesized! +150 XP & 'Arcane Relic Illuminator' Badge!"
+                }
+                val bitmap = artResult.bitmap
+                if (bitmap != null) {
+                    if (artResult.usedCloudQuota) {
+                        usageQuotaManager?.recordUsageSuccess(AiCapability.IMAGE_STUDIO, currentUserId)
+                        _relicArtUiState.value = RelicArtUiState.Success(bitmap, cleanPrompt)
+                        persistAwardProgress(xpDelta = 150L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                        persistUnlockBadgeIfAbsent(
+                            badgeId = "badge_arcane_illuminator",
+                            badgeCode = "AI_RELIC_ILLUMINATOR",
+                            title = "Arcane Relic Illuminator",
+                            description = "Synthesized custom RPG relic artwork using Gemini Image Generation.",
+                            category = "MASTERY",
+                            rarity = "EPIC",
+                            landmarkName = activeLm?.name ?: _regionName.value
+                        )
+                        _rewardBanner.value = getStr(R.string.vm_studio_synthesized, "AI Relic Artwork Synthesized! +150 XP & 'Arcane Relic Illuminator' Badge!")
+                    } else {
+                        if (artResult.hitRateLimit429) {
+                            usageQuotaManager?.recordFallbackCascade(currentUserId)
+                            showSmartQuotaRecovery(AiCapability.IMAGE_STUDIO, isRateLimited429 = true)
+                        }
+                        _relicArtUiState.value = RelicArtUiState.Success(bitmap, cleanPrompt)
+                        _rewardBanner.value = getStr(R.string.vm_studio_canvas_0, "On-Device Canvas Emblem crafted (0 cloud credits used)!")
+                    }
                 } else {
-                    _relicArtUiState.value = RelicArtUiState.Error("No image was returned by the model.")
+                    _relicArtUiState.value = RelicArtUiState.Error(artResult.errorMessage ?: getStr(R.string.vm_studio_no_image, "No image was returned by the model."))
                 }
             } catch (e: TimeoutCancellationException) {
-                _relicArtUiState.value = RelicArtUiState.Error("Image generation timed out after 60 seconds.")
+                _relicArtUiState.value = RelicArtUiState.Error(getStr(R.string.vm_studio_timeout, "Image generation timed out after 60 seconds."))
             } catch (e: QuotaExceededException) {
-                _relicArtUiState.value = RelicArtUiState.Error("Rate limit exceeded. Please try again later.")
+                usageQuotaManager?.recordFallbackCascade(currentUserId)
+                showSmartQuotaRecovery(AiCapability.IMAGE_STUDIO, isRateLimited429 = true)
+                _relicArtUiState.value = RelicArtUiState.Error(getStr(R.string.vm_studio_rate_limit, "Rate limit exceeded. Try On-Device Canvas Emblem."))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "AI Relic image generation failed", e)
-                _relicArtUiState.value = RelicArtUiState.Error(e.localizedMessage ?: "Image generation failed.")
+                val is429 = e is QuotaExceededException ||
+                    e.message?.contains("429") == true ||
+                    e.message?.contains("quota", ignoreCase = true) == true
+                if (is429) {
+                    usageQuotaManager?.recordFallbackCascade(currentUserId)
+                    showSmartQuotaRecovery(AiCapability.IMAGE_STUDIO, isRateLimited429 = true)
+                }
+                _relicArtUiState.value = RelicArtUiState.Error(e.localizedMessage ?: getStr(R.string.vm_studio_failed, "Image generation failed."))
             }
         }
     }
 
     /**
-     * Edits/remixes the currently generated AI Relic artwork or a landmark plaque snapshot using `gemini-nano-banana-2.1`.
+     * Edits/remixes the currently generated AI Relic artwork or a landmark plaque snapshot.
      */
     fun editAiRelicArtwork(editInstruction: String) {
         if (!_isPaidImageApiApproved.value) {
-            val msg = "Zero-Bill Eco Mode is active ($0 cost guard). Toggle 'Allow Paid Image API' in the studio card if you decide to run live Gemini Image Remixing."
+            val msg = getStr(R.string.vm_studio_remix_eco_blocked, "Zero-Bill Eco Mode is active ($0 cost guard). Toggle 'Allow Paid Image API' in the studio card if you decide to run live Gemini Image Remixing.")
             _relicArtUiState.value = RelicArtUiState.Error(msg)
             _aiErrorBanner.value = msg
             return
         }
 
+        val quotaResult = usageQuotaManager?.evaluateTierForCapability(AiCapability.IMAGE_STUDIO)
+            ?: com.example.model.QuotaAcquisitionResult.Allowed(AiExecutionTier.TIER_1_STANDARD)
+
+        if (quotaResult is com.example.model.QuotaAcquisitionResult.Exhausted) {
+            showSmartQuotaRecovery(AiCapability.IMAGE_STUDIO, isRateLimited429 = false)
+            return
+        }
+
+        val preferredTier = (quotaResult as com.example.model.QuotaAcquisitionResult.Allowed).tier
         val instruction = editInstruction.trim().ifBlank {
             "Add glowing astral runes and golden twilight mist around the artifact"
         }
         val currentState = _relicArtUiState.value
         val activeLm = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
+        val style = _selectedStyle.value
         val sourceBitmap = when (currentState) {
             is RelicArtUiState.Success -> currentState.bitmap
             else -> DungeonMasterAiRepository.createLandmarkPlaqueBitmap(
@@ -1467,25 +2036,48 @@ class SideQuestViewModel(
         viewModelScope.launch {
             _relicArtUiState.value = RelicArtUiState.Loading(instruction)
             try {
-                val editedBitmap = withTimeout(60_000L) {
-                    aiRepo.editRelicArtworkWithGemini(sourceBitmap, instruction)
+                val editResult = withTimeout(60_000L) {
+                    aiRepo.editRelicArtworkWithGemini(
+                        inputBitmap = sourceBitmap,
+                        editInstruction = instruction,
+                        style = style,
+                        landmarkName = activeLm?.name ?: _regionName.value,
+                        preferredTier = preferredTier
+                    )
                 }
-                if (editedBitmap != null) {
+                val editedBitmap = editResult.bitmap
+                if (editedBitmap != null && editResult.usedCloudQuota) {
+                    usageQuotaManager?.recordUsageSuccess(AiCapability.IMAGE_STUDIO, currentUserId)
                     _relicArtUiState.value = RelicArtUiState.Success(editedBitmap, instruction)
-                    firestoreRepo.awardProgress(xpDelta = 125L, landmarksDelta = 0L, questsCompletedDelta = 0L)
-                    _rewardBanner.value = "AI Relic Image Remixed! (+125 XP)"
+                    persistAwardProgress(xpDelta = 125L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                    _rewardBanner.value = getStr(R.string.vm_studio_remixed, "AI Relic Image Remixed! (+125 XP)")
                 } else {
-                    _relicArtUiState.value = RelicArtUiState.Error("No edited image was returned by the model.")
+                    if (editResult.hitRateLimit429) {
+                        usageQuotaManager?.recordFallbackCascade(currentUserId)
+                        showSmartQuotaRecovery(AiCapability.IMAGE_STUDIO, isRateLimited429 = true)
+                    }
+                    _relicArtUiState.value = RelicArtUiState.Error(
+                        editResult.errorMessage ?: getStr(R.string.vm_studio_no_edit_image, "No edited image was returned by the model.")
+                    )
                 }
             } catch (e: TimeoutCancellationException) {
-                _relicArtUiState.value = RelicArtUiState.Error("Image editing timed out after 60 seconds.")
+                _relicArtUiState.value = RelicArtUiState.Error(getStr(R.string.vm_studio_edit_timeout, "Image editing timed out after 60 seconds."))
             } catch (e: QuotaExceededException) {
-                _relicArtUiState.value = RelicArtUiState.Error("Rate limit exceeded. Please try again later.")
+                usageQuotaManager?.recordFallbackCascade(currentUserId)
+                showSmartQuotaRecovery(AiCapability.IMAGE_STUDIO, isRateLimited429 = true)
+                _relicArtUiState.value = RelicArtUiState.Error(getStr(R.string.vm_studio_edit_rate_limit, "Rate limit exceeded. Please try again later."))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "AI Relic image editing failed", e)
-                _relicArtUiState.value = RelicArtUiState.Error(e.localizedMessage ?: "Image editing failed.")
+                val is429 = e is QuotaExceededException ||
+                    e.message?.contains("429") == true ||
+                    e.message?.contains("quota", ignoreCase = true) == true
+                if (is429) {
+                    usageQuotaManager?.recordFallbackCascade(currentUserId)
+                    showSmartQuotaRecovery(AiCapability.IMAGE_STUDIO, isRateLimited429 = true)
+                }
+                _relicArtUiState.value = RelicArtUiState.Error(e.localizedMessage ?: getStr(R.string.vm_studio_edit_failed, "Image editing failed."))
             }
         }
     }
@@ -1503,6 +2095,16 @@ class SideQuestViewModel(
             ?: _landmarks.value.firstOrNull() ?: return
         val style = _selectedStyle.value
 
+        val quotaResult = usageQuotaManager?.evaluateTierForCapability(AiCapability.FACT_DOSSIER)
+            ?: com.example.model.QuotaAcquisitionResult.Allowed(AiExecutionTier.TIER_1_STANDARD)
+
+        if (quotaResult is com.example.model.QuotaAcquisitionResult.Exhausted) {
+            showSmartQuotaRecovery(AiCapability.FACT_DOSSIER, isRateLimited429 = false)
+            return
+        }
+
+        val preferredTier = (quotaResult as com.example.model.QuotaAcquisitionResult.Allowed).tier
+
         viewModelScope.launch {
             _isGeneratingFactDossier.value = true
             _aiErrorBanner.value = null
@@ -1510,11 +2112,15 @@ class SideQuestViewModel(
                 val result = aiRepo.generateLandmarkFactDossier(
                     style = style,
                     regionName = _regionName.value,
-                    landmark = activeLm
+                    landmark = activeLm,
+                    preferredTier = preferredTier
                 )
                 result.onSuccess { dossier ->
+                    if (dossier.usedCloudQuota) {
+                        usageQuotaManager?.recordUsageSuccess(AiCapability.FACT_DOSSIER, currentUserId)
+                    }
                     _activeFactDossier.value = dossier
-                    firestoreRepo.awardProgress(xpDelta = 110L, landmarksDelta = 0L, questsCompletedDelta = 0L)
+                    persistAwardProgress(xpDelta = 110L, landmarksDelta = 0L, questsCompletedDelta = 0L)
                     val factsBullet = dossier.verifiedHistoricalFacts.joinToString("\n• ", prefix = "• ")
                     val chatReport = "🏛️ **[AI FACT-CHECK & DEEP LORE DOSSIER: ${dossier.landmarkName}]**\n" +
                         "**Era:** ${dossier.verifiedEra} • **Style:** ${dossier.architecturalStyle}\n\n" +
@@ -1522,22 +2128,42 @@ class SideQuestViewModel(
                         "🔍 *Walker Observation Tip:* ${dossier.localInsiderTip}\n" +
                         "⚔️ *RPG Hook:* ${dossier.rpgEncounterHook}"
                     appendDungeonMasterMessage(chatReport, landmarkName = dossier.landmarkName)
-                    _rewardBanner.value = "Verified Fact-Check Dossier for ${dossier.landmarkName} (+110 XP)!"
+                    _rewardBanner.value = getStr(
+                        R.string.vm_dossier_verified_format,
+                        "Verified Fact-Check Dossier for ${dossier.landmarkName} (+110 XP)!",
+                        dossier.landmarkName
+                    )
                     if (voiceNarrator.autoNarrate.value) {
                         voiceNarrator.speak(
                             text = "${dossier.landmarkName}, ${dossier.verifiedEra}. ${dossier.verifiedHistoricalFacts.firstOrNull().orEmpty()} ${dossier.rpgEncounterHook}",
                             style = style,
-                            title = "Fact Dossier • ${dossier.landmarkName}"
+                            title = getStr(R.string.vm_dossier_tts_title_format, "Fact Dossier • ${dossier.landmarkName}", dossier.landmarkName)
                         )
                     }
                 }.onFailure { err ->
-                    _aiErrorBanner.value = err.localizedMessage ?: "Could not synthesize Fact-Check Dossier."
+                    val is429 = err is QuotaExceededException ||
+                        err.message?.contains("429") == true ||
+                        err.message?.contains("quota", ignoreCase = true) == true
+                    if (is429) {
+                        usageQuotaManager?.recordFallbackCascade(currentUserId)
+                        showSmartQuotaRecovery(AiCapability.FACT_DOSSIER, isRateLimited429 = true)
+                    } else {
+                        _aiErrorBanner.value = err.localizedMessage ?: getStr(R.string.vm_dossier_failed, "Could not synthesize Fact-Check Dossier.")
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Fact dossier error", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Fact-Check Dossier error."
+                val is429 = e is QuotaExceededException ||
+                    e.message?.contains("429") == true ||
+                    e.message?.contains("quota", ignoreCase = true) == true
+                if (is429) {
+                    usageQuotaManager?.recordFallbackCascade(currentUserId)
+                    showSmartQuotaRecovery(AiCapability.FACT_DOSSIER, isRateLimited429 = true)
+                } else {
+                    _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_dossier_error, "Fact-Check Dossier error.")
+                }
             } finally {
                 _isGeneratingFactDossier.value = false
             }
@@ -1547,10 +2173,11 @@ class SideQuestViewModel(
     fun dismissAiRiddle() {
         _activeAiRiddle.value = null
         _riddleAnswerStatus.value = null
+        _isActiveRiddleSolved.value = false
     }
 
     /**
-     * Generates an interactive 3-option AI Landmark Riddle & Cipher Duel (`gemini-3.8-flash`).
+     * Generates an interactive 3-option AI Landmark Riddle & Cipher Duel.
      */
     fun requestAiLandmarkRiddle() {
         if (_isGeneratingRiddle.value) return
@@ -1558,33 +2185,64 @@ class SideQuestViewModel(
             ?: _landmarks.value.firstOrNull() ?: return
         val style = _selectedStyle.value
 
+        val quotaResult = usageQuotaManager?.evaluateTierForCapability(AiCapability.RIDDLE_CIPHER)
+            ?: com.example.model.QuotaAcquisitionResult.Allowed(AiExecutionTier.TIER_1_STANDARD)
+
+        if (quotaResult is com.example.model.QuotaAcquisitionResult.Exhausted) {
+            showSmartQuotaRecovery(AiCapability.RIDDLE_CIPHER, isRateLimited429 = false)
+            return
+        }
+
+        val preferredTier = (quotaResult as com.example.model.QuotaAcquisitionResult.Allowed).tier
+
         viewModelScope.launch {
             _isGeneratingRiddle.value = true
             _riddleAnswerStatus.value = null
+            _isActiveRiddleSolved.value = false
             _aiErrorBanner.value = null
             try {
                 val result = aiRepo.generateLandmarkRiddleWithGemini(
                     style = style,
                     regionName = _regionName.value,
-                    landmark = activeLm
+                    landmark = activeLm,
+                    preferredTier = preferredTier
                 )
                 result.onSuccess { riddle ->
+                    if (riddle.usedCloudQuota) {
+                        usageQuotaManager?.recordUsageSuccess(AiCapability.RIDDLE_CIPHER, currentUserId)
+                    }
                     _activeAiRiddle.value = riddle
                     if (voiceNarrator.autoNarrate.value) {
                         voiceNarrator.speak(
                             text = "Riddle Challenge at ${riddle.landmarkName}: ${riddle.question}",
                             style = style,
-                            title = "Riddle Duel • ${riddle.landmarkName}"
+                            title = getStr(R.string.vm_riddle_tts_title_format, "Riddle Duel • ${riddle.landmarkName}", riddle.landmarkName)
                         )
                     }
                 }.onFailure { err ->
-                    _aiErrorBanner.value = err.localizedMessage ?: "Could not generate AI Riddle."
+                    val is429 = err is QuotaExceededException ||
+                        err.message?.contains("429") == true ||
+                        err.message?.contains("quota", ignoreCase = true) == true
+                    if (is429) {
+                        usageQuotaManager?.recordFallbackCascade(currentUserId)
+                        showSmartQuotaRecovery(AiCapability.RIDDLE_CIPHER, isRateLimited429 = true)
+                    } else {
+                        _aiErrorBanner.value = err.localizedMessage ?: getStr(R.string.vm_riddle_failed, "Could not generate AI Riddle.")
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "AI Riddle error", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "AI Riddle generation failed."
+                val is429 = e is QuotaExceededException ||
+                    e.message?.contains("429") == true ||
+                    e.message?.contains("quota", ignoreCase = true) == true
+                if (is429) {
+                    usageQuotaManager?.recordFallbackCascade(currentUserId)
+                    showSmartQuotaRecovery(AiCapability.RIDDLE_CIPHER, isRateLimited429 = true)
+                } else {
+                    _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_riddle_gen_failed, "AI Riddle generation failed.")
+                }
             } finally {
                 _isGeneratingRiddle.value = false
             }
@@ -1596,15 +2254,21 @@ class SideQuestViewModel(
         val isCorrect = selectedIndex == riddle.correctIndex
         val style = _selectedStyle.value
         if (isCorrect) {
-            _riddleAnswerStatus.value = "CORRECT! +${riddle.xpReward} XP — ${riddle.explanationLore}"
+            _isActiveRiddleSolved.value = true
+            _riddleAnswerStatus.value = getStr(
+                R.string.vm_riddle_correct_status_format,
+                "CORRECT! +${riddle.xpReward} XP — ${riddle.explanationLore}",
+                riddle.xpReward,
+                riddle.explanationLore
+            )
             viewModelScope.launch {
                 try {
-                    firestoreRepo.awardProgress(
+                    persistAwardProgress(
                         xpDelta = riddle.xpReward.toLong(),
                         landmarksDelta = 1L,
                         questsCompletedDelta = 0L
                     )
-                    firestoreRepo.unlockBadgeIfAbsent(
+                    persistUnlockBadgeIfAbsent(
                         badgeId = "badge_ai_riddle_duelist",
                         badgeCode = "AI_CIPHER_GRANDMASTER",
                         title = "Cipher Duel Grandmaster",
@@ -1613,7 +2277,11 @@ class SideQuestViewModel(
                         rarity = "EPIC",
                         landmarkName = riddle.landmarkName
                     )
-                    _rewardBanner.value = "Riddle Solved! +${riddle.xpReward} XP & 'Cipher Duel Grandmaster' Badge!"
+                    _rewardBanner.value = getStr(
+                        R.string.vm_riddle_solved_banner_format,
+                        "Riddle Solved! +${riddle.xpReward} XP & 'Cipher Duel Grandmaster' Badge!",
+                        riddle.xpReward
+                    )
                     recordCoreOperationSuccess("Riddle Duel (${riddle.landmarkName})")
                     engagementTracker.logEvent(
                         type = AppEventType.RIDDLE_SOLVED,
@@ -1630,11 +2298,16 @@ class SideQuestViewModel(
                 voiceNarrator.speak(
                     text = "Correct! ${riddle.explanationLore}",
                     style = style,
-                    title = "Riddle Solved!"
+                    title = getStr(R.string.vm_riddle_solved_tts_title, "Riddle Solved!")
                 )
             }
         } else {
-            _riddleAnswerStatus.value = "Not quite! Hint: ${riddle.hint}"
+            _isActiveRiddleSolved.value = false
+            _riddleAnswerStatus.value = getStr(
+                R.string.vm_riddle_hint_status_format,
+                "Not quite! Hint: ${riddle.hint}",
+                riddle.hint
+            )
         }
     }
 
@@ -1649,6 +2322,27 @@ class SideQuestViewModel(
         val style = _selectedStyle.value
         val (lat, lon) = _userCoordinates.value
 
+        val quotaResult = usageQuotaManager?.evaluateTierForCapability(AiCapability.AUDIO_FIELD_NOTE)
+            ?: com.example.model.QuotaAcquisitionResult.Allowed(AiExecutionTier.TIER_1_STANDARD)
+
+        if (quotaResult is com.example.model.QuotaAcquisitionResult.Exhausted) {
+            // Tier 3 Zero-Cost Local fallback: Save raw spoken note directly into vault so thought is never lost
+            catalogCustomFieldArtifact(
+                name = "Raw Voice Note • $landmarkName",
+                category = ArtifactCategory.PLAQUE_RUBBING,
+                landmarkName = landmarkName,
+                inscription = cleanText,
+                notes = "Saved locally in raw audio transcript form (0 Cloud Quota Used).",
+                overrideSuccessBanner = getStr(
+                    R.string.vm_voice_log_raw_banner,
+                    "Raw Voice Note preserved in Vault! Auto-cleanup available when quota resets."
+                )
+            )
+            return
+        }
+
+        val preferredTier = (quotaResult as com.example.model.QuotaAcquisitionResult.Allowed).tier
+
         viewModelScope.launch {
             _isPolishingVoiceNote.value = true
             _aiErrorBanner.value = null
@@ -1657,10 +2351,14 @@ class SideQuestViewModel(
                     rawTranscript = cleanText,
                     style = style,
                     regionName = _regionName.value,
-                    landmarkName = landmarkName
+                    landmarkName = landmarkName,
+                    preferredTier = preferredTier
                 )
                 result.onSuccess { polished ->
-                    firestoreRepo.recordFoundArtifact(
+                    if (polished.usedCloudQuota) {
+                        usageQuotaManager?.recordUsageSuccess(AiCapability.AUDIO_FIELD_NOTE, currentUserId)
+                    }
+                    persistRecordFoundArtifact(
                         artifactCode = "VOICE_FIELD_LOG",
                         name = polished.curioTitle,
                         loreInscription = "${polished.polishedChronicle} (${polished.historicalConnection})",
@@ -1675,8 +2373,8 @@ class SideQuestViewModel(
                         isFavorite = true,
                         inspectionNotes = "Voice Transcript: \"$cleanText\""
                     )
-                    firestoreRepo.awardProgress(xpDelta = 140L, landmarksDelta = 1L, questsCompletedDelta = 0L)
-                    firestoreRepo.unlockBadgeIfAbsent(
+                    persistAwardProgress(xpDelta = 140L, landmarksDelta = 1L, questsCompletedDelta = 0L)
+                    persistUnlockBadgeIfAbsent(
                         badgeId = "badge_voice_chronicler",
                         badgeCode = "VOICE_LORE_CHRONICLER",
                         title = "Spoken Lore Chronicler",
@@ -1689,7 +2387,11 @@ class SideQuestViewModel(
                         "${polished.polishedChronicle}\n\n" +
                         "📍 *${polished.historicalConnection}* (+140 XP • Saved to Firestore Artifact Vault)"
                     appendDungeonMasterMessage(msg, landmarkName = landmarkName)
-                    _rewardBanner.value = "Voice Field Log Minted as '${polished.curioTitle}' (+140 XP)!"
+                    _rewardBanner.value = getStr(
+                        R.string.vm_voice_log_minted_format,
+                        "Voice Field Log Minted as '${polished.curioTitle}' (+140 XP)!",
+                        polished.curioTitle
+                    )
                     if (voiceNarrator.autoNarrate.value) {
                         voiceNarrator.speak(
                             text = "${polished.curioTitle}. ${polished.polishedChronicle}",
@@ -1698,13 +2400,29 @@ class SideQuestViewModel(
                         )
                     }
                 }.onFailure { err ->
-                    _aiErrorBanner.value = err.localizedMessage ?: "Failed to polish voice field note."
+                    val is429 = err is QuotaExceededException ||
+                        err.message?.contains("429") == true ||
+                        err.message?.contains("quota", ignoreCase = true) == true
+                    if (is429) {
+                        usageQuotaManager?.recordFallbackCascade(currentUserId)
+                        showSmartQuotaRecovery(AiCapability.AUDIO_FIELD_NOTE, isRateLimited429 = true)
+                    } else {
+                        _aiErrorBanner.value = err.localizedMessage ?: getStr(R.string.vm_voice_log_failed, "Failed to polish voice field note.")
+                    }
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Voice field note error", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Voice field note failed."
+                val is429 = e is QuotaExceededException ||
+                    e.message?.contains("429") == true ||
+                    e.message?.contains("quota", ignoreCase = true) == true
+                if (is429) {
+                    usageQuotaManager?.recordFallbackCascade(currentUserId)
+                    showSmartQuotaRecovery(AiCapability.AUDIO_FIELD_NOTE, isRateLimited429 = true)
+                } else {
+                    _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_voice_note_failed, "Voice field note failed.")
+                }
             } finally {
                 _isPolishingVoiceNote.value = false
             }
@@ -1714,7 +2432,12 @@ class SideQuestViewModel(
     // Suggestion 6: Co-Op Party Role & Riddle Resolution
     fun selectPartyRole(role: PartyRole) {
         _selectedPartyRole.value = role
-        _rewardBanner.value = "Co-Op Party Role set to ${role.title} (${role.perk})"
+        _rewardBanner.value = getStr(
+            R.string.vm_coop_role_set_format,
+            "Co-Op Party Role set to ${role.title} (${role.perk})",
+            role.title,
+            role.perk
+        )
     }
 
     fun cyclePartyRoomCode() {
@@ -1722,7 +2445,11 @@ class SideQuestViewModel(
         val nextIdx = (codes.indexOf(_partyCode.value) + 1) % codes.size
         _partyCode.value = codes[nextIdx]
         _isCoOpRiddleSolved.value = false
-        _rewardBanner.value = "Synced with Co-Op Party Room ${_partyCode.value} (3/3 Explorers Ready)"
+        _rewardBanner.value = getStr(
+            R.string.vm_coop_room_synced_format,
+            "Synced with Co-Op Party Room ${_partyCode.value} (3/3 Explorers Ready)",
+            _partyCode.value
+        )
     }
 
     fun solveCoOpPartyRiddle() {
@@ -1732,8 +2459,8 @@ class SideQuestViewModel(
 
         viewModelScope.launch {
             try {
-                firestoreRepo.awardProgress(xpDelta = 250L, landmarksDelta = 1L, questsCompletedDelta = 0L)
-                firestoreRepo.unlockBadgeIfAbsent(
+                persistAwardProgress(xpDelta = 250L, landmarksDelta = 1L, questsCompletedDelta = 0L)
+                persistUnlockBadgeIfAbsent(
                     badgeId = "badge_coop_vanguard",
                     badgeCode = "COOP_PARTY_VANGUARD",
                     title = "Guild Co-Op Vanguard",
@@ -1742,7 +2469,7 @@ class SideQuestViewModel(
                     rarity = "LEGENDARY",
                     landmarkName = activeLm?.name ?: _regionName.value
                 )
-                _rewardBanner.value = "Co-Op Party Riddle Solved! +250 Shared Party XP & 'Guild Co-Op Vanguard' Badge Unlocked!"
+                _rewardBanner.value = getStr(R.string.vm_coop_riddle_solved, "Co-Op Party Riddle Solved! +250 Shared Party XP & 'Guild Co-Op Vanguard' Badge Unlocked!")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -1754,7 +2481,8 @@ class SideQuestViewModel(
     fun buildNeighborhoodLeaderboard(profile: AdventurerProfile?): List<NeighborhoodStanding> {
         val userXp = profile?.xp ?: 0L
         val userLandmarks = profile?.landmarksVisited ?: 0L
-        val userName = profile?.displayName?.ifBlank { "You (Explorer)" } ?: "You (Explorer)"
+        val youFallback = getStr(R.string.vm_you_explorer, "You (Explorer)")
+        val userName = profile?.displayName?.ifBlank { youFallback } ?: youFallback
 
         val rivals = listOf(
             NeighborhoodStanding(
@@ -1791,8 +2519,12 @@ class SideQuestViewModel(
             ),
             NeighborhoodStanding(
                 rankPosition = 0,
-                explorerName = "$userName (You)",
-                titleBadge = if (_isGuildPassActive.value) "Guild Pass Sovereign" else "Active Explorer",
+                explorerName = getStr(R.string.vm_you_suffix_format, "$userName (You)", userName),
+                titleBadge = if (_isGuildPassActive.value) {
+                    getStr(R.string.vm_guild_pass_sovereign, "Guild Pass Sovereign")
+                } else {
+                    getStr(R.string.vm_active_explorer, "Active Explorer")
+                },
                 xpScore = userXp,
                 landmarksCleared = userLandmarks,
                 isCurrentUser = true
@@ -1809,11 +2541,11 @@ class SideQuestViewModel(
         restyleCurrentLandmarks(style)
         viewModelScope.launch {
             try {
-                firestoreRepo.updateCharacterStyle(style)
+                persistUpdateCharacterStyle(style)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to update character style in Firestore", e)
+                Log.w(TAG, "Failed to update character style", e)
             }
         }
         val firstLandmark = _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
@@ -1900,7 +2632,12 @@ class SideQuestViewModel(
                 val lat = location.latitude
                 val lon = location.longitude
                 _userCoordinates.value = Pair(lat, lon)
-                val label = String.format(Locale.US, "Live GPS Sector (%.4f, %.4f)", lat, lon)
+                val label = getStr(
+                    R.string.vm_live_gps_sector_format,
+                    String.format(Locale.US, "Live GPS Sector (%.4f, %.4f)", lat, lon),
+                    lat,
+                    lon
+                )
                 _regionName.value = label
                 generateQuestForCoordinates(
                     lat = lat,
@@ -1910,7 +2647,11 @@ class SideQuestViewModel(
                 )
             } else {
                 val fallback = presetRegions.first()
-                _rewardBanner.value = "GPS signal indoor/unavailable — calibrated to ${fallback.name}."
+                _rewardBanner.value = getStr(
+                    R.string.vm_gps_calibrated_format,
+                    "GPS signal indoor/unavailable — calibrated to ${fallback.name}.",
+                    fallback.name
+                )
                 selectPresetRegion(fallback)
             }
         }
@@ -1939,7 +2680,11 @@ class SideQuestViewModel(
                 )
             } else {
                 _isGeneratingQuest.value = false
-                _aiErrorBanner.value = "Could not geocode '$query'. Try a city or landmark like 'Kyoto', 'Boston Common', or 'SoHo NYC'."
+                _aiErrorBanner.value = getStr(
+                    R.string.vm_geocode_failed_format,
+                    "Could not geocode '$query'. Try a city or landmark like 'Kyoto', 'Boston Common', or 'SoHo NYC'.",
+                    query
+                )
             }
         }
     }
@@ -1977,22 +2722,38 @@ class SideQuestViewModel(
                 _landmarks.value = discovered
                 _selectedLandmarkIndex.value = 0
 
+                val quotaResult = usageQuotaManager?.evaluateTierForCapability(AiCapability.QUEST_NARRATIVE)
+                val preferredTier = when (quotaResult) {
+                    is com.example.model.QuotaAcquisitionResult.Allowed -> quotaResult.tier
+                    is com.example.model.QuotaAcquisitionResult.Exhausted -> {
+                        usageQuotaManager?.recordFallbackCascade(currentUserId)
+                        AiExecutionTier.TIER_3_LOCAL_FALLBACK
+                    }
+                    null -> AiExecutionTier.TIER_1_STANDARD
+                }
+
                 val aiResult = aiRepo.generateWalkingQuestWithGemini(
                     style = style,
                     regionName = regionLabel,
-                    landmarks = discovered
+                    landmarks = discovered,
+                    preferredTier = preferredTier
                 )
 
-                val finalLandmarks = aiResult.getOrNull()?.enrichedLandmarks ?: discovered
-                val questTitle = aiResult.getOrNull()?.questTitle
+                val narrative = aiResult.getOrNull()
+                if (narrative?.usedCloudQuota == true) {
+                    usageQuotaManager?.recordUsageSuccess(AiCapability.QUEST_NARRATIVE, currentUserId)
+                }
+
+                val finalLandmarks = narrative?.enrichedLandmarks ?: discovered
+                val questTitle = narrative?.questTitle
                     ?: "${style.title}: $regionLabel Expedition"
-                val questIntro = aiResult.getOrNull()?.questIntro
+                val questIntro = narrative?.questIntro
                     ?: "Your ${style.title} sensors have pinpointed ${finalLandmarks.size} real-world landmarks across $regionLabel."
 
                 if (aiResult.isFailure) {
                     val err = aiResult.exceptionOrNull()
                     _aiErrorBanner.value = err?.localizedMessage
-                        ?: "Gemini quest enrichment encountered an error."
+                        ?: getStr(R.string.vm_quest_enrichment_err, "Gemini quest enrichment encountered an error.")
                 }
 
                 _landmarks.value = finalLandmarks
@@ -2000,7 +2761,7 @@ class SideQuestViewModel(
                 _activeQuestIntro.value = questIntro
 
                 val totalDistance = finalLandmarks.sumOf { it.distanceMeters }
-                val questId = firestoreRepo.createQuest(
+                val questId = persistCreateQuest(
                     title = questTitle,
                     characterStyle = style,
                     regionName = regionLabel,
@@ -2032,7 +2793,7 @@ class SideQuestViewModel(
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Error generating walking quest", e)
-                _aiErrorBanner.value = e.localizedMessage ?: "Failed to generate walking quest."
+                _aiErrorBanner.value = e.localizedMessage ?: getStr(R.string.vm_quest_generate_failed, "Failed to generate walking quest.")
             } finally {
                 _isGeneratingQuest.value = false
             }
@@ -2088,7 +2849,7 @@ class SideQuestViewModel(
                     val isWeatherFavored = atmosphere.favoredCategory == landmark.category
                     val weatherResonanceMultiplier = if (isWeatherFavored) atmosphere.xpMultiplier else 1.0
 
-                    firestoreRepo.addInventoryItem(
+                    persistAddInventoryItem(
                         name = landmark.rewardItemName,
                         loreDescription = "Recovered at ${landmark.name} (${landmark.category.label}). ${landmark.realFactOrAddress}",
                         itemType = landmark.rewardItemType,
@@ -2103,7 +2864,7 @@ class SideQuestViewModel(
                     val baseResonance = (landmark.xpReward / 3).coerceAtLeast(25)
                     val finalResonance = (baseResonance * weatherResonanceMultiplier).toInt()
 
-                    firestoreRepo.recordFoundArtifact(
+                    persistRecordFoundArtifact(
                         artifactCode = "WAYPOINT_CLEAR",
                         name = landmark.rewardItemName,
                         loreInscription = "${landmark.loreSnippet} Historical grounding: ${landmark.realFactOrAddress}",
@@ -2124,7 +2885,7 @@ class SideQuestViewModel(
                     val guildMultiplier = if (_isGuildPassActive.value) 1.5 else 1.0
                     val totalDeltaXp = (rawXp * guildMultiplier * weatherResonanceMultiplier).toLong()
 
-                    firestoreRepo.awardProgress(
+                    persistAwardProgress(
                         xpDelta = totalDeltaXp,
                         landmarksDelta = 1L,
                         questsCompletedDelta = if (allCleared) 1L else 0L
@@ -2152,7 +2913,7 @@ class SideQuestViewModel(
                             "MASTERY"
                         )
                     }
-                    firestoreRepo.unlockBadgeIfAbsent(
+                    persistUnlockBadgeIfAbsent(
                         badgeId = badgeId,
                         badgeCode = badgeId.uppercase(Locale.US),
                         title = badgeTitle,
@@ -2163,7 +2924,7 @@ class SideQuestViewModel(
                     )
 
                     if (allCleared) {
-                        firestoreRepo.unlockBadgeIfAbsent(
+                        persistUnlockBadgeIfAbsent(
                             badgeId = "badge_quest_master_${style.id.lowercase(Locale.US)}",
                             badgeCode = "QUEST_MASTER_${style.id}",
                             title = "${style.title} Vanguard",
@@ -2184,7 +2945,7 @@ class SideQuestViewModel(
                     }
 
                     if (existingQuestId != null) {
-                        firestoreRepo.updateQuestProgress(
+                        persistUpdateQuestProgress(
                             questId = existingQuestId,
                             completedStops = clearedCount,
                             xpEarned = totalXpEarned,
@@ -2195,7 +2956,7 @@ class SideQuestViewModel(
                             _activeFirestoreQuestId.value = null
                         }
                     } else {
-                        val createdId = firestoreRepo.createQuest(
+                        val createdId = persistCreateQuest(
                             title = _activeQuestTitle.value,
                             characterStyle = style,
                             regionName = _regionName.value,
@@ -2205,7 +2966,7 @@ class SideQuestViewModel(
                             stopsSummary = updatedList.map { it.name }
                         )
                         if (allCleared) {
-                            firestoreRepo.updateQuestProgress(
+                            persistUpdateQuestProgress(
                                 questId = createdId,
                                 completedStops = clearedCount,
                                 xpEarned = totalXpEarned,
@@ -2218,14 +2979,30 @@ class SideQuestViewModel(
                     }
 
                     val bountySuffix = if (completedBountyTitle != null) {
-                        " • Bounty '$completedBountyTitle' & Partner Voucher Unlocked!"
+                        getStr(
+                            R.string.vm_bounty_unlocked_suffix_format,
+                            " • Bounty '$completedBountyTitle' & Partner Voucher Unlocked!",
+                            completedBountyTitle!!
+                        )
                     } else {
                         ""
                     }
                     _rewardBanner.value = if (allCleared) {
-                        "Quest Completed! +$totalDeltaXp XP & Looted '${landmark.rewardItemName}'$bountySuffix"
+                        getStr(
+                            R.string.vm_quest_completed_banner_format,
+                            "Quest Completed! +$totalDeltaXp XP & Looted '${landmark.rewardItemName}'$bountySuffix",
+                            totalDeltaXp,
+                            landmark.rewardItemName,
+                            bountySuffix
+                        )
                     } else {
-                        "Waypoint Cleared! +$totalDeltaXp XP & Looted '${landmark.rewardItemName}'$bountySuffix"
+                        getStr(
+                            R.string.vm_waypoint_cleared_banner_format,
+                            "Waypoint Cleared! +$totalDeltaXp XP & Looted '${landmark.rewardItemName}'$bountySuffix",
+                            totalDeltaXp,
+                            landmark.rewardItemName,
+                            bountySuffix
+                        )
                     }
                     recordCoreOperationSuccess(
                         if (allCleared) "Walking Quest '${_activeQuestTitle.value}'" else "Waypoint '${landmark.name}'"
@@ -2263,10 +3040,20 @@ class SideQuestViewModel(
         val activeLandmark = overrideLandmark ?: _landmarks.value.getOrNull(_selectedLandmarkIndex.value)
         val style = _selectedStyle.value
 
+        val quotaResult = usageQuotaManager?.evaluateTierForCapability(AiCapability.COMPANION_CHAT)
+            ?: com.example.model.QuotaAcquisitionResult.Allowed(AiExecutionTier.TIER_1_STANDARD)
+
+        if (quotaResult is com.example.model.QuotaAcquisitionResult.Exhausted) {
+            showSmartQuotaRecovery(AiCapability.COMPANION_CHAT, isRateLimited429 = false)
+            return
+        }
+
+        val preferredTier = (quotaResult as com.example.model.QuotaAcquisitionResult.Allowed).tier
+
         val userMessage = ChatMessage(
             id = UUID.randomUUID().toString(),
             isUser = true,
-            senderName = "You (${style.title})",
+            senderName = getStr(R.string.vm_sender_you_format, "You (${style.title})", style.title),
             text = trimmed,
             landmarkName = activeLandmark?.name
         )
@@ -2276,7 +3063,7 @@ class SideQuestViewModel(
             id = dmMessageId,
             isUser = false,
             senderName = style.narratorTitle,
-            text = "Consulting the real-world archives...",
+            text = getStr(R.string.vm_dm_consulting, "Consulting the real-world archives..."),
             landmarkName = activeLandmark?.name,
             isStreaming = true,
             groundingSources = listOfNotNull(
@@ -2292,22 +3079,29 @@ class SideQuestViewModel(
 
         viewModelScope.launch {
             var finalReplyText = ""
+            var usedCloudQuota = false
             try {
-                aiRepo.streamDungeonMasterReply(
+                aiRepo.streamDungeonMasterReplyEvents(
                     style = style,
                     regionName = _regionName.value,
                     activeLandmark = activeLandmark,
                     recentMessages = historySnapshot,
-                    userMessage = trimmed
-                ).collect { partialText ->
-                    finalReplyText = partialText
+                    userMessage = trimmed,
+                    preferredTier = preferredTier
+                ).collect { chunk ->
+                    finalReplyText = chunk.text
+                    usedCloudQuota = chunk.usedCloudQuota
                     _chatMessages.value = _chatMessages.value.map { msg ->
                         if (msg.id == dmMessageId) {
-                            msg.copy(text = partialText, isStreaming = true)
+                            msg.copy(text = chunk.text, isStreaming = true)
                         } else {
                             msg
                         }
                     }
+                }
+
+                if (usedCloudQuota) {
+                    usageQuotaManager?.recordUsageSuccess(AiCapability.COMPANION_CHAT, currentUserId)
                 }
 
                 _chatMessages.value = _chatMessages.value.map { msg ->
@@ -2327,16 +3121,26 @@ class SideQuestViewModel(
                 }
             } catch (e: TimeoutCancellationException) {
                 Log.e(TAG, "Dungeon Master streaming timed out", e)
-                val errText = "Dungeon Master transmission timed out after 60 seconds. Please try again."
+                val errText = getStr(R.string.vm_dm_timeout, "Dungeon Master transmission timed out after 60 seconds. Please try again.")
                 _aiErrorBanner.value = errText
                 updateFailedDmMessage(dmMessageId, errText)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Dungeon Master streaming failed", e)
-                val errText = e.localizedMessage ?: "Dungeon Master connection interrupted."
+                val is429 = e is QuotaExceededException ||
+                    e.message?.contains("429") == true ||
+                    e.message?.contains("quota", ignoreCase = true) == true
+                if (is429) {
+                    usageQuotaManager?.recordFallbackCascade(currentUserId)
+                    showSmartQuotaRecovery(AiCapability.COMPANION_CHAT, isRateLimited429 = true)
+                }
+                val errText = e.localizedMessage ?: getStr(R.string.vm_dm_interrupted, "Dungeon Master connection interrupted.")
                 _aiErrorBanner.value = errText
-                updateFailedDmMessage(dmMessageId, "Transmission error: $errText")
+                updateFailedDmMessage(
+                    dmMessageId,
+                    getStr(R.string.vm_dm_tx_error_format, "Transmission error: $errText", errText)
+                )
             } finally {
                 _isDungeonMasterStreaming.value = false
             }
@@ -2368,13 +3172,293 @@ class SideQuestViewModel(
     fun toggleEquipInventoryItem(item: InventoryItem) {
         viewModelScope.launch {
             try {
-                firestoreRepo.toggleEquipItem(item.id, !item.equipped)
+                persistToggleEquipItem(item.id, !item.equipped)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "Failed toggling equip state", e)
             }
         }
+    }
+
+    // =========================================================================
+    // AUTHENTICATED FIRESTORE / GUEST IN-MEMORY PERSISTENCE ADAPTERS
+    // =========================================================================
+
+    private suspend fun persistAwardProgress(
+        xpDelta: Long,
+        landmarksDelta: Long,
+        questsCompletedDelta: Long
+    ) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.awardProgress(xpDelta, landmarksDelta, questsCompletedDelta)
+            return
+        }
+        val current = _guestProfileState.value ?: AdventurerProfile(
+            id = currentUserId,
+            userId = currentUserId,
+            displayName = initialDisplayName.ifBlank { getStr(R.string.guest_explorer_name, "Guest Explorer") },
+            characterStyle = _selectedStyle.value.id
+        )
+        val newXp = (current.xp + xpDelta).coerceAtLeast(0L)
+        val newLevel = (newXp / 250L) + 1L
+        _guestProfileState.value = current.copy(
+            xp = newXp,
+            level = newLevel,
+            landmarksVisited = current.landmarksVisited + landmarksDelta,
+            questsCompleted = current.questsCompleted + questsCompletedDelta,
+            updatedAt = Timestamp.now()
+        )
+    }
+
+    private suspend fun persistUpdateCharacterStyle(style: CharacterStyle) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.updateCharacterStyle(style)
+            return
+        }
+        val current = _guestProfileState.value ?: return
+        _guestProfileState.value = current.copy(characterStyle = style.id, updatedAt = Timestamp.now())
+    }
+
+    private suspend fun persistCreateQuest(
+        title: String,
+        characterStyle: CharacterStyle,
+        regionName: String,
+        summary: String,
+        landmarksCount: Int,
+        distanceMeters: Int,
+        stopsSummary: List<String>
+    ): String {
+        if (isAuthenticatedSession) {
+            return firestoreRepo.createQuest(title, characterStyle, regionName, summary, landmarksCount, distanceMeters, stopsSummary)
+        }
+        val id = "guest_quest_${UUID.randomUUID().toString().take(8)}"
+        val quest = CompletedQuest(
+            id = id,
+            userId = currentUserId,
+            title = title,
+            characterStyle = characterStyle.id,
+            regionName = regionName,
+            summary = summary,
+            landmarksCount = landmarksCount.toLong(),
+            completedStops = 0L,
+            xpEarned = 0L,
+            distanceMeters = distanceMeters.toLong(),
+            status = "ACTIVE",
+            stopsSummary = stopsSummary,
+            createdAt = Timestamp.now(),
+            updatedAt = Timestamp.now()
+        )
+        _guestQuestsState.value = listOf(quest) + _guestQuestsState.value
+        return id
+    }
+
+    private suspend fun persistUpdateQuestProgress(
+        questId: String,
+        completedStops: Int,
+        xpEarned: Int,
+        status: String,
+        summary: String
+    ) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.updateQuestProgress(questId, completedStops, xpEarned, status, summary)
+            return
+        }
+        _guestQuestsState.value = _guestQuestsState.value.map { q ->
+            if (q.id == questId) {
+                q.copy(
+                    completedStops = completedStops.toLong(),
+                    xpEarned = xpEarned.toLong(),
+                    status = status,
+                    summary = summary,
+                    updatedAt = Timestamp.now()
+                )
+            } else q
+        }
+    }
+
+    private suspend fun persistRecordCompletedQuest(
+        title: String,
+        characterStyle: CharacterStyle,
+        regionName: String,
+        summary: String,
+        landmarksCount: Int,
+        xpEarned: Int,
+        distanceMeters: Int,
+        stopsSummary: List<String>
+    ) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.recordCompletedQuest(title, characterStyle, regionName, summary, landmarksCount, xpEarned, distanceMeters, stopsSummary)
+            return
+        }
+        val quest = CompletedQuest(
+            id = "guest_quest_${UUID.randomUUID().toString().take(8)}",
+            userId = currentUserId,
+            title = title,
+            characterStyle = characterStyle.id,
+            regionName = regionName,
+            summary = summary,
+            landmarksCount = landmarksCount.toLong(),
+            completedStops = landmarksCount.toLong(),
+            xpEarned = xpEarned.toLong(),
+            distanceMeters = distanceMeters.toLong(),
+            status = "COMPLETED",
+            stopsSummary = stopsSummary,
+            createdAt = Timestamp.now(),
+            updatedAt = Timestamp.now()
+        )
+        _guestQuestsState.value = listOf(quest) + _guestQuestsState.value
+    }
+
+    private suspend fun persistDeleteQuest(questId: String) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.deleteQuest(questId)
+            return
+        }
+        _guestQuestsState.value = _guestQuestsState.value.filterNot { it.id == questId }
+    }
+
+    private suspend fun persistUnlockBadgeIfAbsent(
+        badgeId: String,
+        badgeCode: String,
+        title: String,
+        description: String,
+        category: String,
+        rarity: String,
+        landmarkName: String
+    ) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.unlockBadgeIfAbsent(badgeId, badgeCode, title, description, category, rarity, landmarkName)
+            return
+        }
+        if (_guestBadgesState.value.any { it.id == badgeId || it.badgeCode == badgeCode }) return
+        val badge = EarnedBadge(
+            id = badgeId,
+            userId = currentUserId,
+            badgeCode = badgeCode,
+            title = title,
+            description = description,
+            category = category,
+            rarity = rarity,
+            landmarkName = landmarkName,
+            createdAt = Timestamp.now()
+        )
+        _guestBadgesState.value = listOf(badge) + _guestBadgesState.value
+    }
+
+    private suspend fun persistAddInventoryItem(
+        name: String,
+        loreDescription: String,
+        itemType: String,
+        rarity: String,
+        originLandmark: String,
+        characterStyle: CharacterStyle,
+        powerBonus: Int,
+        equipped: Boolean
+    ) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.addInventoryItem(name, loreDescription, itemType, rarity, originLandmark, characterStyle, powerBonus, equipped)
+            return
+        }
+        val item = InventoryItem(
+            id = "guest_inv_${UUID.randomUUID().toString().take(8)}",
+            userId = currentUserId,
+            name = name,
+            loreDescription = loreDescription,
+            itemType = itemType,
+            rarity = rarity,
+            originLandmark = originLandmark,
+            characterStyle = characterStyle.id,
+            powerBonus = powerBonus.toLong(),
+            equipped = equipped,
+            createdAt = Timestamp.now(),
+            updatedAt = Timestamp.now()
+        )
+        _guestInventoryState.value = (listOf(item) + _guestInventoryState.value)
+            .sortedWith(compareByDescending<InventoryItem> { it.equipped }.thenByDescending { it.powerBonus })
+    }
+
+    private suspend fun persistToggleEquipItem(itemId: String, equipped: Boolean) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.toggleEquipItem(itemId, equipped)
+            return
+        }
+        _guestInventoryState.value = _guestInventoryState.value
+            .map { if (it.id == itemId) it.copy(equipped = equipped, updatedAt = Timestamp.now()) else it }
+            .sortedWith(compareByDescending<InventoryItem> { it.equipped }.thenByDescending { it.powerBonus })
+    }
+
+    private suspend fun persistRecordFoundArtifact(
+        artifactCode: String,
+        name: String,
+        loreInscription: String,
+        category: ArtifactCategory,
+        rarity: String,
+        landmarkName: String,
+        regionName: String,
+        characterStyle: CharacterStyle,
+        latitude: Double,
+        longitude: Double,
+        resonanceValue: Int,
+        isFavorite: Boolean,
+        inspectionNotes: String
+    ) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.recordFoundArtifact(
+                artifactCode, name, loreInscription, category, rarity, landmarkName,
+                regionName, characterStyle, latitude, longitude, resonanceValue, isFavorite, inspectionNotes
+            )
+            return
+        }
+        val artifact = FoundArtifact(
+            id = "guest_art_${UUID.randomUUID().toString().take(8)}",
+            userId = currentUserId,
+            artifactCode = artifactCode,
+            name = name,
+            loreInscription = loreInscription,
+            category = category.id,
+            rarity = rarity,
+            landmarkName = landmarkName,
+            regionName = regionName,
+            characterStyle = characterStyle.id,
+            latitude = latitude,
+            longitude = longitude,
+            resonanceValue = resonanceValue.toLong(),
+            isFavorite = isFavorite,
+            inspectionNotes = inspectionNotes,
+            createdAt = Timestamp.now(),
+            updatedAt = Timestamp.now()
+        )
+        _guestArtifactsState.value = (listOf(artifact) + _guestArtifactsState.value)
+            .sortedWith(compareByDescending<FoundArtifact> { it.isFavorite }.thenByDescending { it.resonanceValue })
+    }
+
+    private suspend fun persistToggleFavoriteArtifact(artifactId: String, nextFav: Boolean) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.toggleFavoriteArtifact(artifactId, nextFav)
+            return
+        }
+        _guestArtifactsState.value = _guestArtifactsState.value
+            .map { if (it.id == artifactId) it.copy(isFavorite = nextFav, updatedAt = Timestamp.now()) else it }
+            .sortedWith(compareByDescending<FoundArtifact> { it.isFavorite }.thenByDescending { it.resonanceValue })
+    }
+
+    private suspend fun persistUpdateArtifactNotes(artifactId: String, notes: String) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.updateArtifactInspectionNotes(artifactId, notes)
+            return
+        }
+        _guestArtifactsState.value = _guestArtifactsState.value.map {
+            if (it.id == artifactId) it.copy(inspectionNotes = notes, updatedAt = Timestamp.now()) else it
+        }
+    }
+
+    private suspend fun persistDeleteFoundArtifact(artifactId: String) {
+        if (isAuthenticatedSession) {
+            firestoreRepo.deleteFoundArtifact(artifactId)
+            return
+        }
+        _guestArtifactsState.value = _guestArtifactsState.value.filterNot { it.id == artifactId }
     }
 
     override fun onCleared() {

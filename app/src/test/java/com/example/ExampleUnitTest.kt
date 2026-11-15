@@ -76,4 +76,92 @@ class ExampleUnitTest {
         assertEquals(SmartPromptType.NONE, tracker.state.value.activeAutoPrompt)
         assertTrue(tracker.state.value.eventHistory.any { it.type == AppEventType.ONBOARDING_COMPLETED })
     }
+
+    @Test
+    fun aiModelConfigResolvesTier1Tier2AndTier3ByQuotaAndEcoMode() {
+        val primaryChat = com.example.util.AiModelConfig.resolveModel(
+            capability = com.example.util.AiModelConfig.AiCapability.COMPANION_CHAT,
+            isEcoLiteMode = false,
+            isNearLimit = false,
+            isQuotaExhausted = false
+        )
+        assertEquals(com.example.util.AiModelConfig.PRIMARY_REASONING_MODEL, primaryChat.first)
+        assertEquals(com.example.util.AiModelConfig.AiExecutionTier.TIER_1_PRIMARY, primaryChat.second)
+
+        val primaryImage = com.example.util.AiModelConfig.resolveModel(
+            capability = com.example.util.AiModelConfig.AiCapability.IMAGE_STUDIO,
+            isEcoLiteMode = false,
+            isNearLimit = false,
+            isQuotaExhausted = false
+        )
+        assertEquals(com.example.util.AiModelConfig.PRIMARY_IMAGE_MODEL, primaryImage.first)
+        assertEquals(com.example.util.AiModelConfig.AiExecutionTier.TIER_1_PRIMARY, primaryImage.second)
+
+        val ecoByToggle = com.example.util.AiModelConfig.resolveModel(
+            capability = com.example.util.AiModelConfig.AiCapability.VISION_PROOF,
+            isEcoLiteMode = true,
+            isNearLimit = false,
+            isQuotaExhausted = false
+        )
+        assertEquals(com.example.util.AiModelConfig.ECONOMY_LITE_MODEL, ecoByToggle.first)
+        assertEquals(com.example.util.AiModelConfig.AiExecutionTier.TIER_2_ECONOMY_LITE, ecoByToggle.second)
+
+        val ecoImageByNearLimit = com.example.util.AiModelConfig.resolveModel(
+            capability = com.example.util.AiModelConfig.AiCapability.IMAGE_STUDIO,
+            isEcoLiteMode = false,
+            isNearLimit = true,
+            isQuotaExhausted = false
+        )
+        assertEquals(com.example.util.AiModelConfig.ECONOMY_IMAGE_MODEL, ecoImageByNearLimit.first)
+        assertEquals(com.example.util.AiModelConfig.AiExecutionTier.TIER_2_ECONOMY_LITE, ecoImageByNearLimit.second)
+
+        val exhausted = com.example.util.AiModelConfig.resolveModel(
+            capability = com.example.util.AiModelConfig.AiCapability.RIDDLE_CIPHER,
+            isEcoLiteMode = false,
+            isNearLimit = true,
+            isQuotaExhausted = true
+        )
+        assertEquals(com.example.util.AiModelConfig.LOCAL_REFLEX_MODEL, exhausted.first)
+        assertEquals(com.example.util.AiModelConfig.AiExecutionTier.TIER_3_LOCAL_FALLBACK, exhausted.second)
+    }
+
+    @Test
+    fun usageQuotaLedgerThresholdsAndGraceCreditsWorkAccurately() {
+        val healthy = com.example.model.UsageQuotaLedger(
+            visionUsed = 2L,
+            chatUsed = 5L,
+            studioUsed = 0L,
+            audioUsed = 1L
+        )
+        assertEquals(8L, healthy.totalUsed)
+        assertEquals(25L, healthy.effectiveLimit)
+        assertEquals(17L, healthy.remainingCredits)
+        assertFalse(healthy.isNearLimit)
+        assertFalse(healthy.isExhausted)
+        assertTrue(healthy.canClaimGraceCredits())
+        assertEquals(2L, healthy.usageFor(com.example.util.AiModelConfig.AiCapability.VISION_PROOF))
+        assertEquals(5L, healthy.usageFor(com.example.util.AiModelConfig.AiCapability.FACT_DOSSIER))
+
+        // 20 / 25 = 0.80 -> triggers near limit and soft nudge when ecoLiteMode is off
+        val nearLimit = healthy.copy(chatUsed = 17L)
+        assertEquals(20L, nearLimit.totalUsed)
+        assertTrue(nearLimit.isNearLimit)
+        assertTrue(nearLimit.isSoftNudgeThresholdReached())
+        assertFalse(nearLimit.copy(ecoLiteMode = true).isSoftNudgeThresholdReached())
+
+        // 25 / 25 -> exhausted until grace credits claimed
+        val exhausted = nearLimit.copy(visionUsed = 7L)
+        assertEquals(25L, exhausted.totalUsed)
+        assertTrue(exhausted.isExhausted)
+        assertFalse(exhausted.isNearLimit)
+
+        val withGrace = exhausted.copy(
+            bonusGraceCredits = com.example.util.AiModelConfig.GRACE_CREDITS_AMOUNT.toLong(),
+            graceClaimed = true
+        )
+        assertEquals(28L, withGrace.effectiveLimit)
+        assertEquals(3L, withGrace.remainingCredits)
+        assertFalse(withGrace.isExhausted)
+        assertFalse(withGrace.canClaimGraceCredits())
+    }
 }

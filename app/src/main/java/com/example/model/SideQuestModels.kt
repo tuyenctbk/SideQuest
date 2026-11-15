@@ -241,7 +241,8 @@ data class VisionScanResult(
     val inCharacterAnalysis: String,
     val historicalVerification: String,
     val awardedRelicName: String,
-    val bonusXp: Int
+    val bonusXp: Int,
+    val usedCloudQuota: Boolean = false
 )
 
 enum class LandmarkCategory(val id: String, val label: String) {
@@ -444,7 +445,8 @@ data class LandmarkFactDossier(
     val architecturalStyle: String,
     val verifiedHistoricalFacts: List<String>,
     val localInsiderTip: String,
-    val rpgEncounterHook: String
+    val rpgEncounterHook: String,
+    val usedCloudQuota: Boolean = false
 )
 
 data class AiLandmarkRiddle(
@@ -454,12 +456,14 @@ data class AiLandmarkRiddle(
     val correctIndex: Int,
     val hint: String,
     val explanationLore: String,
-    val xpReward: Int = 175
+    val xpReward: Int = 175,
+    val usedCloudQuota: Boolean = false
 )
 
 data class PolishedFieldLogResult(
     val curioTitle: String,
     val polishedChronicle: String,
-    val historicalConnection: String
+    val historicalConnection: String,
+    val usedCloudQuota: Boolean = false
 )
 

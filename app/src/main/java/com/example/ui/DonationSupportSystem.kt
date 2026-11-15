@@ -42,6 +42,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Coffee
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Favorite
@@ -159,6 +160,33 @@ val PREDEFINED_WEB_DONATION_AMOUNTS = listOf(
     WebDonationPreset(amountUsd = 10, label = "$10 USD", subtitle = "Lantern Oil"),
     WebDonationPreset(amountUsd = 25, label = "$25 USD", subtitle = "Guild Patron")
 )
+
+@Composable
+private fun GooglePlayTipTier.localizedTierLabel(): String = when (skuId) {
+    "sidequest_tip_tier_1" -> stringResource(id = R.string.tier_1_label)
+    "sidequest_tip_tier_2" -> stringResource(id = R.string.tier_2_label)
+    "sidequest_tip_tier_3" -> stringResource(id = R.string.tier_3_label)
+    "sidequest_tip_tier_4" -> stringResource(id = R.string.tier_4_label)
+    else -> tierLabel
+}
+
+@Composable
+private fun GooglePlayTipTier.localizedTitle(): String = when (skuId) {
+    "sidequest_tip_tier_1" -> stringResource(id = R.string.tier_1_title)
+    "sidequest_tip_tier_2" -> stringResource(id = R.string.tier_2_title)
+    "sidequest_tip_tier_3" -> stringResource(id = R.string.tier_3_title)
+    "sidequest_tip_tier_4" -> stringResource(id = R.string.tier_4_title)
+    else -> title
+}
+
+@Composable
+private fun WebDonationPreset.localizedSubtitle(): String = when (amountUsd) {
+    3 -> stringResource(id = R.string.donation_preset_1_subtitle)
+    5 -> stringResource(id = R.string.donation_preset_2_subtitle)
+    10 -> stringResource(id = R.string.donation_preset_3_subtitle)
+    25 -> stringResource(id = R.string.donation_preset_4_subtitle)
+    else -> subtitle
+}
 
 data class DonationEngagementState(
     val isPermanentSupporter: Boolean = false,
@@ -351,7 +379,7 @@ fun SupportDevelopmentScreen(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back to Settings",
+                        contentDescription = stringResource(id = R.string.cd_back_to_settings),
                         tint = GuildGold
                     )
                 }
@@ -472,7 +500,7 @@ fun SupportDevelopmentScreen(
                                 selectedPresetAmount = preset.amountUsd
                             },
                             label = {
-                                Text("${preset.label} • ${preset.subtitle}")
+                                Text("${preset.label} • ${preset.localizedSubtitle()}")
                             },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = CyberCyan.copy(alpha = 0.24f),
@@ -512,7 +540,7 @@ fun SupportDevelopmentScreen(
                             launchActionViewUrl(
                                 context = context,
                                 url = paypalUrl,
-                                label = "PayPal ($$effectiveUsdAmount USD)",
+                                label = context.getString(R.string.support_paypal_usd_format, effectiveUsdAmount.toString()),
                                 onStatusMessage = onStatusMessage
                             )
                         },
@@ -532,7 +560,7 @@ fun SupportDevelopmentScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "PayPal ($$effectiveUsdAmount)",
+                            text = stringResource(id = R.string.support_paypal_short_format, effectiveUsdAmount.toString()),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -542,7 +570,7 @@ fun SupportDevelopmentScreen(
                             launchActionViewUrl(
                                 context = context,
                                 url = kofiUrl,
-                                label = "Ko-fi ($$effectiveUsdAmount USD)",
+                                label = context.getString(R.string.support_kofi_usd_format, effectiveUsdAmount.toString()),
                                 onStatusMessage = onStatusMessage
                             )
                         },
@@ -562,7 +590,7 @@ fun SupportDevelopmentScreen(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "Ko-fi ($$effectiveUsdAmount)",
+                            text = stringResource(id = R.string.support_kofi_short_format, effectiveUsdAmount.toString()),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -603,8 +631,17 @@ fun SupportDevelopmentScreen(
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 OutlinedButton(
                                     onClick = {
-                                        copyToClipboard(context, "Support Links", "$paypalUrl | $kofiUrl")
-                                        onStatusMessage("Copied $$effectiveUsdAmount PayPal & Ko-fi links to clipboard!")
+                                        copyToClipboard(
+                                            context,
+                                            context.getString(R.string.support_links_label),
+                                            "$paypalUrl | $kofiUrl"
+                                        )
+                                        onStatusMessage(
+                                            context.getString(
+                                                R.string.support_copied_links_format,
+                                                effectiveUsdAmount.toString()
+                                            )
+                                        )
                                     },
                                     shape = RoundedCornerShape(8.dp),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
@@ -612,7 +649,7 @@ fun SupportDevelopmentScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.ContentCopy,
-                                        contentDescription = "Copy Links",
+                                        contentDescription = stringResource(id = R.string.support_copy_links_btn),
                                         tint = CyberCyan,
                                         modifier = Modifier.size(14.dp)
                                     )
@@ -627,13 +664,13 @@ fun SupportDevelopmentScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.QrCode2,
-                                        contentDescription = "Toggle QR Code",
+                                        contentDescription = stringResource(id = R.string.support_cd_toggle_qr),
                                         tint = GuildGold,
                                         modifier = Modifier.size(14.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(
-                                        text = if (showQrPreview) "Hide QR" else "QR",
+                                        text = stringResource(id = if (showQrPreview) R.string.support_hide_qr else R.string.support_qr_short),
                                         color = GuildGold,
                                         style = MaterialTheme.typography.labelSmall
                                     )
@@ -651,7 +688,10 @@ fun SupportDevelopmentScreen(
                             ) {
                                 Image(
                                     bitmap = qrBitmap.asImageBitmap(),
-                                    contentDescription = "PayPal QR Code for $$effectiveUsdAmount USD",
+                                    contentDescription = stringResource(
+                                        id = R.string.support_paypal_qr_desc_format,
+                                        effectiveUsdAmount.toString()
+                                    ),
                                     modifier = Modifier
                                         .size(160.dp)
                                         .clip(RoundedCornerShape(14.dp))
@@ -770,13 +810,13 @@ fun SupportDevelopmentScreen(
                                 verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
                                 Text(
-                                    text = "${tier.tierLabel} • ${tier.priceDisplay}",
+                                    text = "${tier.localizedTierLabel()} • ${tier.priceDisplay}",
                                     style = MaterialTheme.typography.labelMedium,
                                     color = if (isSelected) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
-                                    text = "${tier.title} (+${tier.bonusXp} XP)",
+                                    text = "${tier.localizedTitle()} (+${tier.bonusXp} XP)",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color.White.copy(alpha = 0.85f)
                                 )
@@ -789,12 +829,7 @@ fun SupportDevelopmentScreen(
                 if (onCompleteGooglePlayPurchase != null) {
                     Button(
                         onClick = {
-                            val hostActivity = context.findActivity()
-                            if (hostActivity != null) {
-                                onCompleteGooglePlayPurchase(activeTier)
-                            } else {
-                                onCompleteGooglePlayPurchase(activeTier)
-                            }
+                            onCompleteGooglePlayPurchase(activeTier)
                         },
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
@@ -813,9 +848,14 @@ fun SupportDevelopmentScreen(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = if (isPermanentSupporter) {
-                                "Active Supporter Verified ($supporterTierTitle)"
+                                stringResource(id = R.string.supporter_verified_format, supporterTierTitle)
                             } else {
-                                "Activate ${activeTier.tierLabel} (${activeTier.priceDisplay}) Supporter Pass (+${activeTier.bonusXp} XP)"
+                                stringResource(
+                                    id = R.string.supporter_activate_pass_format,
+                                    activeTier.localizedTierLabel(),
+                                    activeTier.priceDisplay,
+                                    activeTier.bonusXp
+                                )
                             },
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
@@ -875,6 +915,7 @@ fun SettingsSupportScreen(
     val paidImageCallsUsed by viewModel.paidImageCallsUsed.collectAsState()
     val autoNarrate by viewModel.voiceNarrator.autoNarrate.collectAsState()
     val isOfflineCached by viewModel.isOfflinePackCached.collectAsState()
+    val usageQuotaLedger by viewModel.usageQuotaLedger.collectAsState()
 
     // false = Unified Settings + SupportDevelopmentScreen view; true = Focused SupportDevelopmentScreen sub-route
     var isFocusedSupportRoute by rememberSaveable { mutableStateOf(false) }
@@ -1031,7 +1072,7 @@ fun SettingsSupportScreen(
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = "Navigate to Support Development",
+                                contentDescription = stringResource(id = R.string.cd_navigate_support),
                                 tint = GuildGold,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -1074,20 +1115,20 @@ fun SettingsSupportScreen(
             )
         }
 
-        // 3. Smart AI Quota & Zero-Bill Cost Control Settings
+        // 3. Smart AI Quota, Capability Tiers & Value Receipt Playbook
         item {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("quota_ledger_settings_card"),
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = ObsidianSurface),
                 border = BorderStroke(
                     1.dp,
-                    if (isPaidImageApiApproved) GuildGold.copy(alpha = 0.65f) else ArcaneEmerald.copy(alpha = 0.65f)
+                    if (usageQuotaLedger.ecoLiteMode) CyberCyan.copy(alpha = 0.7f) else GuildGold.copy(alpha = 0.55f)
                 )
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -1096,13 +1137,172 @@ fun SettingsSupportScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = if (isPaidImageApiApproved) {
-                                    "PAID AI IMAGE STUDIO: OPTED IN"
-                                } else {
-                                    "ZERO-BILL ECO MODE ($0 API COST GUARD)"
-                                },
-                                style = MaterialTheme.typography.labelLarge,
-                                color = if (isPaidImageApiApproved) GuildGold else ArcaneEmerald
+                                text = stringResource(id = R.string.settings_quota_eyebrow),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = GuildGold,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(
+                                    id = R.string.settings_quota_used_format,
+                                    usageQuotaLedger.getDailyChecksUsed(),
+                                    usageQuotaLedger.getDailyLimit()
+                                ),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(
+                                    id = R.string.settings_quota_resets_format,
+                                    usageQuotaLedger.getResetCountdownFormatted()
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = CyberCyan
+                            )
+                        }
+
+                        Button(
+                            onClick = { viewModel.showAiValueReceipt(true) },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = GuildGold.copy(alpha = 0.18f),
+                                contentColor = GuildGold
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, GuildGold),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+                            modifier = Modifier.testTag("open_ai_value_receipt_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(stringResource(id = R.string.settings_value_receipt_btn), style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+
+                    // Quota Progress Bar
+                    val usageRatio = (usageQuotaLedger.getDailyChecksUsed().toFloat() / usageQuotaLedger.getDailyLimit().coerceAtLeast(1).toFloat()).coerceIn(0f, 1f)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(MidnightAbyss)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(usageRatio)
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(
+                                    if (usageRatio >= 1.0f) MaterialTheme.colorScheme.error
+                                    else if (usageRatio >= 0.8f) GuildGold
+                                    else ArcaneEmerald
+                                )
+                        )
+                    }
+
+                    // Feature Breakdown Chips
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            stringResource(id = R.string.settings_quota_vision_format, usageQuotaLedger.visionUsed, com.example.util.AiModelConfig.FREE_DAILY_VISION_LIMIT),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            stringResource(id = R.string.settings_quota_chat_format, usageQuotaLedger.chatUsed, com.example.util.AiModelConfig.FREE_DAILY_CHAT_LIMIT),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            stringResource(id = R.string.settings_quota_audio_format, usageQuotaLedger.audioUsed, com.example.util.AiModelConfig.FREE_DAILY_AUDIO_LIMIT),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            stringResource(id = R.string.settings_quota_studio_format, usageQuotaLedger.studioUsed, com.example.util.AiModelConfig.FREE_DAILY_STUDIO_LIMIT),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    HorizontalDivider(color = SlateCardSurface, thickness = 1.dp)
+
+                    // Eco Lite Mode Toggle (3x-5x Quota Stretch)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(id = R.string.settings_eco_lite_title),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = if (usageQuotaLedger.ecoLiteMode) CyberCyan else Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(id = R.string.settings_eco_lite_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Switch(
+                            checked = usageQuotaLedger.ecoLiteMode,
+                            onCheckedChange = { viewModel.toggleEcoLiteMode(it) },
+                            colors = SwitchDefaults.colors(
+                                checkedThumbColor = MidnightAbyss,
+                                checkedTrackColor = CyberCyan,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                uncheckedTrackColor = MidnightAbyss
+                            ),
+                            modifier = Modifier.testTag("settings_eco_lite_switch")
+                        )
+                    }
+
+                    // Daily Grace Credits Button
+                    if (usageQuotaLedger.canClaimGraceCredits()) {
+                        Button(
+                            onClick = { viewModel.claimDailyGraceCredits() },
+                            modifier = Modifier.fillMaxWidth().testTag("settings_claim_grace_button"),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ArcaneEmerald.copy(alpha = 0.22f),
+                                contentColor = ArcaneEmerald
+                            ),
+                            border = BorderStroke(1.dp, ArcaneEmerald),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(stringResource(id = R.string.settings_grace_available), fontWeight = FontWeight.Bold)
+                        }
+                    } else if (usageQuotaLedger.graceClaimed) {
+                        Text(
+                            text = stringResource(id = R.string.settings_grace_claimed),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ArcaneEmerald
+                        )
+                    }
+
+                    // Zero-Bill API Cost Guard
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(
+                                    id = if (isPaidImageApiApproved) R.string.settings_paid_studio_on else R.string.settings_paid_studio_off
+                                ),
+                                style = MaterialTheme.typography.titleSmall,
+                                color = if (isPaidImageApiApproved) GuildGold else ArcaneEmerald,
+                                fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = stringResource(id = R.string.zero_bill_settings_desc),
@@ -1126,8 +1326,8 @@ fun SettingsSupportScreen(
 
                     Text(
                         text = stringResource(id = R.string.session_quota_format, cacheHitsSaved, freeTierCallsUsed, paidImageCallsUsed),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = CyberCyan
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -1240,11 +1440,9 @@ fun SettingsSupportScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = if (isGuildPassActive) {
-                                "ADVENTURER'S GUILD PASS (ACTIVE)"
-                            } else {
-                                "ADVENTURER'S GUILD PASS PERKS"
-                            },
+                            text = stringResource(
+                                id = if (isGuildPassActive) R.string.guild_pass_active_title else R.string.guild_pass_perks_header
+                            ),
                             style = MaterialTheme.typography.labelLarge,
                             color = if (isGuildPassActive) ArcaneEmerald else GuildGold
                         )
@@ -1268,7 +1466,9 @@ fun SettingsSupportScreen(
                         )
                     ) {
                         Text(
-                            text = if (isGuildPassActive) "Guild Pass Active (1.5x XP)" else "Activate Guild Pass Perks",
+                            text = stringResource(
+                                id = if (isGuildPassActive) R.string.guild_pass_active_btn else R.string.guild_pass_activate_btn
+                            ),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold
                         )
@@ -1417,7 +1617,7 @@ fun StaticSupportDevelopmentSectionCard(
                 )
                 Column {
                     Text(
-                        text = "SUPPORT DEVELOPMENT",
+                        text = stringResource(id = R.string.support_card_eyebrow),
                         style = MaterialTheme.typography.labelLarge,
                         color = if (engagementState.isPermanentSupporter) ArcaneEmerald else GuildGold
                     )
@@ -1470,8 +1670,8 @@ private fun launchActionViewUrl(
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         }
-        onStatusMessage("Opening $label ($url) — link also copied to clipboard!")
+        onStatusMessage(context.getString(R.string.support_opening_link_format, label, url))
     } catch (_: Exception) {
-        onStatusMessage("$label link copied to clipboard: $url")
+        onStatusMessage(context.getString(R.string.support_copied_link_format, label, url))
     }
 }

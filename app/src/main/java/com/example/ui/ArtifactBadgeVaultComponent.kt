@@ -293,7 +293,9 @@ fun ArtifactBadgeVaultComponent(
                     ) {
                         Icon(
                             imageVector = if (isGridLayout) Icons.Default.ViewAgenda else Icons.Default.GridView,
-                            contentDescription = if (isGridLayout) "Switch to detailed list view" else "Switch to curio grid view",
+                            contentDescription = stringResource(
+                                id = if (isGridLayout) R.string.vault_cd_list_view else R.string.vault_cd_grid_view
+                            ),
                             tint = GuildGold
                         )
                     }
@@ -317,7 +319,7 @@ fun ArtifactBadgeVaultComponent(
                             IconButton(onClick = { searchQuery = "" }) {
                                 Icon(
                                     imageVector = Icons.Default.Clear,
-                                    contentDescription = "Clear search",
+                                    contentDescription = stringResource(id = R.string.journal_cd_clear_search),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -355,8 +357,11 @@ fun ArtifactBadgeVaultComponent(
                             onClick = { selectedRarity = rarity },
                             label = {
                                 Text(
-                                    if (rarity == "ALL") "All Rarities" else rarity.lowercase(Locale.US)
-                                        .replaceFirstChar { it.titlecase(Locale.US) }
+                                    if (rarity == "ALL") {
+                                        stringResource(id = R.string.vault_rarity_all)
+                                    } else {
+                                        localizedRarityLabel(rarity)
+                                    }
                                 )
                             },
                             colors = FilterChipDefaults.filterChipColors(
@@ -389,7 +394,7 @@ fun ArtifactBadgeVaultComponent(
                             FilterChip(
                                 selected = selectedCategory == cat.id,
                                 onClick = { selectedCategory = cat.id },
-                                label = { Text(cat.label) },
+                                label = { Text(cat.localizedTitle()) },
                                 leadingIcon = {
                                     Icon(
                                         imageVector = categoryIcon(cat),
@@ -429,8 +434,8 @@ fun ArtifactBadgeVaultComponent(
 
             if (filteredArtifacts.isEmpty()) {
                 EmptyVaultSectionCard(
-                    title = "No Matching Found Artifacts",
-                    subtitle = "Clear real-world waypoints on the World Map, scan plaques with Gemini Vision, or tap 'Catalog Field Discovery' above to record curios in Firestore."
+                    title = stringResource(id = R.string.vault_empty_artifacts_title),
+                    subtitle = stringResource(id = R.string.vault_empty_artifacts_desc)
                 )
             } else if (isGridLayout) {
                 val rows = filteredArtifacts.chunked(2)
@@ -487,8 +492,8 @@ fun ArtifactBadgeVaultComponent(
 
             if (filteredBadges.isEmpty()) {
                 EmptyVaultSectionCard(
-                    title = "No Matching Guild Badges",
-                    subtitle = "Complete walking quests, scan landmarks with Gemini Vision, or solve Co-Op Party Riddles to earn Guild Badges."
+                    title = stringResource(id = R.string.vault_empty_badges_title),
+                    subtitle = stringResource(id = R.string.vault_empty_badges_desc)
                 )
             } else if (isGridLayout) {
                 val badgeRows = filteredBadges.chunked(2)
@@ -538,24 +543,27 @@ fun ArtifactBadgeVaultComponent(
                 onNarrateLore(liveArtifact.name, liveArtifact.loreInscription)
             },
             onShareTravelogue = {
-                val shareText = buildString {
-                    appendLine("🧭 SIDEQUEST ARTIFACT CHRONICLE")
-                    appendLine("✨ ${liveArtifact.name} [${liveArtifact.rarity}]")
-                    appendLine("📍 Origin: ${liveArtifact.originLandmark} (${liveArtifact.regionName})")
-                    appendLine("🌐 Coordinates: ${String.format(Locale.US, "%.4f, %.4f", liveArtifact.latitude, liveArtifact.longitude)}")
-                    appendLine("⚡ Resonance: +${liveArtifact.resonanceValue} • Method: ${liveArtifact.discoveryMethod}")
-                    appendLine()
-                    appendLine("📜 Inscription: \"${liveArtifact.loreInscription}\"")
-                    if (liveArtifact.inspectionNotes.isNotBlank()) {
-                        appendLine("🖋️ Explorer Notes: ${liveArtifact.inspectionNotes}")
-                    }
-                }
+                val coordsText = String.format(Locale.US, "%.4f, %.4f", liveArtifact.latitude, liveArtifact.longitude)
+                val shareText = context.getString(
+                    R.string.vault_share_artifact_format,
+                    liveArtifact.name,
+                    liveArtifact.rarity,
+                    liveArtifact.originLandmark,
+                    liveArtifact.regionName,
+                    coordsText,
+                    liveArtifact.resonanceValue,
+                    liveArtifact.discoveryMethod,
+                    liveArtifact.loreInscription,
+                    liveArtifact.inspectionNotes.ifBlank { "—" }
+                )
                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, shareText)
                 }
                 try {
-                    context.startActivity(Intent.createChooser(sendIntent, "Share Illustrated Travelogue Card"))
+                    context.startActivity(
+                        Intent.createChooser(sendIntent, context.getString(R.string.vault_share_artifact_chooser))
+                    )
                 } catch (_: Exception) {
                 }
             },
@@ -573,15 +581,21 @@ fun ArtifactBadgeVaultComponent(
             onDismiss = { inspectedBadge = null },
             onNarrate = { onNarrateLore(badge.title, badge.description) },
             onShareBadge = {
-                val shareText = "🏅 SideQuest Guild Crest Unlocked: ${badge.title} [${badge.rarity}]\n" +
-                    "📍 Earned at: ${badge.landmarkName}\n" +
-                    "📜 Citation: ${badge.description}"
+                val shareText = context.getString(
+                    R.string.vault_share_badge_format,
+                    badge.title,
+                    badge.rarity,
+                    badge.landmarkName,
+                    badge.description
+                )
                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, shareText)
                 }
                 try {
-                    context.startActivity(Intent.createChooser(sendIntent, "Share Guild Badge"))
+                    context.startActivity(
+                        Intent.createChooser(sendIntent, context.getString(R.string.vault_share_badge_chooser))
+                    )
                 } catch (_: Exception) {
                 }
             }
@@ -677,25 +691,25 @@ private fun VaultMasterySummaryCard(
                 VaultMetricBox(
                     modifier = Modifier.weight(1f),
                     value = "${artifacts.size}",
-                    label = "Artifacts",
+                    label = stringResource(id = R.string.vault_stat_artifacts),
                     accent = CyberCyan
                 )
                 VaultMetricBox(
                     modifier = Modifier.weight(1f),
                     value = "${badges.size}",
-                    label = "Badges",
+                    label = stringResource(id = R.string.vault_stat_badges),
                     accent = GuildGold
                 )
                 VaultMetricBox(
                     modifier = Modifier.weight(1f),
                     value = "$favoriteCount",
-                    label = "Pinned ★",
+                    label = stringResource(id = R.string.vault_stat_pinned),
                     accent = ArcaneEmerald
                 )
                 VaultMetricBox(
                     modifier = Modifier.weight(1f),
                     value = "$legendaryCount",
-                    label = "Legendary",
+                    label = stringResource(id = R.string.vault_stat_legendary),
                     accent = NoirCrimson
                 )
             }
@@ -712,7 +726,13 @@ private fun VaultMasterySummaryCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "${legendaryCount}L • ${epicCount}E • ${rareCount}R • ${commonCount}C",
+                        text = stringResource(
+                            id = R.string.vault_rarity_counts_format,
+                            legendaryCount,
+                            epicCount,
+                            rareCount,
+                            commonCount
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         color = GuildGold
                     )
@@ -859,7 +879,7 @@ private fun FoundArtifactGridTile(
                 ) {
                     Icon(
                         imageVector = categoryIcon(category),
-                        contentDescription = category.label,
+                        contentDescription = category.localizedTitle(),
                         tint = rarityColor,
                         modifier = Modifier.size(20.dp)
                     )
@@ -873,7 +893,9 @@ private fun FoundArtifactGridTile(
                 ) {
                     Icon(
                         imageVector = if (artifact.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = if (artifact.isFavorite) "Unfavorite artifact" else "Favorite artifact",
+                        contentDescription = stringResource(
+                            id = if (artifact.isFavorite) R.string.vault_cd_unfavorite else R.string.vault_cd_favorite
+                        ),
                         tint = if (artifact.isFavorite) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
@@ -886,7 +908,7 @@ private fun FoundArtifactGridTile(
                 border = BorderStroke(1.dp, rarityColor.copy(alpha = 0.6f))
             ) {
                 Text(
-                    text = "${artifact.rarity} • +${artifact.resonanceValue}",
+                    text = "${localizedRarityLabel(artifact.rarity)} • +${artifact.resonanceValue}",
                     style = MaterialTheme.typography.labelSmall,
                     color = rarityColor,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -911,7 +933,7 @@ private fun FoundArtifactGridTile(
             )
 
             Text(
-                text = category.label,
+                text = category.localizedTitle(),
                 style = MaterialTheme.typography.labelSmall,
                 color = CyberCyan
             )
@@ -964,14 +986,14 @@ private fun FoundArtifactDetailRowCard(
                     ) {
                         Icon(
                             imageVector = categoryIcon(category),
-                            contentDescription = category.label,
+                            contentDescription = category.localizedTitle(),
                             tint = rarityColor,
                             modifier = Modifier.size(24.dp)
                         )
                     }
                     Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
-                            text = "${artifact.rarity} • ${category.label.uppercase()}",
+                            text = "${localizedRarityLabel(artifact.rarity)} • ${category.localizedTitle().uppercase(Locale.getDefault())}",
                             style = MaterialTheme.typography.labelSmall,
                             color = rarityColor,
                             maxLines = 1,
@@ -992,14 +1014,14 @@ private fun FoundArtifactDetailRowCard(
                     IconButton(onClick = onNarrate) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                            contentDescription = "Narrate artifact lore",
+                            contentDescription = stringResource(id = R.string.vault_cd_narrate_artifact),
                             tint = CyberCyan
                         )
                     }
                     IconButton(onClick = onToggleFavorite) {
                         Icon(
                             imageVector = if (artifact.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                            contentDescription = "Toggle favorite",
+                            contentDescription = stringResource(id = R.string.vault_cd_toggle_favorite),
                             tint = if (artifact.isFavorite) GuildGold else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -1107,7 +1129,7 @@ private fun EarnedBadgeGridTile(
                 border = BorderStroke(1.dp, color.copy(alpha = 0.6f))
             ) {
                 Text(
-                    text = "${badge.rarity} • ${badge.category}",
+                    text = "${localizedRarityLabel(badge.rarity)} • ${badge.category}",
                     style = MaterialTheme.typography.labelSmall,
                     color = color,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
@@ -1175,7 +1197,7 @@ private fun EarnedBadgeDetailRowCard(
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${badge.rarity} • ${badge.category}",
+                    text = "${localizedRarityLabel(badge.rarity)} • ${badge.category}",
                     style = MaterialTheme.typography.labelSmall,
                     color = color
                 )
@@ -1199,7 +1221,7 @@ private fun EarnedBadgeDetailRowCard(
             IconButton(onClick = onNarrate) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                    contentDescription = "Narrate badge citation",
+                    contentDescription = stringResource(id = R.string.vault_cd_narrate_badge),
                     tint = CyberCyan
                 )
             }
@@ -1266,7 +1288,7 @@ private fun ArtifactInspectorDialog(
                         border = BorderStroke(1.dp, rarityColor)
                     ) {
                         Text(
-                            text = "${artifact.rarity} • ${category.label.uppercase()}",
+                            text = "${localizedRarityLabel(artifact.rarity)} • ${category.localizedTitle().uppercase(Locale.getDefault())}",
                             style = MaterialTheme.typography.labelMedium,
                             color = rarityColor,
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -1276,14 +1298,14 @@ private fun ArtifactInspectorDialog(
                         IconButton(onClick = onToggleFavorite) {
                             Icon(
                                 imageVector = if (artifact.isFavorite) Icons.Default.Star else Icons.Default.StarBorder,
-                                contentDescription = "Toggle Favorite",
+                                contentDescription = stringResource(id = R.string.vault_cd_toggle_favorite),
                                 tint = if (artifact.isFavorite) GuildGold else Color.White
                             )
                         }
                         IconButton(onClick = onDelete) {
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
-                                contentDescription = "Remove artifact from vault",
+                                contentDescription = stringResource(id = R.string.vault_cd_remove_artifact),
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -1365,9 +1387,8 @@ private fun ArtifactInspectorDialog(
                             color = GuildGold
                         )
                         Text(
-                            text = String.format(
-                                Locale.US,
-                                "🌐 GPS Telemetry: %.4f, %.4f",
+                            text = stringResource(
+                                id = R.string.vault_gps_telemetry_format,
                                 artifact.latitude,
                                 artifact.longitude
                             ),
@@ -1519,7 +1540,7 @@ private fun BadgeInspectorDialog(
                     border = BorderStroke(1.dp, color)
                 ) {
                     Text(
-                        text = stringResource(id = R.string.vault_crest_format, badge.rarity, badge.category),
+                        text = stringResource(id = R.string.vault_crest_format, localizedRarityLabel(badge.rarity), badge.category),
                         style = MaterialTheme.typography.labelMedium,
                         color = color,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
@@ -1656,7 +1677,7 @@ private fun CatalogFieldArtifactDialog(
                         FilterChip(
                             selected = selectedCat == cat,
                             onClick = { selectedCat = cat },
-                            label = { Text(cat.label) },
+                            label = { Text(cat.localizedTitle()) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = CyberCyan.copy(alpha = 0.22f),
                                 selectedLabelColor = CyberCyan
@@ -1774,14 +1795,18 @@ private fun AiRelicArtStudioCard(
     onEditArt: (String) -> Unit,
     onClearArt: () -> Unit
 ) {
+    val defaultPrompt = stringResource(
+        id = R.string.studio_default_prompt_format,
+        featuredArtifactName,
+        currentRegionName
+    )
+    val defaultRemix = stringResource(id = R.string.studio_default_remix)
     var expanded by rememberSaveable { mutableStateOf(false) }
     var promptDraft by rememberSaveable(featuredArtifactName, currentRegionName) {
-        mutableStateOf(
-            "Ornate RPG relic '$featuredArtifactName' discovered in $currentRegionName, glowing astral runes, studio lighting, concept art"
-        )
+        mutableStateOf(defaultPrompt)
     }
     var editInstructionDraft by rememberSaveable {
-        mutableStateOf("Transform into a neon cyberpunk hologram with golden ley-line sparks")
+        mutableStateOf(defaultRemix)
     }
 
     Card(
@@ -1838,7 +1863,7 @@ private fun AiRelicArtStudioCard(
                     modifier = Modifier.testTag("toggle_ai_art_studio_button")
                 ) {
                     Text(
-                        text = if (expanded) "Hide Studio" else "Open Studio",
+                        text = stringResource(id = if (expanded) R.string.studio_hide else R.string.studio_open),
                         color = GuildGold,
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1
@@ -1865,21 +1890,22 @@ private fun AiRelicArtStudioCard(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (isPaidImageApiApproved) {
-                                "PAID IMAGE API ENABLED (USER OPT-IN)"
-                            } else {
-                                "ZERO-BILL ECO MODE ACTIVE ($0 COST GUARD)"
-                            },
+                            text = stringResource(
+                                id = if (isPaidImageApiApproved) R.string.studio_paid_enabled else R.string.studio_eco_active
+                            ),
                             style = MaterialTheme.typography.labelMedium,
                             color = if (isPaidImageApiApproved) GuildGold else ArcaneEmerald,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = if (isPaidImageApiApproved) {
-                                "Live gemini-nano-banana-2.1 image calls unlocked • $cacheHitsSaved API calls saved by cache"
-                            } else {
-                                "Paid image APIs locked by default. Toggle on only if you want to use Blaze image quota ($cacheHitsSaved cached calls saved)."
-                            },
+                            text = stringResource(
+                                id = if (isPaidImageApiApproved) {
+                                    R.string.studio_paid_unlocked_desc_format
+                                } else {
+                                    R.string.studio_eco_locked_desc_format
+                                },
+                                cacheHitsSaved
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -1927,7 +1953,9 @@ private fun AiRelicArtStudioCard(
                         )
                     ) {
                         Text(
-                            text = if (isPaidImageApiApproved) "Generate Art (+150 XP)" else "Opt-In Above to Generate",
+                            text = stringResource(
+                                id = if (isPaidImageApiApproved) R.string.studio_generate_btn else R.string.studio_opt_in_generate_btn
+                            ),
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -1942,7 +1970,9 @@ private fun AiRelicArtStudioCard(
                         border = BorderStroke(1.dp, if (isPaidImageApiApproved) CyberCyan else SlateCardSurface)
                     ) {
                         Text(
-                            text = if (isPaidImageApiApproved) "Remix Image (+125 XP)" else "Locked ($0 Eco Mode)",
+                            text = stringResource(
+                                id = if (isPaidImageApiApproved) R.string.studio_remix_btn else R.string.studio_locked_remix_btn
+                            ),
                             color = if (isPaidImageApiApproved) CyberCyan else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -2003,7 +2033,7 @@ private fun AiRelicArtStudioCard(
                         ) {
                             Image(
                                 bitmap = state.bitmap.asImageBitmap(),
-                                contentDescription = "Generated AI Relic Artwork",
+                                contentDescription = stringResource(id = R.string.studio_cd_generated_art),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(220.dp)

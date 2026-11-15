@@ -94,6 +94,7 @@ fun QuestJournalScreen(
     modifier: Modifier = Modifier,
     onNavigateToMap: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val completedQuests by viewModel.completedQuestsState.collectAsState()
     val allQuests by viewModel.questsState.collectAsState()
     val currentRegion by viewModel.regionName.collectAsState()
@@ -118,7 +119,7 @@ fun QuestJournalScreen(
         onNarrateQuest = { quest ->
             viewModel.narrateArtifactOrBadgeLore(
                 title = quest.questName,
-                loreText = "Completed in ${quest.location}. ${quest.summary}"
+                loreText = context.getString(R.string.journal_chronicle_narration_format, quest.location, quest.summary)
             )
         },
         onNavigateToMap = onNavigateToMap,
@@ -130,7 +131,7 @@ fun QuestJournalScreen(
 fun QuestJournalContent(
     completedQuests: List<CompletedQuest>,
     allQuests: List<CompletedQuest> = completedQuests,
-    defaultLocation: String = "San Francisco — Embarcadero",
+    defaultLocation: String = "",
     onLogCompletedQuest: (questName: String, location: String, summary: String) -> Unit = { _, _, _ -> },
     onCompleteActiveQuest: (CompletedQuest) -> Unit = {},
     onDeleteQuest: (String) -> Unit = {},
@@ -139,16 +140,17 @@ fun QuestJournalContent(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val defaultQuestTitle = stringResource(id = R.string.journal_default_quest_name)
+    val defaultLoc = defaultLocation.ifBlank { stringResource(id = R.string.journal_default_location) }
+    val defaultSummaryText = stringResource(id = R.string.journal_default_summary)
     var showOnlyCompleted by rememberSaveable { mutableStateOf(true) }
     var selectedStyleFilter by rememberSaveable { mutableStateOf("ALL") }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var showLogQuestForm by rememberSaveable { mutableStateOf(false) }
 
-    var newQuestName by rememberSaveable { mutableStateOf("Shadows of the Ferry Archway") }
-    var newQuestLocation by rememberSaveable(defaultLocation) { mutableStateOf(defaultLocation) }
-    var newQuestSummary by rememberSaveable {
-        mutableStateOf("Investigated the historic waterfront plaques and decoded the brass compass inscription.")
-    }
+    var newQuestName by rememberSaveable { mutableStateOf(defaultQuestTitle) }
+    var newQuestLocation by rememberSaveable(defaultLoc) { mutableStateOf(defaultLoc) }
+    var newQuestSummary by rememberSaveable { mutableStateOf(defaultSummaryText) }
 
     val baseQuests = if (showOnlyCompleted) {
         if (completedQuests.isNotEmpty()) completedQuests else allQuests.filter { it.status == "COMPLETED" }
@@ -222,7 +224,7 @@ fun QuestJournalContent(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.HistoryEdu,
-                                    contentDescription = "Quest Journal",
+                                    contentDescription = stringResource(id = R.string.journal_cd_back),
                                     tint = GuildGold,
                                     modifier = Modifier.size(24.dp)
                                 )
@@ -407,7 +409,7 @@ fun QuestJournalContent(
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search Quest Journal",
+                            contentDescription = stringResource(id = R.string.journal_cd_search),
                             tint = GuildGold
                         )
                     },
@@ -416,7 +418,7 @@ fun QuestJournalContent(
                             IconButton(onClick = { searchQuery = "" }) {
                                 Icon(
                                     imageVector = Icons.Default.Clear,
-                                    contentDescription = "Clear search",
+                                    contentDescription = stringResource(id = R.string.journal_cd_clear_search),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -501,7 +503,7 @@ fun QuestJournalContent(
                             onClick = {
                                 selectedStyleFilter = if (selectedStyleFilter == style.id) "ALL" else style.id
                             },
-                            label = { Text(style.title) },
+                            label = { Text(style.localizedTitle()) },
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = CyberCyan.copy(alpha = 0.22f),
                                 selectedLabelColor = CyberCyan
@@ -589,23 +591,32 @@ fun QuestJournalContent(
                     quest = quest,
                     onNarrateQuest = { onNarrateQuest(quest) },
                     onShareQuest = {
-                        val formattedDate = formatQuestCompletionDate(quest.completedAt)
-                        val shareBody = buildString {
-                            appendLine("📜 SideQuest Journal — Completed Quest")
-                            appendLine("⚔️ Quest: ${quest.questName}")
-                            appendLine("📍 Location: ${quest.location}")
-                            appendLine("🗓️ Completed: $formattedDate")
-                            appendLine("✨ Rewards: +${quest.xpEarned} XP • ${quest.distanceMeters}m walked (${quest.completedStops}/${quest.landmarksCount} stops)")
-                            if (quest.stopsSummary.isNotEmpty()) {
-                                appendLine("🧭 Waypoints: ${quest.stopsSummary.joinToString(" → ")}")
-                            }
-                        }
+                        val formattedDate = formatQuestCompletionDate(
+                            timestamp = quest.completedAt,
+                            justNowLabel = context.getString(R.string.journal_synced_just_now),
+                            recentlyLabel = context.getString(R.string.journal_completed_recently)
+                        )
+                        val waypointsText = quest.stopsSummary.joinToString(" → ").ifBlank { "—" }
+                        val shareBody = context.getString(
+                            R.string.journal_share_body_format,
+                            quest.questName,
+                            quest.location,
+                            formattedDate,
+                            quest.xpEarned,
+                            quest.distanceMeters,
+                            quest.completedStops,
+                            quest.landmarksCount,
+                            waypointsText,
+                            quest.summary
+                        )
                         val sendIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_TEXT, shareBody)
                         }
                         try {
-                            context.startActivity(Intent.createChooser(sendIntent, "Share Quest Journal Entry"))
+                            context.startActivity(
+                                Intent.createChooser(sendIntent, context.getString(R.string.journal_share_chooser))
+                            )
                         } catch (_: Exception) {
                         }
                     },
@@ -632,8 +643,10 @@ fun QuestJournalEntryCard(
     val isCompleted = quest.status == "COMPLETED"
     val statusAccent = if (isCompleted) ArcaneEmerald else GuildGold
     val persona = remember(quest.characterStyle) { CharacterStyle.fromId(quest.characterStyle) }
-    val formattedDate = remember(quest.updatedAt, quest.createdAt) {
-        formatQuestCompletionDate(quest.completedAt)
+    val justNowLabel = stringResource(id = R.string.journal_synced_just_now)
+    val recentlyLabel = stringResource(id = R.string.journal_completed_recently)
+    val formattedDate = remember(quest.updatedAt, quest.createdAt, justNowLabel, recentlyLabel) {
+        formatQuestCompletionDate(quest.completedAt, justNowLabel, recentlyLabel)
     }
     val safeTagSuffix = quest.id.ifBlank { quest.questName.hashCode().toString() }
 
@@ -677,7 +690,15 @@ fun QuestJournalEntryCard(
                                 modifier = Modifier.size(13.dp)
                             )
                             Text(
-                                text = if (isCompleted) "COMPLETED" else "IN PROGRESS (${quest.completedStops}/${quest.landmarksCount})",
+                                text = if (isCompleted) {
+                                    stringResource(id = R.string.journal_completed_badge)
+                                } else {
+                                    stringResource(
+                                        id = R.string.journal_in_progress_format,
+                                        quest.completedStops,
+                                        quest.landmarksCount
+                                    )
+                                },
                                 style = MaterialTheme.typography.labelMedium,
                                 color = statusAccent,
                                 fontWeight = FontWeight.Bold,
@@ -692,7 +713,7 @@ fun QuestJournalEntryCard(
                         border = BorderStroke(1.dp, CyberCyan.copy(alpha = 0.45f))
                     ) {
                         Text(
-                            text = persona.title,
+                            text = persona.localizedTitle(),
                             style = MaterialTheme.typography.labelSmall,
                             color = CyberCyan,
                             maxLines = 1,
@@ -704,7 +725,7 @@ fun QuestJournalEntryCard(
 
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "+${quest.xpEarned} XP",
+                    text = stringResource(id = R.string.journal_xp_badge_format, quest.xpEarned),
                     style = MaterialTheme.typography.labelLarge,
                     color = GuildGold,
                     fontWeight = FontWeight.Bold,
@@ -714,7 +735,7 @@ fun QuestJournalEntryCard(
 
             // 1. QUEST NAME (Title)
             Text(
-                text = quest.questName.ifBlank { "Untitled Walking Quest" },
+                text = quest.questName.ifBlank { stringResource(id = R.string.journal_untitled_quest) },
                 style = MaterialTheme.typography.titleLarge,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
@@ -739,7 +760,7 @@ fun QuestJournalEntryCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Quest Location",
+                            contentDescription = stringResource(id = R.string.journal_cd_location),
                             tint = CyberCyan,
                             modifier = Modifier.size(18.dp)
                         )
@@ -774,7 +795,7 @@ fun QuestJournalEntryCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CalendarToday,
-                                contentDescription = "Date Completed",
+                                contentDescription = stringResource(id = R.string.journal_cd_date_completed),
                                 tint = GuildGold,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -868,7 +889,7 @@ fun QuestJournalEntryCard(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                            contentDescription = "Narrate Quest Chronicle",
+                            contentDescription = stringResource(id = R.string.journal_cd_narrate),
                             tint = GuildGold,
                             modifier = Modifier.size(16.dp)
                         )
@@ -913,7 +934,7 @@ fun QuestJournalEntryCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
-                            contentDescription = "Share Quest Journal Entry",
+                            contentDescription = stringResource(id = R.string.journal_cd_share),
                             tint = CyberCyan,
                             modifier = Modifier.size(18.dp)
                         )
@@ -925,7 +946,7 @@ fun QuestJournalEntryCard(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
-                                contentDescription = "Delete Quest Journal Entry",
+                                contentDescription = stringResource(id = R.string.journal_cd_delete),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -970,12 +991,16 @@ private fun JournalMetricPill(
     }
 }
 
-fun formatQuestCompletionDate(timestamp: Timestamp?): String {
-    if (timestamp == null) return "Synced • Just now"
+fun formatQuestCompletionDate(
+    timestamp: Timestamp?,
+    justNowLabel: String = "Synced • Just now",
+    recentlyLabel: String = "Completed recently"
+): String {
+    if (timestamp == null) return justNowLabel
     return try {
-        val formatter = SimpleDateFormat("MMM d, yyyy • h:mm a", Locale.US)
+        val formatter = SimpleDateFormat("MMM d, yyyy • h:mm a", Locale.getDefault())
         formatter.format(timestamp.toDate())
     } catch (_: Exception) {
-        "Completed recently"
+        recentlyLabel
     }
 }

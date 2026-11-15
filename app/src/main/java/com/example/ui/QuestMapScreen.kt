@@ -259,7 +259,11 @@ fun QuestMapScreen(
                         onClick = { viewModel.togglePocketWalkMode() },
                         label = {
                             Text(
-                                text = if (isPocketWalkActive) "$pocketDmBase: ${pocketProximityMeters}m" else pocketDmBase,
+                                text = if (isPocketWalkActive) {
+                                    stringResource(id = R.string.map_pocket_distance_format, pocketDmBase, pocketProximityMeters)
+                                } else {
+                                    pocketDmBase
+                                },
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1
                             )
@@ -267,7 +271,7 @@ fun QuestMapScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Headphones,
-                                contentDescription = "Toggle Hands-Free Pocket Dungeon Master",
+                                contentDescription = stringResource(id = R.string.map_cd_pocket_dm),
                                 modifier = Modifier.size(16.dp)
                             )
                         },
@@ -297,7 +301,7 @@ fun QuestMapScreen(
                                 } else {
                                     Icons.AutoMirrored.Filled.VolumeOff
                                 },
-                                contentDescription = "Toggle Auto Narration",
+                                contentDescription = stringResource(id = R.string.map_cd_auto_narration),
                                 modifier = Modifier.size(16.dp)
                             )
                         },
@@ -364,7 +368,7 @@ fun QuestMapScreen(
                             )
                         }
                         Text(
-                            text = "${dailyWalkMeters}m / ${viewModel.dailyWalkGoalMeters}m",
+                            text = stringResource(id = R.string.map_walk_progress_format, dailyWalkMeters, viewModel.dailyWalkGoalMeters),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold,
                             color = if (dailyWalkMeters >= viewModel.dailyWalkGoalMeters) ArcaneEmerald else GuildGold
@@ -388,9 +392,9 @@ fun QuestMapScreen(
                     ) {
                         Text(
                             text = if (dailyWalkMeters >= viewModel.dailyWalkGoalMeters) {
-                                "Cadence Goal Reached! (+100 XP)"
+                                stringResource(id = R.string.map_cadence_reached)
                             } else {
-                                "${viewModel.dailyWalkGoalMeters - dailyWalkMeters}m remaining today"
+                                stringResource(id = R.string.map_cadence_remaining_format, viewModel.dailyWalkGoalMeters - dailyWalkMeters)
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = if (dailyWalkMeters >= viewModel.dailyWalkGoalMeters) ArcaneEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -433,12 +437,19 @@ fun QuestMapScreen(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = stringResource(id = R.string.world_atmosphere_format, activeAtmosphere.title.uppercase()),
+                                    text = stringResource(
+                                        id = R.string.world_atmosphere_format,
+                                        activeAtmosphere.localizedTitle().uppercase(Locale.getDefault())
+                                    ),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = CyberCyan
                                 )
                                 Text(
-                                    text = "${activeAtmosphere.bonusLabel} (${activeAtmosphere.favoredCategory.label})",
+                                    text = stringResource(
+                                        id = R.string.map_atmosphere_bonus_format,
+                                        activeAtmosphere.localizedBonusLabel(),
+                                        activeAtmosphere.favoredCategory.localizedLabel()
+                                    ),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = GuildGold
                                 )
@@ -486,7 +497,7 @@ fun QuestMapScreen(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Search,
-                                    contentDescription = "Search Location"
+                                    contentDescription = stringResource(id = R.string.map_cd_search_location)
                                 )
                             },
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -524,7 +535,7 @@ fun QuestMapScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.AutoAwesome,
-                                contentDescription = "Generate Quest",
+                                contentDescription = stringResource(id = R.string.map_cd_generate_quest),
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
@@ -550,7 +561,7 @@ fun QuestMapScreen(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.MyLocation,
-                                    contentDescription = "Scan Live GPS",
+                                    contentDescription = stringResource(id = R.string.map_cd_scan_gps),
                                     modifier = Modifier.size(16.dp)
                                 )
                             },
@@ -575,7 +586,7 @@ fun QuestMapScreen(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.Verified,
-                                    contentDescription = "Offline Expedition Pack",
+                                    contentDescription = stringResource(id = R.string.map_cd_offline_pack),
                                     modifier = Modifier.size(16.dp)
                                 )
                             },
@@ -768,6 +779,8 @@ fun QuestMapScreen(
         // 5. Selected Real-World Waypoint Lore, Multimodal Vision Scanner & Audio RPG Encounter Card
         if (activeLandmark != null) {
             item {
+                val localizedStyleTitle = selectedStyle.localizedTitle()
+                val localizedLandmarkCategory = activeLandmark.category.localizedLabel()
                 ActiveWaypointEncounterCard(
                     landmark = activeLandmark,
                     waypointNumber = selectedIndex + 1,
@@ -815,18 +828,25 @@ fun QuestMapScreen(
                         }
                     },
                     onShareQuestPassport = {
-                        val shareText = buildString {
-                            append("🗺️ SideQuest Walking RPG: $questTitle\n")
-                            append("🎭 Archetype: ${selectedStyle.title} (${selectedStyle.narratorTitle})\n")
-                            append("📍 Current Landmark: ${activeLandmark.name} (${activeLandmark.category.label})\n")
-                            append("🏆 Progress: $clearedCount/${landmarks.size} real-world stops cleared in $regionName!")
-                        }
+                        val shareText = context.getString(
+                            R.string.map_share_walk_format,
+                            questTitle,
+                            localizedStyleTitle,
+                            selectedStyle.narratorTitle,
+                            activeLandmark.name,
+                            localizedLandmarkCategory,
+                            clearedCount,
+                            landmarks.size,
+                            regionName
+                        )
                         val sendIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
                             putExtra(Intent.EXTRA_TEXT, shareText)
                         }
                         try {
-                            context.startActivity(Intent.createChooser(sendIntent, "Share SideQuest Walk"))
+                            context.startActivity(
+                                Intent.createChooser(sendIntent, context.getString(R.string.map_share_walk_chooser))
+                            )
                         } catch (_: Exception) {
                         }
                     }
@@ -904,7 +924,10 @@ fun QuestMapScreen(
                             onCopyCode = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
                                 clipboard?.setPrimaryClip(
-                                    ClipData.newPlainText("SideQuest Voucher Code", voucher.redemptionCode)
+                                    ClipData.newPlainText(
+                                        context.getString(R.string.map_voucher_code_label),
+                                        voucher.redemptionCode
+                                    )
                                 )
                             }
                         )
@@ -1051,12 +1074,12 @@ private fun TavernVoucherCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.ContentCopy,
-                            contentDescription = "Copy Code",
+                            contentDescription = stringResource(id = R.string.map_cd_copy_code),
                             tint = CyberCyan,
                             modifier = Modifier.size(12.dp)
                         )
                         Text(
-                            text = if (copied) "COPIED" else voucher.redemptionCode,
+                            text = if (copied) stringResource(id = R.string.map_copied_badge) else voucher.redemptionCode,
                             style = MaterialTheme.typography.labelMedium,
                             color = CyberCyan
                         )
@@ -1094,9 +1117,9 @@ private fun TavernVoucherCard(
             ) {
                 Text(
                     text = if (voucher.isRedeemed) {
-                        "Perk Claimed (${voucher.redemptionCode})"
+                        stringResource(id = R.string.map_perk_claimed_format, voucher.redemptionCode)
                     } else {
-                        "Claim Partner Perk (+100 XP)"
+                        stringResource(id = R.string.map_claim_perk_btn)
                     },
                     style = MaterialTheme.typography.labelLarge
                 )
@@ -1139,7 +1162,7 @@ private fun GuildBountyCard(
                     shape = RoundedCornerShape(50)
                 ) {
                     Text(
-                        text = if (bounty.isCompleted) "BOUNTY CLAIMED" else bounty.sponsorTag,
+                        text = if (bounty.isCompleted) stringResource(id = R.string.map_bounty_claimed) else bounty.sponsorTag,
                         style = MaterialTheme.typography.labelMedium,
                         color = if (bounty.isCompleted) ArcaneEmerald else GuildGold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -1208,7 +1231,7 @@ private fun CharacterStyleCard(
         Box(modifier = Modifier.fillMaxSize()) {
             Image(
                 painter = painterResource(id = imageRes),
-                contentDescription = style.title,
+                contentDescription = style.localizedTitle(),
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
@@ -1237,7 +1260,7 @@ private fun CharacterStyleCard(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = style.title,
+                    text = style.localizedTitle(),
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
@@ -1456,9 +1479,8 @@ private fun TacticalRealWorldMapCanvas(
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
-                        text = String.format(
-                            Locale.US,
-                            "GPS %.4f, %.4f • %dm walk",
+                        text = stringResource(
+                            id = R.string.map_hud_gps_walk_format,
                             activeLm.latitude,
                             activeLm.longitude,
                             activeLm.distanceMeters
@@ -1495,12 +1517,12 @@ private fun TacticalRealWorldMapCanvas(
             ) {
                 Icon(
                     imageVector = Icons.Default.ZoomIn,
-                    contentDescription = "Cycle Map Zoom",
+                    contentDescription = stringResource(id = R.string.map_cd_cycle_zoom),
                     tint = GuildGold,
                     modifier = Modifier.size(15.dp)
                 )
                 Text(
-                    text = String.format(Locale.US, "%.1fx", zoomLevel),
+                    text = stringResource(id = R.string.map_zoom_format, zoomLevel),
                     style = MaterialTheme.typography.labelMedium,
                     color = GuildGold
                 )
@@ -1586,9 +1608,14 @@ private fun ActiveWaypointEncounterCard(
                         )
                         Text(
                             text = if (landmark.isCleared) {
-                                "WAYPOINT $waypointNumber/$totalWaypoints CLEARED"
+                                stringResource(id = R.string.map_waypoint_cleared_format, waypointNumber, totalWaypoints)
                             } else {
-                                "STOP $waypointNumber/$totalWaypoints • ${landmark.category.rpgLabelFor(style).uppercase(Locale.US)}"
+                                stringResource(
+                                    id = R.string.map_waypoint_stop_format,
+                                    waypointNumber,
+                                    totalWaypoints,
+                                    landmark.category.localizedLabel().uppercase(Locale.getDefault())
+                                )
                             },
                             style = MaterialTheme.typography.labelMedium,
                             color = if (landmark.isCleared) ArcaneEmerald else GuildGold,
@@ -1609,7 +1636,7 @@ private fun ActiveWaypointEncounterCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
-                            contentDescription = "Share Quest Passport",
+                            contentDescription = stringResource(id = R.string.map_cd_share_passport),
                             tint = GuildGold
                         )
                     }
@@ -1623,7 +1650,9 @@ private fun ActiveWaypointEncounterCard(
                     ) {
                         Icon(
                             imageVector = if (isSpeaking) Icons.Default.Stop else Icons.Default.PlayArrow,
-                            contentDescription = if (isSpeaking) "Stop Voice Narration" else "Play Voice Narration",
+                            contentDescription = stringResource(
+                                id = if (isSpeaking) R.string.map_cd_stop_voice else R.string.map_cd_play_voice
+                            ),
                             tint = MaterialTheme.colorScheme.primary
                         )
                     }

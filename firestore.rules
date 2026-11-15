@@ -280,6 +280,17 @@ service cloud.firestore {
 
         allow delete: if isSignedIn() && isValidId(userId) && isValidId(artifactId) && request.auth.uid == userId;
       }
+
+      // Subcollection: Usage Quota Ledger (Daily AI free-tier allowance & grace tracker)
+      match /usageQuota/{periodId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(periodId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+        allow create, update: if isSignedIn() &&
+                                 isValidId(userId) &&
+                                 isValidId(periodId) &&
+                                 request.auth.uid == userId;
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(periodId) && request.auth.uid == userId;
+      }
     }
   }
 }

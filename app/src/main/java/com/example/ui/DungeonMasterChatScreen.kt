@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -70,6 +71,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -107,7 +109,10 @@ fun DungeonMasterChatScreen(
     val isGeneratingRiddle by viewModel.isGeneratingRiddle.collectAsState()
     val activeAiRiddle by viewModel.activeAiRiddle.collectAsState()
     val riddleAnswerStatus by viewModel.riddleAnswerStatus.collectAsState()
+    val isActiveRiddleSolved by viewModel.isActiveRiddleSolved.collectAsState()
     val isPolishingVoiceNote by viewModel.isPolishingVoiceNote.collectAsState()
+    val usageQuotaLedger by viewModel.usageQuotaLedger.collectAsState()
+    val context = LocalContext.current
 
     val activeLandmark = landmarks.getOrNull(selectedIndex) ?: landmarks.firstOrNull()
     var inputText by rememberSaveable { mutableStateOf("") }
@@ -146,9 +151,9 @@ fun DungeonMasterChatScreen(
             putExtra(
                 RecognizerIntent.EXTRA_PROMPT,
                 if (mode == "FIELD_LOG") {
-                    "Speak your explorer field observation for Gemini transcription..."
+                    context.getString(R.string.dm_speech_prompt_field)
                 } else {
-                    "Speak to ${style.narratorTitle}..."
+                    context.getString(R.string.dm_speech_prompt_chat_format, style.narratorTitle)
                 }
             )
         }
@@ -159,7 +164,19 @@ fun DungeonMasterChatScreen(
             if (mode == "FIELD_LOG") {
                 showVoiceFieldLogPanel = true
             } else {
-                val fallbackPrompt = "Tell me the hidden historical backstory of ${activeLandmark?.name ?: "this landmark"} and what my ${style.title} senses."
+                val lmName = activeLandmark?.name ?: context.getString(R.string.dm_this_landmark)
+                val fallbackPrompt = context.getString(
+                    R.string.dm_speech_fallback_prompt_format,
+                    lmName,
+                    context.getString(
+                        when (style) {
+                            com.example.model.CharacterStyle.CYBERPUNK_SCOUT -> R.string.style_cyberpunk_title
+                            com.example.model.CharacterStyle.VICTORIAN_HISTORIAN -> R.string.style_victorian_title
+                            com.example.model.CharacterStyle.ARCANE_CARTOGRAPHER -> R.string.style_arcane_title
+                            com.example.model.CharacterStyle.NOIR_DETECTIVE -> R.string.style_noir_title
+                        }
+                    )
+                )
                 viewModel.sendChatMessageToDungeonMaster(fallbackPrompt)
             }
         }
@@ -171,11 +188,14 @@ fun DungeonMasterChatScreen(
         }
     }
 
+    val localizedStyleTitle = style.localizedTitle()
+    val thisArea = stringResource(id = R.string.dm_this_area)
+    val thisLandmark = stringResource(id = R.string.dm_this_landmark)
     val quickPrompts = listOf(
-        "Tell me the real history of ${activeLandmark?.name ?: "this area"}",
-        "What hidden secret does my ${style.title} sense here?",
-        "Give me a field riddle about ${activeLandmark?.name ?: "this landmark"}",
-        "What should I look for on the plaque or facade?"
+        stringResource(id = R.string.dm_quick_prompt_1_format, activeLandmark?.name ?: thisArea),
+        stringResource(id = R.string.dm_quick_prompt_2_format, localizedStyleTitle),
+        stringResource(id = R.string.dm_quick_prompt_3_format, activeLandmark?.name ?: thisLandmark),
+        stringResource(id = R.string.dm_quick_prompt_4)
     )
 
     Column(
@@ -249,9 +269,8 @@ fun DungeonMasterChatScreen(
                                             landmarkName = activeLandmark.name,
                                             categoryLabel = activeLandmark.category.label,
                                             realFact = activeLandmark.realFactOrAddress,
-                                            coordinatesText = String.format(
-                                                Locale.US,
-                                                "GPS %.4f, %.4f",
+                                            coordinatesText = context.getString(
+                                                R.string.dm_gps_format,
                                                 activeLandmark.latitude,
                                                 activeLandmark.longitude
                                             )
@@ -273,7 +292,7 @@ fun DungeonMasterChatScreen(
                                 } else {
                                     Icon(
                                         imageVector = Icons.Default.CameraAlt,
-                                        contentDescription = "Gemini Vision Plaque Scan",
+                                        contentDescription = stringResource(id = R.string.dm_cd_vision_scan),
                                         tint = CyberCyan
                                     )
                                 }
@@ -287,12 +306,54 @@ fun DungeonMasterChatScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Stop,
-                                    contentDescription = "Stop Voice",
+                                    contentDescription = stringResource(id = R.string.dm_cd_stop_voice),
                                     tint = GuildGold
                                 )
                             }
                         }
                     }
+                }
+
+                // Live Quota Indicator Pill & Value Receipt shortcut
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MidnightAbyss.copy(alpha = 0.55f))
+                        .clickable { viewModel.showAiValueReceipt(true) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(if (usageQuotaLedger.ecoLiteMode) CyberCyan else ArcaneEmerald)
+                        )
+                        Text(
+                            text = stringResource(
+                                id = if (usageQuotaLedger.ecoLiteMode) R.string.dm_tier_eco_lite else R.string.dm_tier_primary
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (usageQuotaLedger.ecoLiteMode) CyberCyan else ArcaneEmerald,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Text(
+                        text = stringResource(
+                            id = R.string.dm_quota_checks_format,
+                            usageQuotaLedger.getDailyChecksUsed(),
+                            usageQuotaLedger.getDailyLimit(),
+                            usageQuotaLedger.getResetCountdownFormatted()
+                        ),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
                 // AI Power Action Chips: Fact-Check Dossier, AI Riddle Duel, & Voice Field Log
@@ -307,7 +368,9 @@ fun DungeonMasterChatScreen(
                         enabled = !isGeneratingFactDossier,
                         label = {
                             Text(
-                                text = if (isGeneratingFactDossier) "Verifying..." else stringResource(id = R.string.dm_fact_check_chip),
+                                text = stringResource(
+                                    id = if (isGeneratingFactDossier) R.string.dm_verifying else R.string.dm_fact_check_chip
+                                ),
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1
                             )
@@ -332,7 +395,9 @@ fun DungeonMasterChatScreen(
                         enabled = !isGeneratingRiddle,
                         label = {
                             Text(
-                                text = if (isGeneratingRiddle) "Crafting..." else stringResource(id = R.string.dm_riddle_duel_chip),
+                                text = stringResource(
+                                    id = if (isGeneratingRiddle) R.string.dm_crafting else R.string.dm_riddle_duel_chip
+                                ),
                                 style = MaterialTheme.typography.labelMedium,
                                 maxLines = 1
                             )
@@ -410,7 +475,7 @@ fun DungeonMasterChatScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Close Voice Log",
+                                contentDescription = stringResource(id = R.string.dm_cd_close_voice_log),
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(16.dp)
                             )
@@ -463,7 +528,9 @@ fun DungeonMasterChatScreen(
                             )
                         ) {
                             Text(
-                                text = if (isPolishingVoiceNote) "Polishing..." else "Mint Chronicle (+140 XP)",
+                                text = stringResource(
+                                    id = if (isPolishingVoiceNote) R.string.dm_polishing else R.string.dm_mint_chronicle_btn
+                                ),
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -477,6 +544,7 @@ fun DungeonMasterChatScreen(
             AiLandmarkRiddleDuelCard(
                 riddle = riddle,
                 answerStatus = riddleAnswerStatus,
+                isSolved = isActiveRiddleSolved,
                 onSelectOption = { idx -> viewModel.submitAiRiddleAnswer(idx) },
                 onDismiss = { viewModel.dismissAiRiddle() }
             )
@@ -559,7 +627,7 @@ fun DungeonMasterChatScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Mic,
-                    contentDescription = "Speak to Dungeon Master",
+                    contentDescription = stringResource(id = R.string.dm_cd_speak),
                     tint = CyberCyan
                 )
             }
@@ -626,7 +694,7 @@ fun DungeonMasterChatScreen(
                 } else {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = "Send to Dungeon Master",
+                        contentDescription = stringResource(id = R.string.dm_cd_send),
                         tint = if (inputText.isNotBlank()) MidnightAbyss else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -639,6 +707,7 @@ fun DungeonMasterChatScreen(
 private fun AiLandmarkRiddleDuelCard(
     riddle: AiLandmarkRiddle,
     answerStatus: String?,
+    isSolved: Boolean,
     onSelectOption: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -669,7 +738,7 @@ private fun AiLandmarkRiddleDuelCard(
                 IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Dismiss Riddle",
+                        contentDescription = stringResource(id = R.string.dm_cd_dismiss_riddle),
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
@@ -702,7 +771,7 @@ private fun AiLandmarkRiddleDuelCard(
             }
 
             if (!answerStatus.isNullOrBlank()) {
-                val solved = answerStatus.startsWith("CORRECT")
+                val solved = isSolved || answerStatus.startsWith(stringResource(id = R.string.riddle_correct_prefix))
                 Surface(
                     color = if (solved) ArcaneEmerald.copy(alpha = 0.18f) else CyberCyan.copy(alpha = 0.16f),
                     shape = RoundedCornerShape(10.dp),
@@ -752,7 +821,7 @@ private fun LandmarkFactDossierCard(
                 IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Dismiss Dossier",
+                        contentDescription = stringResource(id = R.string.dm_cd_dismiss_dossier),
                         tint = Color.White,
                         modifier = Modifier.size(16.dp)
                     )
@@ -760,7 +829,7 @@ private fun LandmarkFactDossierCard(
             }
 
             Text(
-                text = "${dossier.landmarkName} (${dossier.architecturalStyle})",
+                text = stringResource(id = R.string.dm_dossier_title_format, dossier.landmarkName, dossier.architecturalStyle),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
@@ -843,7 +912,7 @@ private fun ChatMessageBubble(
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                contentDescription = "Narrate message aloud",
+                                contentDescription = stringResource(id = R.string.dm_cd_narrate_message),
                                 tint = GuildGold,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -869,11 +938,10 @@ private fun ChatMessageBubble(
                             modifier = Modifier.size(13.dp)
                         )
                         Text(
-                            text = if (message.isVisionScan) {
-                                "Multimodal Gemini Vision • ${message.landmarkName}"
-                            } else {
-                                "Grounded at ${message.landmarkName}"
-                            },
+                            text = stringResource(
+                                id = if (message.isVisionScan) R.string.dm_grounding_vision_format else R.string.dm_grounding_at_format,
+                                message.landmarkName
+                            ),
                             style = MaterialTheme.typography.labelMedium,
                             color = if (message.isVisionScan) CyberCyan else MaterialTheme.colorScheme.onSurfaceVariant
                         )

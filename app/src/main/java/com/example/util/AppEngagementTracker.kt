@@ -47,11 +47,19 @@ enum class SmartPromptType(val title: String) {
     UPDATE_APP("New SideQuest Update Available")
 }
 
+internal fun computeNextVersionName(currentVersionName: String): String {
+    val trimmed = currentVersionName.trim()
+    if (trimmed.isBlank()) return "1.1"
+    val parts = trimmed.split(".")
+    val lastInt = parts.lastOrNull()?.toIntOrNull() ?: return "$trimmed.1"
+    return (parts.dropLast(1) + (lastInt + 1).toString()).joinToString(".")
+}
+
 data class EngagementTelemetryState(
     val installedVersionCode: Int = BuildConfig.VERSION_CODE,
     val installedVersionName: String = BuildConfig.VERSION_NAME,
     val availableUpdateVersionCode: Int = BuildConfig.VERSION_CODE + 1,
-    val availableUpdateVersionName: String = "1.1",
+    val availableUpdateVersionName: String = computeNextVersionName(BuildConfig.VERSION_NAME),
     val isOnboardingCompleted: Boolean = false,
     val appLaunchCount: Int = 2,
     val daysSinceInstall: Int = 3,

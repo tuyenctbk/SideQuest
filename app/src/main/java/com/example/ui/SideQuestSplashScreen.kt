@@ -68,9 +68,9 @@ fun SideQuestSplashScreen(
     onSplashFinished: () -> Unit
 ) {
     val stages = listOf(
-        "Attuning GPS Compass & Real-World Ley-Lines...",
-        "Syncing OpenStreetMap Parks, Plaques & Cafes...",
-        "Waking Gemini Audio Dungeon Master..."
+        stringResource(id = R.string.splash_stage_1),
+        stringResource(id = R.string.splash_stage_2),
+        stringResource(id = R.string.splash_stage_3)
     )
     var stageIndex by remember { mutableIntStateOf(0) }
     var targetProgress by remember { mutableFloatStateOf(0.25f) }
@@ -195,7 +195,7 @@ fun SideQuestSplashScreen(
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.img_launcher_fg_1794444305032),
-                        contentDescription = "SideQuest Compass Emblem",
+                        contentDescription = stringResource(id = R.string.splash_compass_cd),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )

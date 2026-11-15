@@ -145,20 +145,12 @@ fun onGoogleSignInClicked(
     val clientId = try {
         context.getString(R.string.default_web_client_id)
     } catch (e: Exception) {
-        onAuthError("Google Sign-In configuration missing: default_web_client_id not found")
+        onAuthError(context.getString(R.string.auth_error_missing_config))
         return
     }
 
     if (clientId.isBlank() || clientId.startsWith("mock-")) {
-        // Fallback for mock/local configurations
-        scope.launch {
-            try {
-                Firebase.auth.signInAnonymously().await()
-                onAuthSuccess()
-            } catch (e: Exception) {
-                onAuthError("Google Client ID not configured. Please use Guest Explorer sign-in.")
-            }
-        }
+        onAuthError(context.getString(R.string.auth_error_client_id_unconfigured))
         return
     }
 
@@ -177,14 +169,14 @@ fun onGoogleSignInClicked(
                 Firebase.auth.signInWithCredential(authCredential).await()
                 onAuthSuccess()
             } else {
-                onAuthError("Unexpected credential type")
+                onAuthError(context.getString(R.string.auth_error_unexpected_credential))
             }
         } catch (e: GetCredentialCancellationException) {
             Log.w("Auth", "Google Sign-In cancelled or dismissed: ${e.message}", e)
             onAuthCancelled()
         } catch (e: Exception) {
             Log.e("Auth", "Google Sign-In failed", e)
-            onAuthError(e.localizedMessage ?: "Sign in failed")
+            onAuthError(e.localizedMessage ?: context.getString(R.string.auth_error_signin_failed))
         }
     }
 }
@@ -270,7 +262,7 @@ fun AuthScreen(
                     Box(modifier = Modifier.fillMaxSize()) {
                         Image(
                             painter = painterResource(id = R.drawable.img_hero_sidequest_1794444307373),
-                            contentDescription = "SideQuest RPG Map Hero Banner",
+                            contentDescription = stringResource(id = R.string.auth_hero_banner_cd),
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )

@@ -12,6 +12,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.AuthScreen
 import com.example.ui.MainFeatureScreen
@@ -87,7 +88,9 @@ fun AppNavigation(auth: FirebaseAuth = Firebase.auth) {
         )
     } else {
         val effectiveUid = user?.uid ?: guestUserId ?: "wanderer"
-        val effectiveName = user?.displayName ?: user?.email?.substringBefore("@") ?: "Guest Explorer"
+        val effectiveName = user?.displayName
+            ?: user?.email?.substringBefore("@")
+            ?: stringResource(id = R.string.guest_explorer_name)
         key(effectiveUid) {
             MainFeatureScreen(
                 currentUserId = effectiveUid,

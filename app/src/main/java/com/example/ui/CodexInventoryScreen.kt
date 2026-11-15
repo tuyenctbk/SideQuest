@@ -142,17 +142,21 @@ fun CodexInventoryScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "${rank.badgeLabel.uppercase()} • ${rank.title.uppercase()}",
+                                text = stringResource(
+                                    id = R.string.codex_rank_title_format,
+                                    rank.localizedBadgeLabel().uppercase(),
+                                    rank.localizedTitle().uppercase()
+                                ),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = GuildGold
                             )
                             Text(
-                                text = profile?.displayName ?: "Adventurer",
+                                text = profile?.displayName?.ifBlank { null } ?: stringResource(id = R.string.codex_adventurer_fallback),
                                 style = MaterialTheme.typography.headlineMedium,
                                 color = Color.White
                             )
                             Text(
-                                text = rank.perkSummary,
+                                text = rank.localizedPerkSummary(),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = CyberCyan
                             )
@@ -162,7 +166,7 @@ fun CodexInventoryScreen(
                             shape = RoundedCornerShape(50)
                         ) {
                             Text(
-                                text = "LVL $level",
+                                text = stringResource(id = R.string.codex_level_format, level),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = MidnightAbyss,
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
@@ -177,7 +181,7 @@ fun CodexInventoryScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Total XP: $xp (${250L - (xp % 250L)} XP to next Level)",
+                                text = stringResource(id = R.string.codex_xp_progress_format, xp, 250L - (xp % 250L)),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.weight(1f, fill = false),
@@ -186,7 +190,7 @@ fun CodexInventoryScreen(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Relic Power: +$equippedPower",
+                                text = stringResource(id = R.string.codex_relic_power_format, equippedPower),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = GuildGold,
                                 maxLines = 1
@@ -210,17 +214,17 @@ fun CodexInventoryScreen(
                         StatPill(
                             modifier = Modifier.weight(1f),
                             value = "${artifacts.size}",
-                            label = "Found Artifacts"
+                            label = stringResource(id = R.string.codex_stat_found_artifacts)
                         )
                         StatPill(
                             modifier = Modifier.weight(1f),
                             value = "${badges.size}",
-                            label = "Badges Earned"
+                            label = stringResource(id = R.string.codex_stat_badges_earned)
                         )
                         StatPill(
                             modifier = Modifier.weight(1f),
                             value = "${inventory.size}",
-                            label = "Satchel Relics"
+                            label = stringResource(id = R.string.codex_stat_satchel_relics)
                         )
                     }
 
@@ -254,16 +258,18 @@ fun CodexInventoryScreen(
                                 )
                                 Column {
                                     Text(
-                                        text = if (isGuildPassActive) {
-                                            "ADVENTURER'S GUILD PASS • ACTIVE"
-                                        } else {
-                                            "ADVENTURER'S GUILD PASS"
-                                        },
+                                        text = stringResource(
+                                            id = if (isGuildPassActive) {
+                                                R.string.codex_guild_pass_active_banner
+                                            } else {
+                                                R.string.codex_guild_pass_inactive_banner
+                                            }
+                                        ),
                                         style = MaterialTheme.typography.labelLarge,
                                         color = if (isGuildPassActive) ArcaneEmerald else GuildGold
                                     )
                                     Text(
-                                        text = "1.5x XP Boost • Offline Lore Packs • Streak Shield • Relic Forge",
+                                        text = stringResource(id = R.string.codex_guild_pass_sub_perks),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = Color.White
                                     )
@@ -281,7 +287,9 @@ fun CodexInventoryScreen(
                                 modifier = Modifier.testTag("toggle_guild_pass_button")
                             ) {
                                 Text(
-                                    text = if (isGuildPassActive) "Active" else "Activate",
+                                    text = stringResource(
+                                        id = if (isGuildPassActive) R.string.codex_active_short else R.string.codex_activate_short
+                                    ),
                                     style = MaterialTheme.typography.labelLarge
                                 )
                             }
@@ -420,8 +428,8 @@ fun CodexInventoryScreen(
                 if (inventory.isEmpty()) {
                     item {
                         EmptyCodexStateCard(
-                            title = "Your Satchel is Empty",
-                            subtitle = "Visit a real-world park, historical plaque, or coffee shop on the World Map and perform an action to claim RPG relics!"
+                            title = stringResource(id = R.string.codex_satchel_empty_title),
+                            subtitle = stringResource(id = R.string.codex_satchel_empty_desc)
                         )
                     }
                 } else {
@@ -471,8 +479,8 @@ fun CodexInventoryScreen(
                 if (quests.isEmpty()) {
                     item {
                         EmptyCodexStateCard(
-                            title = "No Quests Recorded Yet",
-                            subtitle = "Start a walking quest on the World Map or publish a trail above to chronicle your real-world adventures in Cloud Firestore."
+                            title = stringResource(id = R.string.codex_quests_empty_title),
+                            subtitle = stringResource(id = R.string.codex_quests_empty_desc)
                         )
                     }
                 } else {
@@ -482,18 +490,33 @@ fun CodexInventoryScreen(
                             onNarrateQuest = {
                                 viewModel.narrateArtifactOrBadgeLore(
                                     title = quest.questName,
-                                    loreText = "Completed in ${quest.location}. ${quest.summary}"
+                                    loreText = context.getString(R.string.journal_chronicle_narration_format, quest.location, quest.summary)
                                 )
                             },
                             onShareQuest = {
-                                val formattedDate = formatQuestCompletionDate(quest.completedAt)
-                                val text = "📜 SideQuest Journal: ${quest.questName}\n📍 ${quest.location}\n🗓️ Completed: $formattedDate\n✨ ${quest.completedStops}/${quest.landmarksCount} stops (${quest.distanceMeters}m) • +${quest.xpEarned} XP"
+                                val formattedDate = formatQuestCompletionDate(
+                                    timestamp = quest.completedAt,
+                                    justNowLabel = context.getString(R.string.journal_synced_just_now),
+                                    recentlyLabel = context.getString(R.string.journal_completed_recently)
+                                )
+                                val text = context.getString(
+                                    R.string.codex_share_chronicle_format,
+                                    quest.questName,
+                                    quest.location,
+                                    formattedDate,
+                                    quest.completedStops,
+                                    quest.landmarksCount,
+                                    quest.distanceMeters,
+                                    quest.xpEarned
+                                )
                                 val sendIntent = Intent(Intent.ACTION_SEND).apply {
                                     type = "text/plain"
                                     putExtra(Intent.EXTRA_TEXT, text)
                                 }
                                 try {
-                                    context.startActivity(Intent.createChooser(sendIntent, "Share Quest Chronicle"))
+                                    context.startActivity(
+                                        Intent.createChooser(sendIntent, context.getString(R.string.codex_share_chronicle_chooser))
+                                    )
                                 } catch (_: Exception) {
                                 }
                             },
@@ -541,13 +564,14 @@ private fun CommunityCreatorQuestStudioCard(
     defaultNeighborhood: String,
     onPublishQuest: (title: String, neighborhood: String, landmark: String, riddle: String) -> Unit
 ) {
+    val defaultTitle = stringResource(id = R.string.codex_creator_default_title)
+    val defaultLandmark = stringResource(id = R.string.codex_creator_default_landmark)
+    val defaultRiddle = stringResource(id = R.string.codex_creator_default_riddle)
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var questTitle by rememberSaveable { mutableStateOf("Lanterns of the Old Quarter") }
+    var questTitle by rememberSaveable { mutableStateOf(defaultTitle) }
     var neighborhood by rememberSaveable { mutableStateOf(defaultNeighborhood) }
-    var landmarkStop by rememberSaveable { mutableStateOf("1898 Foundry Archway Plaque") }
-    var riddleText by rememberSaveable {
-        mutableStateOf("Locate the iron compass rose embedded in the walkway and read the motto aloud.")
-    }
+    var landmarkStop by rememberSaveable { mutableStateOf(defaultLandmark) }
+    var riddleText by rememberSaveable { mutableStateOf(defaultRiddle) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -597,7 +621,7 @@ private fun CommunityCreatorQuestStudioCard(
                     modifier = Modifier.testTag("toggle_creator_studio_button")
                 ) {
                     Text(
-                        text = if (expanded) "Hide" else "Create Trail",
+                        text = stringResource(id = if (expanded) R.string.codex_creator_hide else R.string.codex_creator_open),
                         color = CyberCyan,
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1
@@ -723,9 +747,9 @@ private fun RelicAlchemyForgeCard(
             ) {
                 Text(
                     text = if (relicCount >= 2) {
-                        "Synthesize Legendary Relic (2+ Relics Ready)"
+                        stringResource(id = R.string.codex_forge_ready_btn)
                     } else {
-                        "Collect ${2 - relicCount} More Relic(s) to Unlock Forge"
+                        stringResource(id = R.string.codex_forge_locked_format, 2 - relicCount)
                     },
                     style = MaterialTheme.typography.labelLarge
                 )
@@ -798,7 +822,7 @@ private fun CoOpPartyExpeditionCard(
                     FilterChip(
                         selected = role == selectedRole,
                         onClick = { onSelectRole(role) },
-                        label = { Text(role.title) },
+                        label = { Text(role.localizedTitle()) },
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = CyberCyan.copy(alpha = 0.22f),
                             selectedLabelColor = CyberCyan
@@ -818,12 +842,12 @@ private fun CoOpPartyExpeditionCard(
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
-                        text = stringResource(id = R.string.codex_role_perk_format, selectedRole.perk),
+                        text = stringResource(id = R.string.codex_role_perk_format, selectedRole.localizedPerk()),
                         style = MaterialTheme.typography.labelLarge,
                         color = GuildGold
                     )
                     Text(
-                        text = stringResource(id = R.string.codex_clue_specialty_format, selectedRole.clueSpecialty),
+                        text = stringResource(id = R.string.codex_clue_specialty_format, selectedRole.localizedClueSpecialty()),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -847,7 +871,11 @@ private fun CoOpPartyExpeditionCard(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${member.name} • ${member.role.title}",
+                                text = stringResource(
+                                    id = R.string.codex_member_role_format,
+                                    member.name,
+                                    member.role.localizedTitle()
+                                ),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = Color.White,
                                 modifier = Modifier.weight(1f, fill = false),
@@ -884,11 +912,9 @@ private fun CoOpPartyExpeditionCard(
                 )
             ) {
                 Text(
-                    text = if (isRiddleSolved) {
-                        "Co-Op Riddle Solved! (+250 Party XP & Vanguard Badge)"
-                    } else {
-                        "Combine Squad Clues & Solve Co-Op Riddle (+250 XP)"
-                    },
+                    text = stringResource(
+                        id = if (isRiddleSolved) R.string.codex_coop_solved_btn else R.string.codex_coop_solve_btn
+                    ),
                     style = MaterialTheme.typography.labelLarge
                 )
             }
@@ -1049,7 +1075,7 @@ private fun InventoryItemCard(
                     border = BorderStroke(1.dp, rarityColor)
                 ) {
                     Text(
-                        text = "${item.rarity} • ${item.itemType}",
+                        text = "${localizedRarityLabel(item.rarity)} • ${item.itemType}",
                         style = MaterialTheme.typography.labelMedium,
                         color = rarityColor,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -1114,7 +1140,9 @@ private fun InventoryItemCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = if (item.equipped) "Equipped" else "Equip Relic",
+                        text = stringResource(
+                            id = if (item.equipped) R.string.codex_item_equipped else R.string.codex_item_equip_relic
+                        ),
                         style = MaterialTheme.typography.labelLarge
                     )
                 }
@@ -1155,7 +1183,7 @@ private fun EarnedBadgeCard(badge: EarnedBadge) {
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${badge.rarity} • ${badge.category}",
+                    text = "${localizedRarityLabel(badge.rarity)} • ${badge.category}",
                     style = MaterialTheme.typography.labelMedium,
                     color = color
                 )
@@ -1208,7 +1236,12 @@ private fun QuestChronicleCard(
                     border = BorderStroke(1.dp, accent)
                 ) {
                     Text(
-                        text = stringResource(id = R.string.codex_quest_status_stops_format, quest.status, quest.completedStops, quest.landmarksCount),
+                        text = stringResource(
+                            id = R.string.codex_quest_status_stops_format,
+                            if (isCompleted) stringResource(id = R.string.journal_completed_badge) else quest.status,
+                            quest.completedStops,
+                            quest.landmarksCount
+                        ),
                         style = MaterialTheme.typography.labelMedium,
                         color = accent,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
@@ -1229,7 +1262,7 @@ private fun QuestChronicleCard(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Share,
-                            contentDescription = "Share Quest Chronicle",
+                            contentDescription = stringResource(id = R.string.journal_cd_share),
                             tint = GuildGold,
                             modifier = Modifier.size(16.dp)
                         )
